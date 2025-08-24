@@ -1,6 +1,10 @@
 import { Poppins } from "next/font/google";
 import "./globals.css";
 
+import { config } from "@fortawesome/fontawesome-svg-core";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+config.autoAddCss = false;
+
 const poppins = Poppins({
   variable: "--font-poppins",
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -26,7 +30,7 @@ const poppins = Poppins({
 });
 
 export const metadata = {
-  title: "SIC - Central",
+  title: "SIC Central",
   description: "Sparepart Inventory Control",
 };
 
