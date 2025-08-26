@@ -7,10 +7,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Topbar() {
   return (
     <div className="flex items-start justify-center w-full ">
-      <div className="flex gap-2 justify-between p-4 px-6 lg:px-8 items-center w-full bg-white rounded-3xl">
-        <div className="block lg:hidden">
-          <FontAwesomeIcon icon={faBars} className="p-2 rounded-2xl" />
-        </div>
+      <div className="flex gap-2 justify-between p-4 lg:px-8 items-center w-full bg-white rounded-3xl">
+        <FontAwesomeIcon
+          icon={faBars}
+          className="p-3 lg:p-4 rounded-2xl block lg:hidden cursor-pointer hover:bg-gray-100 duration-100"
+        />
         <div className="pr-2">
           <Image
             src={"/sic-icon.svg"}
@@ -40,12 +41,22 @@ export default function Topbar() {
           <div className="hidden lg:flex gap-2 pl-2 items-end">
             <p className="m-0 font-medium">Hi, Difa Egi Listianto</p>
           </div>
-          <ProfileImg
-            src="https://i.pinimg.com/736x/99/73/63/997363c033991ca3fe13c8f554e88289.jpg"
-            alt="Profile Image"
-            width={50}
-            height={50}
-          />
+          <div className="hidden lg:block">
+            <ProfileImg
+              src="https://i.pinimg.com/736x/99/73/63/997363c033991ca3fe13c8f554e88289.jpg"
+              alt="Profile Image"
+              width={50}
+              height={50}
+            />
+          </div>
+          <div className="block lg:hidden">
+            <ProfileImg
+              src="https://i.pinimg.com/736x/99/73/63/997363c033991ca3fe13c8f554e88289.jpg"
+              alt="Profile Image"
+              width={48}
+              height={48}
+            />
+          </div>
         </div>
       </div>
     </div>

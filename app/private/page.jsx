@@ -10,9 +10,8 @@ import SearchCard from "../../components/srccard";
 export default function Page() {
   const router = useRouter();
   return (
-    <div className="min-h-screen p-4 lg:p-6 flex flex-col gap-4 lg:gap-6">
+    <div className="page-container">
       <Topbar />
-
       <div className="grid  grid-cols-1 lg:grid-cols-3 gap-y-4 lg:gap-6">
         <div className="order-last lg:order-first">
           <div className="h-full rounded-3xl bg-white p-6">
@@ -54,9 +53,6 @@ export default function Page() {
           <div className="order-first lg:order-last lg:col-span-2 rounded-3xl bg-white p-6 pb-8 h-full">
             <p className="text-md lg:text-lg font-bold mb-6">Menu</p>
             <div className="grid lg:flex grid-cols-2 gap-4 lg:gap-6">
-              <MenuItem />
-              <MenuItem />
-              <MenuItem />
               <MenuItem />
             </div>
           </div>

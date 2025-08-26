@@ -15,7 +15,7 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
-    --foreground: #d8d8e2;
+    --foreground: #d8d8e250;
   }
 }
 
@@ -25,4 +25,8 @@ body {
   box-sizing: border-box;
   background-color: #d8d8e2;
   font-family: var(--font-poppins);
+}
+
+.page-container {
+  @apply min-h-screen p-4 lg:p-6 flex flex-col gap-4 lg:gap-6;
 }
