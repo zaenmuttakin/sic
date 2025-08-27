@@ -4,12 +4,12 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSortUp, faTable } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
-export default function MenuItem() {
+export default function MenuItem({ to, title }) {
   const router = useRouter();
   return (
     <button
-      onClick={() => router.push("/private/so")}
-      className="group relative rounded-3xl bg-gray-100 hover:bg-[#7A6DFF30] p-4 lg:p-6 pt-6 lg:pt-10 lg:w-42 max-w-42 duration-100 cursor-pointer"
+      onClick={() => router.push(to)}
+      className="group relative rounded-3xl bg-gray-100 hover:bg-[#7A6DFF20] p-4 lg:p-6 pt-6 lg:pt-10 lg:w-42 max-w-42 duration-100 cursor-pointer"
     >
       <FontAwesomeIcon
         icon={faSortUp}
@@ -19,7 +19,7 @@ export default function MenuItem() {
         <FontAwesomeIcon icon={faTable} className="text-xl lg:text-2xl" />
       </div>
       <p className="text-sm font-medium lg:text-md text-left text-black group-hover:text-[#7A6DFF] duration-100">
-        Stock Opname
+        {title}
       </p>
     </button>
   );

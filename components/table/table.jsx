@@ -67,7 +67,7 @@ export default function Table() {
 
   return (
     <>
-      <div className="max-w-6xl text-sm mx-auto bg-white rounded-xl overflow-hidden">
+      <div className="max-w-6xl text-sm mx-auto bg-white rounded-2xl overflow-hidden">
         {/* Table Header */}
         {/* <div className="px-4 py-4 border-b border-gray-200 flex justify-between items-center">
           <h2 className="text-2xl font-bold text-gray-800">
@@ -172,7 +172,7 @@ export default function Table() {
         </div>
 
         {/* Table Footer */}
-        <div className="px-0 lg:px-4 pt-6 border-t border-gray-200 flex gap-8 justify-between items-center">
+        <div className="px-0 lg:px-4 pt-6 border-t border-gray-100 flex gap-8 justify-between items-center">
           <div className="text-sm text-gray-500">
             Showing <span className="font-medium">1</span> to{" "}
             <span className="font-medium">{data.length}</span> of{" "}

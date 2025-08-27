@@ -19,12 +19,12 @@
   }
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  background-color: #d8d8e2;
+* {
   font-family: var(--font-poppins);
+}
+
+body {
+  @apply bg-gradient-to-br from-indigo-50 to-purple-50 p-0 m-0 box-border;
 }
 
 .page-container {

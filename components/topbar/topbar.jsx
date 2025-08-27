@@ -7,7 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Topbar() {
   return (
     <div className="flex items-start justify-center w-full ">
-      <div className="flex gap-2 justify-between p-4 lg:px-8 items-center w-full bg-white rounded-3xl">
+      <div className="flex gap-2 justify-between p-4 lg:px-8 items-center w-full bg-white rounded-3xl shadow-lg shadow-black/5">
         <FontAwesomeIcon
           icon={faBars}
           className="p-3 lg:p-4 rounded-2xl block lg:hidden cursor-pointer hover:bg-gray-100 duration-100"

@@ -11,22 +11,6 @@ const poppins = Poppins({
   subsets: ["latin"],
   display: "swap",
   fallback: ["system-ui", "sans-serif"],
-  style: ["normal", "italic"],
-  preload: true,
-  adjustFontFallback: true,
-  fallbackWeight: "400",
-  fallbackStyle: "normal",
-  fallbackDisplay: "swap",
-  fallbackSubsets: ["latin"],
-  fallbackVariable: "--font-poppins-fallback",
-  fallbackFontFamily: "system-ui, sans-serif",
-  fallbackFontStyle: "normal",
-  fallbackFontWeight: "400",
-  fallbackFontSize: "1rem",
-  fallbackLineHeight: "1.5",
-  fallbackLetterSpacing: "normal",
-  fallbackTextTransform: "none",
-  fallbackFontFeatureSettings: "normal",
 });
 
 export const metadata = {

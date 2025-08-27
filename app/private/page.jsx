@@ -14,7 +14,7 @@ export default function Page() {
       <Topbar />
       <div className="grid  grid-cols-1 lg:grid-cols-3 gap-y-4 lg:gap-6">
         <div className="order-last lg:order-first">
-          <div className="h-full rounded-3xl bg-white p-6">
+          <div className="h-full rounded-3xl bg-white p-6 shadow-lg shadow-black/5">
             <p className="mb-6 text-md lg:text-lg font-bold">Daily Report</p>
             <div className="h-8 bg-gray-200 rounded mb-4"></div>
             <div className="h-10 bg-gray-300 rounded mb-2"></div>
@@ -39,21 +39,22 @@ export default function Page() {
           </div>
         </div>
 
-        <div className="col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-          <div className=" rounded-3xl bg-white p-6">
+        <div className="col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 ">
+          <div className=" rounded-3xl bg-white p-6 shadow-lg shadow-black/5">
             <p className="text-md lg:text-lg font-bold mb-6">
               Selisih SO Internal
             </p>
             <Table />
           </div>
-          <div className="hidden lg:block bg-white rounded-3xl">
+          <div className="hidden lg:block bg-white rounded-3xl shadow-lg shadow-black/5">
             <SearchCard />
           </div>
 
-          <div className="order-first lg:order-last lg:col-span-2 rounded-3xl bg-white p-6 pb-8 h-full">
+          <div className="order-first lg:order-last lg:col-span-2 rounded-3xl bg-white p-6 pb-8 h-full shadow-lg shadow-black/5 shadow-black/5">
             <p className="text-md lg:text-lg font-bold mb-6">Menu</p>
             <div className="grid lg:flex grid-cols-2 gap-4 lg:gap-6">
-              <MenuItem />
+              <MenuItem to="/private/so" title="Stock Opname" />
+              <MenuItem to="/try" title="Try" />
             </div>
           </div>
         </div>
