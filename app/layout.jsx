@@ -15,7 +15,7 @@ const poppins = Poppins({
 export const metadata = {
   title: "SIC Central",
   description: "Sparepart Inventory Control",
-  themeColor: "#faf5ff",
+  themeColor: "#eef2ff",
 };
 
 export default function RootLayout({ children }) {
