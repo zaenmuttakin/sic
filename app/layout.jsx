@@ -3,6 +3,7 @@ import "./globals.css";
 
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
+import Head from "next/head";
 config.autoAddCss = false;
 
 const poppins = Poppins({
@@ -21,6 +22,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <Head>
+        <meta name="theme-color" content="#faf5ff" />
+      </Head>
       <body className={`${poppins.variable} antialiased`}>{children}</body>
     </html>
   );
