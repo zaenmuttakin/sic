@@ -50,7 +50,7 @@ export default function Page() {
             <SearchCard />
           </div>
 
-          <div className="order-first lg:order-last lg:col-span-2 rounded-3xl bg-white p-6 pb-8 h-full shadow-lg shadow-black/5 shadow-black/5">
+          <div className="order-first lg:order-last lg:col-span-2 rounded-3xl bg-white p-6 pb-8 h-full shadow-lg shadow-black/5">
             <p className="text-md lg:text-lg font-bold mb-6">Menu</p>
             <div className="grid lg:flex grid-cols-2 gap-4 lg:gap-6">
               <MenuItem to="/private/so" title="Stock Opname" />
