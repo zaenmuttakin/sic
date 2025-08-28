@@ -2,6 +2,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
+import Head from "next/head";
 config.autoAddCss = false;
 
 const poppins = Poppins({
@@ -15,12 +16,18 @@ const poppins = Poppins({
 export const metadata = {
   title: "SIC Central",
   description: "Sparepart Inventory Control",
-  themeColor: "#eef2ff",
+  themeColor: "#eef2ff", // or "#ffffff"
 };
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
+      <head>
+        <meta name="theme-color" content="#7a6dff" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="msapplication-navbutton-color" content="#eef2ff" />
+      </head>
       <body className={`${poppins.variable} antialiased`}>{children}</body>
     </html>
   );
