@@ -90,7 +90,7 @@ export default function Page() {
     <div className="page-container">
       <TopbarMenu />
       <div className="max-w-4xl w-full mx-auto">
-        <div className="bg-white rounded-3xl overflow-hidden shadow-lg shadow-black/">
+        <div className="bg-white rounded-3xl overflow-hidden -lg -black/">
           {/* Tabs */}
           <div className="flex overflow-x-auto border-b border-gray-200 gap-4 px-6">
             {tabs.map((tab) => (
@@ -187,7 +187,7 @@ export default function Page() {
                     {tabContents[2].plans.map((plan, index) => (
                       <div
                         key={index}
-                        className="border border-gray-200 rounded-lg p-6 text-center hover:shadow-md transition-shadow"
+                        className="border border-gray-200 rounded-lg p-6 text-center hover:-md transition-"
                       >
                         <h3 className="text-xl font-semibold text-gray-900 mb-2">
                           {plan.name}
@@ -195,7 +195,7 @@ export default function Page() {
                         <p className="text-3xl font-bold text-indigo-600 mb-4">
                           {plan.price}
                         </p>
-                        <button className="w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-1000">
+                        <button className="w-full py-2 px-4 border border-transparent rounded-md -sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-1000">
                           Select Plan
                         </button>
                       </div>
@@ -225,7 +225,7 @@ export default function Page() {
                     ))}
                   </div>
                   <div className="mt-8">
-                    <button className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700">
+                    <button className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md -sm text-white bg-indigo-600 hover:bg-indigo-700">
                       Send Message
                     </button>
                   </div>

@@ -24,7 +24,7 @@
 }
 
 body {
-  @apply bg-gradient-to-br from-indigo-50 to-purple-50 p-0 m-0 box-border;
+  @apply bg-[#E8ECF7] p-0 m-0 box-border;
 }
 
 .page-container {

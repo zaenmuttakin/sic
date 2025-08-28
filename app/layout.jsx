@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        <meta name="theme-color" content="#7a6dff" />
+        <meta name="theme-color" content="#E8ECF7" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="msapplication-navbutton-color" content="#eef2ff" />
