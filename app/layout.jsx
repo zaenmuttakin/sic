@@ -16,7 +16,7 @@ const poppins = Poppins({
 export const metadata = {
   title: "SIC Central",
   description: "Sparepart Inventory Control",
-  themeColor: "#eef2ff", // or "#ffffff"
+  themeColor: "#E8ECF7", // or "#ffffff"
 };
 
 export default function RootLayout({ children }) {
@@ -24,9 +24,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <meta name="theme-color" content="#E8ECF7" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="#E8ECF7" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="msapplication-navbutton-color" content="#eef2ff" />
+        <meta name="msapplication-navbutton-color" content="#E8ECF7" />
       </head>
       <body className={`${poppins.variable} antialiased`}>{children}</body>
     </html>

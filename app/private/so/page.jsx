@@ -90,7 +90,7 @@ export default function Page() {
     <div className="page-container">
       <TopbarMenu />
       <div className="max-w-4xl w-full mx-auto">
-        <div className="bg-white rounded-3xl overflow-hidden -lg -black/">
+        <div className="bg-white rounded-3xl overflow-hidden ">
           {/* Tabs */}
           <div className="flex overflow-x-auto border-b border-gray-200 gap-4 px-6">
             {tabs.map((tab) => (

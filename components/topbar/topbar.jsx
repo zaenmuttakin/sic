@@ -7,16 +7,15 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 export default function Topbar() {
   return (
     <div className="flex items-start justify-center w-full ">
-      <div className="flex gap-2 justify-between p-4 lg:px-8 items-center w-full bg-white rounded-3xl shadow-lg shadow-black/5">
-        <FontAwesomeIcon
-          icon={faBars}
-          className="p-3 lg:p-4 rounded-2xl block lg:hidden cursor-pointer hover:bg-gray-100 duration-100"
-        />
+      <div className="flex gap-2 justify-between p-4 lg:px-6 items-center w-full bg-white rounded-3xl ">
+        <div className="rounded-2xl p-3 lg:p-4 block lg:hidden cursor-pointer hover:bg-gray-100 duration-100">
+          <FontAwesomeIcon icon={faBars} className="" />
+        </div>
         <div className="pr-2">
           <Image
             src={"/sic-icon.svg"}
             alt="Logo"
-            className="hidden lg:block"
+            className="hidden lg:block ml-1"
             width={150}
             height={150}
           />
