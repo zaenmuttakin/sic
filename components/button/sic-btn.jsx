@@ -11,7 +11,7 @@ export default function SicBtn({
   return (
     <button
       {...props}
-      className={`${style} aspect-square a-middle w-12 font-medium text-white bg-[#7A6DFF]  rounded-full hover:bg-[#6A5BFF] cursor-pointer shadow-lg`}
+      className={`${style} aspect-square a-middle w-14 font-medium text-white bg-[#7A6DFF]  rounded-full hover:bg-[#6A5BFF] cursor-pointer shadow-lg`}
     >
       {label}
     </button>

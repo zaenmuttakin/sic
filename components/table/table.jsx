@@ -18,7 +18,7 @@ export default function Table({ header, data, footer = false }) {
 
   return (
     <>
-      <div className="max-w-6xl text-sm mx-auto bg-white rounded-2xl overflow-hidden">
+      <div className="max-w-6xl w-full text-sm mx-auto bg-white rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -27,8 +27,8 @@ export default function Table({ header, data, footer = false }) {
                   <th
                     key={i}
                     className={`${header.length - 1 == i && "w-full pr-6"} ${
-                      i == 0 && "pl-6"
-                    } px-4 py-3 font-semibold`}
+                      i == 0 && "pl-5"
+                    } px-3 py-3 font-semibold`}
                   >
                     {item}
                   </th>
@@ -44,8 +44,8 @@ export default function Table({ header, data, footer = false }) {
                     <td
                       key={j}
                       className={`${row.length - 1 == j && "w-full pr-6"} ${
-                        j == 0 && "pl-6"
-                      } px-4 py-3`}
+                        j == 0 && "pl-5"
+                      } px-3 py-3`}
                     >
                       {col}
                     </td>
