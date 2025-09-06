@@ -2,7 +2,7 @@ import Image from "next/image";
 import React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-export default function PrimaryBtn({
+export default function GrayBtn({
   label,
   style,
   image = false,
@@ -13,7 +13,7 @@ export default function PrimaryBtn({
   return (
     <button
       {...props}
-      className={`${style} a-middle px-4 py-2.5 font-medium text-white bg-[#7A6DFF] rounded-xl hover:bg-[#6A5BFF] cursor-pointer`}
+      className={`${style} a-middle px-4 py-2.5 font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 cursor-pointer`}
     >
       {image && (
         <Image
@@ -25,7 +25,7 @@ export default function PrimaryBtn({
         />
       )}
       {icon && <FontAwesomeIcon icon={imgsrc} className="inline mr-2.5" />}
-      {label}
+      <p>{label}</p>
     </button>
   );
 }

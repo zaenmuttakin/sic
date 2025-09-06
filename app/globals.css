@@ -28,5 +28,9 @@ body {
 }
 
 .page-container {
-  @apply min-h-screen p-4 lg:p-6 flex flex-col gap-4 lg:gap-6;
+  @apply min-h-screen p-4 lg:p-6 flex flex-col gap-0 lg:gap-6;
+}
+
+.a-middle {
+  @apply flex items-center justify-center;
 }

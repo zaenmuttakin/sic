@@ -84,8 +84,13 @@ export default function Table() {
             {/* Table Head */}
             <thead>
               <tr className="bg-gray-100 text-gray-600 text-left">
-                <th className="px-6 py-3 font-semibold">Material</th>
+                <th className="px-6 py-3 font-semibold">Tanggal</th>
+                <th className="px-6 py-3 font-semibold">Sloc</th>
+                <th className="px-6 py-3 font-semibold">MID</th>
                 <th className="px-6 py-3 font-semibold">Description</th>
+                <th className="px-6 py-3 font-semibold">Unsrt</th>
+                <th className="px-6 py-3 font-semibold">Actual</th>
+                <th className="px-6 py-3 font-semibold">Uom</th>
                 <th className="px-6 py-3 font-semibold">Status</th>
                 <th className="px-6 py-3 font-semibold">Priority</th>
                 <th className="px-6 py-3 font-semibold">Completion</th>
@@ -107,6 +112,16 @@ export default function Table() {
                       <div className="font-medium text-gray-900">
                         {item.material}
                       </div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className=" text-gray-900">G002</div>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    <div className="flex items-center">
+                      <div className=" text-gray-900">{item.material}</div>
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">

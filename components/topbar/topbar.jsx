@@ -1,13 +1,13 @@
 import React from "react";
 import ProfileImg from "../../components/image/profile";
 import Image from "next/image";
-import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function Topbar() {
   return (
     <div className="flex items-start justify-center w-full ">
-      <div className="flex gap-2 justify-between p-4 lg:px-6 items-center w-full bg-white rounded-3xl ">
+      <div className="flex gap-2 justify-between p-4 lg:px-6 items-center w-full bg-white rounded-t-3xl lg:rounded-3xl ">
         <div className="rounded-2xl p-3 lg:p-4 block lg:hidden cursor-pointer hover:bg-gray-100 duration-100">
           <FontAwesomeIcon icon={faBars} className="" />
         </div>
@@ -16,29 +16,29 @@ export default function Topbar() {
             src={"/sic-icon.svg"}
             alt="Logo"
             className="hidden lg:block ml-1"
-            width={150}
-            height={150}
+            width={140}
+            height={140}
           />
           <Image
             src={"/sic-icon.svg"}
             alt="Logo"
             className="block lg:hidden"
-            width={110}
-            height={110}
+            width={120}
+            height={120}
           />
         </div>
-        <div className="hidden lg:flex gap-1 rounded-full bg-[#eeeff4] ml-8">
-          <p className="py-4 px-6 bg-black rounded-full text-white">
+        <div className="hidden lg:flex gap-2 rounded-full">
+          <p className="py-3 px-4 rounded-full text-[#7A6DFF] font-medium">
             Dashboard
           </p>
-          <p className="py-4 px-6">Menu</p>
-          <p className="py-4 px-6">Sheets</p>
-          <p className="py-4 px-6">About</p>
-          <p className="py-4 px-6">Profile</p>
+          <p className="py-3 px-4">Menu</p>
+          <p className="py-3 px-4">Sheets</p>
+          <p className="py-3 px-4">About</p>
+          <p className="py-3 px-4">Profile</p>
         </div>
         <div className="flex gap-4 items-center">
           <div className="hidden lg:flex gap-2 pl-2 items-end">
-            <p className="m-0 font-medium">Hi, Difa Egi Listianto</p>
+            <p className="m-0 text-sm text-gray-500">Hi, Difa Egi Listianto</p>
           </div>
           <div className="hidden lg:block">
             <ProfileImg

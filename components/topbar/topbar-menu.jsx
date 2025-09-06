@@ -4,6 +4,7 @@ import {
   faChevronLeft,
   faDatabase,
   faPlus,
+  faRotate,
   faSearch,
 } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
@@ -25,7 +26,7 @@ export default function TopbarMenu() {
           <FontAwesomeIcon icon={faSearch} />
         </div>
         <div className="flex items-center justify-center w-13 lg:w-13 aspect-square rounded-3xl  bg-white ">
-          <FontAwesomeIcon icon={faDatabase} />
+          <FontAwesomeIcon icon={faRotate} />
         </div>
       </div>
     </div>
