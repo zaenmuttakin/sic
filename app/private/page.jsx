@@ -26,6 +26,7 @@ import {
   faMagnifyingGlassChart,
   faQuestion,
   faSortDown,
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import PrimaryBtn from "../../components/button/primary-btn";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -33,50 +34,18 @@ import Image from "next/image";
 import SicBtn from "../../components/button/sic-btn";
 import GrayBtn from "../../components/button/gray-btn";
 import Inputz from "../../components/input/input";
+import SrcMaterial from "../../components/modal/src-material";
 
 export default function Page() {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   return (
     <div className="relative page-container">
-      {searchOpen && (
-        <div className="fixed w-full min-h-screen bg-black/30 top-0 left-0 z-10 pb-20 p-4 flex items-end">
-          <div className="h-full max-h-[85vh] p-6 bg-white rounded-3xl w-full flex flex-col justify-center gap-4 ">
-            <div className="flex items-center justify-between">
-              <p className="font-medium">Search Material</p>
-              <GrayBtn
-                type="submit"
-                label={
-                  <FontAwesomeIcon
-                    icon={faArrowsUpDown}
-                    className=" rotate-45 text-gray-500"
-                  />
-                }
-              />
-            </div>
-            <form className="flex gap-3 mt-4">
-              <Inputz type="text" placeholder="Cari dengan MID" />
-              <PrimaryBtn
-                type="submit"
-                label={<FontAwesomeIcon icon={faMagnifyingGlass} />}
-                onClick={(e) => {
-                  e.preventDefault();
-                  router.push("/private");
-                }}
-              />
-            </form>
-            <div className="a-middle min-h-24">
-              <p className="text-sm text-gray-400">
-                Masukan mid untuk melihat data stock
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      <SrcMaterial isOpen={searchOpen} />
       <div className="fixed bottom-4 right-4 z-20">
         <SicBtn
           type="submit"
-          style={`duration-100`}
+          style={`${searchOpen && "bg-white"} hover:opacity-100 duration-100`}
           onClick={() => setSearchOpen(!searchOpen)}
           label={
             !searchOpen ? (
@@ -88,8 +57,8 @@ export default function Page() {
               />
             ) : (
               <FontAwesomeIcon
-                icon={faChevronDown}
-                className="text-lg text-white"
+                icon={faTimes}
+                className="text-lg text-gray-500"
               />
             )
           }
@@ -128,7 +97,13 @@ export default function Page() {
             <p className="text-md lg:text-lg font-bold mb-6">
               Selisih SO Internal
             </p>
-            <Table />
+            <Table
+              header={["Ewo", "Espar/WO", "Reservasi"]}
+              data={[
+                [10, 0, 5],
+                [15, 0, 5],
+              ]}
+            />
           </div>
           <div className="hidden lg:block bg-white rounded-3xl">
             <SearchCard />
