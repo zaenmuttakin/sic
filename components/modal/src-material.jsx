@@ -1,45 +1,78 @@
 "use client";
-import React, { useEffect, useState } from "react";
-import GrayBtn from "../button/gray-btn";
-import Inputz from "../input/input";
-import PrimaryBtn from "../button/primary-btn";
 import {
   faArrowsUpDown,
+  faChevronRight,
+  faCircleNotch,
   faMagnifyingGlass,
+  faMinus,
+  faQrcode,
+  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
-import Table from "../table/table";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { formatDateToDDMMMYYMMHH } from "../../lib/func/isoString-toDateTime";
 import { getMonitor } from "../../lib/gas/report-spp-central";
+import GrayBtn from "../button/gray-btn";
+import PrimaryBtn from "../button/primary-btn";
+import Inputz from "../input/input";
+import Table from "../table/table";
 
-export default function SrcMaterial({ isOpen }) {
+export default function SrcMaterial({ isOpen, setIsOpen }) {
   const [maximize, setMaximize] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [valueToScr, setValueToSrc] = useState("");
+  const [valueToSrc, setValueToSrc] = useState("");
+  const [cekvalue, setCekvalue] = useState(false);
   const [data, setData] = useState(null);
   const [updateAt, setUpdateAt] = useState("");
-
-  const handleSearch = async () => {
-    setIsLoading(true);
-    const getData = await getMonitor({ by: "mid", value: Number(valueToScr) });
-
-    if (getData.success) {
-      getData.response.data.length > 0
-        ? setData(getData.response.data[0])
-        : setData(null);
-      getData.response.stockUpdated &&
-        setUpdateAt(getData.response.stockUpdated);
-      setIsLoading(false);
-    } else {
-      alert("gagal");
-      setIsLoading(false);
-    }
-  };
+  const [firstOpen, setFirstOpen] = useState(true);
+  const inputRef = useRef(null);
+  const router = useRouter();
+  const [isLgScreen, setIsLgScreen] = useState(false);
 
   useEffect(() => {
-    console.log(data);
-  }, [data]);
+    if (typeof window !== "undefined") {
+      const checkScreenSize = () => {
+        setIsLgScreen(window.innerWidth >= 1024);
+      };
+      checkScreenSize();
+      window.addEventListener("resize", checkScreenSize);
+      return () => window.removeEventListener("resize", checkScreenSize);
+    }
+  }, []);
+  const getMaxHeight = () => {
+    if (maximize) return "100svh";
+    return isLgScreen ? "95vh" : "80vh";
+  };
+
+  const handleSearch = async () => {
+    if (valueToSrc) {
+      setCekvalue(false);
+      setIsLoading(true);
+      setFirstOpen(false);
+      inputRef.current && inputRef.current.blur();
+
+      const getData = await getMonitor({
+        by: "mid",
+        value: Number(valueToSrc),
+      });
+      if (getData.success) {
+        getData.response.data.length > 0
+          ? setData(getData.response.data[0])
+          : setData(null);
+        getData.response.stockUpdated &&
+          setUpdateAt(getData.response.stockUpdated);
+        setIsLoading(false);
+      } else {
+        alert("gagal");
+        setIsLoading(false);
+      }
+    } else {
+      setCekvalue(true);
+    }
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -48,6 +81,9 @@ export default function SrcMaterial({ isOpen }) {
       document.body.classList.remove("overflow-hidden");
       setValueToSrc("");
       setData(null);
+      setMaximize(false);
+      setCekvalue(false);
+      setFirstOpen(true);
     }
     return () => {
       document.body.classList.remove("overflow-hidden");
@@ -76,8 +112,12 @@ export default function SrcMaterial({ isOpen }) {
             exit: { duration: 0.1, delay: 0.2 },
           }}
           name="backdrop"
-          className="fixed w-full min-h-svh bg-black/30 top-0 left-0 flex items-end"
+          className="fixed justify-center w-full min-h-svh top-0 left-0 flex items-end"
         >
+          <div
+            onClick={() => setIsOpen(false)}
+            className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"
+          ></div>
           <motion.div
             initial={{
               opacity: 0,
@@ -97,7 +137,7 @@ export default function SrcMaterial({ isOpen }) {
               borderRadius: maximize ? "0rem" : "1.5rem",
               width: "100%",
               minHeight: maximize ? "100svh" : "30vh",
-              maxHeight: maximize ? "100svh" : "80vh",
+              maxHeight: getMaxHeight(),
             }}
             exit={{
               opacity: 0,
@@ -115,46 +155,105 @@ export default function SrcMaterial({ isOpen }) {
               minHeight: { duration: 0.5, ease: "easeInOut" },
             }}
             name="modal"
-            className="h-full p-6 bg-white rounded-3xl w-full flex flex-col justify-start gap-4"
+            className="lg:absolute lg:top-1/2 lg:-translate-y-1/2 h-full max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start gap-4 p-6"
           >
-            <div className="flex items-center justify-between">
-              <p className="font-semibold">Search Material</p>
+            <div className="flex items-center justify-between ">
+              <p className="font-semibold flex-1">Search Material</p>
+              <div className="lg:hidden">
+                <GrayBtn
+                  type="submit"
+                  onClick={() => setMaximize(!maximize)}
+                  style="bg-white w-10 mr-2"
+                  label={
+                    maximize ? (
+                      <FontAwesomeIcon
+                        icon={faMinus}
+                        className=" text-gray-500 "
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        icon={faArrowsUpDown}
+                        className="rotate-45 text-gray-500 "
+                      />
+                    )
+                  }
+                />
+              </div>
               <GrayBtn
                 type="submit"
-                onClick={() => setMaximize(!maximize)}
+                style="bg-white w-10"
+                onClick={() => setIsOpen(false)}
                 label={
                   <FontAwesomeIcon
-                    icon={faArrowsUpDown}
-                    className="rotate-45 text-gray-500"
+                    icon={faTimes}
+                    className="text-lg text-gray-500"
                   />
                 }
               />
             </div>
-            <form className="flex gap-3 mt-4">
-              <Inputz
-                type="number"
-                placeholder="Cari dengan MID"
-                value={valueToScr}
-                onChange={(e) => setValueToSrc(e.target.value)}
-                autoFocus={!isLoading}
-              />
+            <form className="flex gap-3 mt-4 justify-between ">
+              <div className="relative flex-1" disabled={isLoading}>
+                <Inputz
+                  type="number"
+                  ref={inputRef}
+                  placeholder="Cari dengan MID"
+                  value={valueToSrc}
+                  style={cekvalue && "cekval"}
+                  onChange={(e) => setValueToSrc(e.target.value)}
+                  autoFocus={!isLoading}
+                  disabled={isLoading}
+                />
+                {valueToSrc && !isLoading && (
+                  <FontAwesomeIcon
+                    icon={faTimes}
+                    onClick={() => setValueToSrc("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm"
+                  />
+                )}
+              </div>
               <PrimaryBtn
                 type="submit"
                 name="maximize"
-                label={<FontAwesomeIcon icon={faMagnifyingGlass} />}
+                label={
+                  isLoading ? (
+                    <FontAwesomeIcon
+                      icon={faCircleNotch}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                  )
+                }
                 onClick={(e) => {
                   e.preventDefault();
                   handleSearch();
                 }}
+                disabled={isLoading}
+              />
+              <GrayBtn
+                type="submit"
+                name="maximize"
+                label={
+                  <FontAwesomeIcon icon={faQrcode} className="text-gray-500" />
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                }}
+                disabled={isLoading}
               />
             </form>
             {isLoading && (
-              <p className="w-full text-center py-6 text-sm text-gray-400">
+              <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
                 Loading...
               </p>
             )}
-            {!data && !isLoading && (
-              <p className="w-full text-center py-6 text-sm text-gray-400">
+            {!firstOpen && !data && !isLoading && (
+              <p className="lg:min-h-svh w-full text-center py-6  lg:py-16 text-sm text-gray-400">
+                Data tidak ditemukan
+              </p>
+            )}
+            {firstOpen && !data && !isLoading && (
+              <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
                 Masukan mid untuk melihat data stock
               </p>
             )}
@@ -173,7 +272,7 @@ export default function SrcMaterial({ isOpen }) {
                     delay: 0.1,
                     height: { delay: 0.3 },
                   }}
-                  className="flex-1 flex flex-col gap-6 min-h-24 overflow-y-auto rounded-xl pt-4"
+                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 c-scrollbar pr-2"
                 >
                   <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
                     <Image
@@ -183,10 +282,6 @@ export default function SrcMaterial({ isOpen }) {
                       height={35}
                       className="mb-4 absolute top-6 right-6 text-white/20 cursor-none opacity-[0.1]"
                     />
-                    {/* <FontAwesomeIcon
-                      icon={faBoxesPacking}
-                      className="text-5xl mb-4 absolute top-6 right-6 text-white/20 cursor-none"
-                    /> */}
                     <p className="font-semibold">{data.mid}</p>
                     <p>{data.desc}</p>
                     <p>{data.uom}</p>
@@ -199,17 +294,19 @@ export default function SrcMaterial({ isOpen }) {
                     />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <p className="font-medium text-gray-400">Actual Stock</p>
-                    <Table
-                      header={["G002", "G005"]}
-                      data={[[data.actualStock.g002, data.actualStock.g005]]}
-                    />
+                    <p className="font-medium text-gray-400">
+                      Actual Stock
+                      <span className="text-xs px-2 py-0.5 bg-indigo-50 text-[#7A6DFF] rounded-full ml-2 font-normal">
+                        G005 belum update
+                      </span>
+                    </p>
+                    <Table header={["G002"]} data={[[data.actualStock.g002]]} />
                   </div>
                   <div className="flex flex-col gap-3">
                     <p className="font-medium text-gray-400">
                       SAP Stock
                       <span className="text-xs px-2 py-0.5 bg-indigo-50 text-[#7A6DFF] rounded-full ml-2 font-normal">
-                        {updateAt}
+                        {formatDateToDDMMMYYMMHH(updateAt)}
                       </span>
                     </p>
                     <Table
@@ -227,18 +324,74 @@ export default function SrcMaterial({ isOpen }) {
                   </div>
                   <div className="flex flex-col gap-3">
                     <p className="font-medium text-gray-400 w-full">Bin</p>
-                    <Table header={["G002"]} data={[data.bin.g002]} />
-                    <Table header={["G005"]} data={[data.bin.g005]} />
+                    <Table
+                      header={["G002"]}
+                      data={[
+                        [
+                          <div className="flex flex-wrap gap-2">
+                            {data.bin.g002.map((bin, i) => (
+                              <p
+                                key={i}
+                                className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
+                              >
+                                {bin}
+                              </p>
+                            ))}
+                          </div>,
+                        ],
+                      ]}
+                    />
+                    <Table
+                      header={["G005"]}
+                      data={[
+                        [
+                          <div className="flex flex-wrap gap-2">
+                            {data.bin.g005.map((bin, i) => (
+                              <p
+                                key={i}
+                                className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
+                              >
+                                {bin}
+                              </p>
+                            ))}
+                          </div>,
+                        ],
+                      ]}
+                    />
                   </div>
-                  {/* <div className="py-4 flex justify-end">
-                    <a
-                      href=""
-                      className="flex items-center gap-2 text-gray-500"
+                  <hr className="border-gray-200" />
+                  <div className="py-2 flex flex-col gap-2 w-full items-end justify-end text-sm lg:text-md">
+                    <p
+                      onClick={() => router.push("/not-available")}
+                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
                     >
-                      <p>Material Movement</p>
-                      <FontAwesomeIcon icon={faArrowRightLong} className="" />
-                    </a>
-                  </div> */}
+                      Material Movement
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-xs ml-2"
+                      />
+                    </p>
+                    <p
+                      onClick={() => router.push("/not-available")}
+                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
+                    >
+                      Outbound History
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-xs ml-2"
+                      />
+                    </p>
+                    <p
+                      onClick={() => router.push("/not-available")}
+                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
+                    >
+                      Inbound History
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-xs ml-2"
+                      />
+                    </p>
+                  </div>
                 </motion.div>
               </AnimatePresence>
             )}

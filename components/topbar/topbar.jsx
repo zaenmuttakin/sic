@@ -1,8 +1,7 @@
-import React from "react";
-import ProfileImg from "../../components/image/profile";
-import Image from "next/image";
-import { faBars, faCircle } from "@fortawesome/free-solid-svg-icons";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Image from "next/image";
+import ProfileImg from "../../components/image/profile";
 
 export default function Topbar() {
   return (

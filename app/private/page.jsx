@@ -1,69 +1,56 @@
 "use client";
-import React, { useState } from "react";
+import { useState } from "react";
 
-import { useRouter } from "next/navigation";
-import Topbar from "../../components/topbar/topbar";
-import MenuItem from "../../components/button/menu-item";
-import Table from "../../components/table/table";
-import SearchCard from "../../components/srccard";
 import {
-  faArrowsUpDown,
-  faBolt,
   faBoxesPacking,
-  faCaretDown,
-  faChevronDown,
-  faClipboardCheck,
   faClipboardList,
-  faCoins,
-  faCubesStacked,
-  faDatabase,
-  faEye,
-  faLayerGroup,
-  faList,
-  faListOl,
-  faListUl,
-  faMagnifyingGlass,
-  faMagnifyingGlassChart,
   faQuestion,
-  faSortDown,
-  faTimes,
 } from "@fortawesome/free-solid-svg-icons";
-import PrimaryBtn from "../../components/button/primary-btn";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import MenuItem from "../../components/button/menu-item";
 import SicBtn from "../../components/button/sic-btn";
-import GrayBtn from "../../components/button/gray-btn";
-import Inputz from "../../components/input/input";
 import SrcMaterial from "../../components/modal/src-material";
+import SearchCard from "../../components/srccard";
+import Table from "../../components/table/table";
+import Topbar from "../../components/topbar/topbar";
 
 export default function Page() {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   return (
     <div className="relative page-container">
-      <SrcMaterial isOpen={searchOpen} />
-      <div className="fixed bottom-4 right-4 z-20">
-        <SicBtn
-          type="submit"
-          style={`${searchOpen && "bg-white"} hover:opacity-100 duration-100`}
-          onClick={() => setSearchOpen(!searchOpen)}
-          label={
-            !searchOpen ? (
-              <Image
-                src="/logo-icon-white.svg"
-                alt="icon"
-                width={16}
-                height={16}
-              />
-            ) : (
-              <FontAwesomeIcon
-                icon={faTimes}
-                className="text-lg text-gray-500"
-              />
-            )
-          }
-        />
-      </div>
+      <SrcMaterial isOpen={searchOpen} setIsOpen={setSearchOpen} />
+      {!searchOpen && (
+        <AnimatePresence>
+          <motion.div
+            initial={{ x: 20 }}
+            animate={{ x: 0 }}
+            exit={{ x: 20 }}
+            transition={{
+              duration: 0.2,
+              ease: "easeOut",
+            }}
+            className="fixed lg:hidden bottom-4 right-4 z-20"
+          >
+            <SicBtn
+              type="submit"
+              onClick={() => {
+                setSearchOpen(!searchOpen);
+              }}
+              label={
+                <Image
+                  src="/logo-icon-white.svg"
+                  alt="icon"
+                  width={16}
+                  height={16}
+                />
+              }
+            />
+          </motion.div>
+        </AnimatePresence>
+      )}
       <Topbar />
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-4 lg:gap-6">
         <div className="order-last lg:order-first">
@@ -93,23 +80,98 @@ export default function Page() {
         </div>
 
         <div className="col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 ">
-          <div className=" rounded-3xl bg-white p-6">
+          <div className="relative flex flex-col rounded-3xl bg-white p-6 h-full">
             <p className="text-md lg:text-lg font-bold mb-6">
               Selisih SO Internal
             </p>
             <Table
-              header={["Ewo", "Espar/WO", "Reservasi"]}
+              header={[
+                "Tanggal",
+                "Sloc",
+                "MID",
+                "Deskripsi",
+                "value",
+                <span className="text-nowrap">Qty Actual</span>,
+                "Different",
+                "Status",
+                "Note",
+              ]}
+              footer={true}
               data={[
-                [10, 0, 5],
-                [15, 0, 5],
+                [
+                  "25/08/2025",
+                  "G002",
+                  19000793,
+                  "BAUT MUR 8X20MM",
+                  "Rp565",
+                  746,
+                  -12,
+                  "Belum trace",
+                  "Ada dijelibox atasnya",
+                ],
+                [
+                  "25/08/2025",
+                  "G002",
+                  19000838,
+                  "BAUT MUR SS 16X50MM",
+                  "Rp13.675",
+                  48,
+                  72,
+                  "Belum trace",
+                  "",
+                ],
+                [
+                  "25/08/2025",
+                  "G002",
+                  19003833,
+                  'PIPA SS 304 SCH10 2.5"',
+                  "Rp1.339.002",
+                  30600,
+                  600,
+                  "Belum trace",
+                  "",
+                ],
+                [
+                  "25/08/2025",
+                  "G002",
+                  19003839,
+                  'PIPA SS 304 SCH10 6"',
+                  "Rp3.564.990",
+                  8400,
+                  -13800,
+                  "Belum trace",
+                  "Salah hitung",
+                ],
+                [
+                  "25/08/2025",
+                  "G002",
+                  19002091,
+                  'FLANGE SS304 JIS10K 4"',
+                  "Rp219.637",
+                  6,
+                  -47,
+                  "Belum trace",
+                  "",
+                ],
+                [
+                  "25/08/2025",
+                  "G002",
+                  19002091,
+                  'FLANGE SS304 JIS10K 4"',
+                  "Rp219.637",
+                  6,
+                  -47,
+                  "Belum trace",
+                  "",
+                ],
               ]}
             />
           </div>
-          <div className="hidden lg:block bg-white rounded-3xl">
-            <SearchCard />
+          <div className="hidden lg:flex flex-col bg-white rounded-3xl">
+            <SearchCard isOpen={searchOpen} setIsOpen={setSearchOpen} />
           </div>
 
-          <div className="order-first lg:order-last lg:col-span-2 rounded-b-3xl lg:rounded-3xl bg-white pt-4 lg:pt-6 p-6 pb-8 h-full ">
+          <div className="order-first lg:order-last lg:col-span-2 rounded-b-3xl lg:rounded-3xl bg-white pt-4 lg:pt-6 p-6 pb-8 h-full lg:min-h-[30vh]">
             <p className="text-md hidden lg:block lg:text-lg font-bold mb-6">
               Menu
             </p>
@@ -132,7 +194,7 @@ export default function Page() {
                 icon={faBoxesPacking}
                 title="Material Data"
               />
-              <MenuItem to="/try" icon={faQuestion} title="Try" />
+              <MenuItem to="/not-available" icon={faQuestion} title="Try" />
               <MenuItem to="/try" icon={faQuestion} title="Try" />
               <MenuItem to="/try" icon={faQuestion} title="Try" />
             </div>

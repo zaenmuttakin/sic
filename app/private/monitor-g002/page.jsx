@@ -1,33 +1,3 @@
-// "use client";
-// import React, { useState } from "react";
-// import TopbarMenu from "../../../components/topbar/topbar-menu";
-
-// export default function Page() {
-//   const [isOpen, setIsOpen] = useState(false);
-
-//   const handleClose = () => setIsOpen(false);
-//   return (
-//     <div className="page-container">
-//       {/* <TopbarMenu /> */}
-//       <div className="flex gap-2 mt-2">
-//         <p className="p-2 px-4 rounded-3xl bg-white">List</p>
-//         <p className="p-2 px-4 pr-3 rounded-3xl bg-white/30">
-//           Difference{" "}
-//           <span className="ml-1 p-1 px-2 rounded-full bg-red-200 text-red-400 text-xs lg:text-sm">
-//             10
-//           </span>
-//         </p>
-//         <p className="p-2 px-4 pr-3 rounded-3xl bg-white/30 ">
-//           Done {""}
-//           <span className="ml-1 p-1 px-2 rounded-full bg-blue-100 text-blue-400 text-xs lg:text-sm">
-//             10
-//           </span>
-//         </p>
-//       </div>
-//       <div className=" rounded-3xl bg-white p-6 h-svh"></div>
-//     </div>
-//   );
-// }
 "use client";
 import { useState } from "react";
 import TopbarMenu from "../../../components/topbar/topbar-menu";

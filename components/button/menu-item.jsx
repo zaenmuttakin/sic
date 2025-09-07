@@ -1,7 +1,5 @@
-import React from "react";
-
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSortUp } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
 
 export default function MenuItem({ to, title, icon }) {
@@ -9,7 +7,7 @@ export default function MenuItem({ to, title, icon }) {
   return (
     <button
       onClick={() => router.push(to)}
-      className="group relative rounded-2xl bg-gray-100 hover:bg-[#7A6DFF20] p-4 lg:p-6 pt-6 lg:pt-10 lg:w-42 max-w-42 duration-100 cursor-pointer"
+      className="group relative rounded-2xl bg-indigo-50/50 hover:bg-[#7A6DFF20] p-4 lg:p-6 pt-6 lg:pt-10 lg:w-42 max-w-42 duration-100 cursor-pointer"
     >
       <FontAwesomeIcon
         icon={faSortUp}
