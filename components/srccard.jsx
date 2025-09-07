@@ -207,7 +207,7 @@ export default function SrcCard({ isOpen, setIsOpen }) {
               delay: 0.1,
               height: { delay: 0.3 },
             }}
-            className="flex-1 flex flex-col gap-6 min-h-24 overflow-y-auto rounded-xl"
+            className="flex-1 flex flex-col gap-6 min-h-24 overflow-y-auto rounded-xl c-scrollbar pr-2"
           >
             <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
               <Image

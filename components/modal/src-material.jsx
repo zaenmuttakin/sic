@@ -207,7 +207,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                   <FontAwesomeIcon
                     icon={faTimes}
                     onClick={() => setValueToSrc("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm cursor-pointer bg-white p-2 hover:text-gray-400"
                   />
                 )}
               </div>
@@ -242,6 +242,24 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                 disabled={isLoading}
               />
             </form>
+            {data && !isLoading && (
+              <div className="lg:flex gap-3 hidden">
+                <p className="text-sm text-gray-400 font-medium">
+                  Search result
+                </p>
+                <p className="text-sm text-gray-200 cursor-pointer">|</p>
+                <p
+                  onClick={() => {
+                    setData("");
+                    setFirstOpen(true);
+                    setValueToSrc("");
+                  }}
+                  className="text-sm text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
+                >
+                  clear
+                </p>
+              </div>
+            )}
             {isLoading && (
               <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
                 Loading...
@@ -272,7 +290,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                     delay: 0.1,
                     height: { delay: 0.3 },
                   }}
-                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 c-scrollbar pr-2"
+                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:py-0 c-scrollbar pr-2"
                 >
                   <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
                     <Image
