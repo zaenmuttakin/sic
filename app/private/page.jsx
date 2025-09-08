@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 
 import {
   faBoxesPacking,
@@ -15,10 +15,15 @@ import SrcMaterial from "../../components/modal/src-material";
 import SearchCard from "../../components/srccard";
 import Table from "../../components/table/table";
 import Topbar from "../../components/topbar/topbar";
+import { ColorContext } from "../../lib/context/topbar-color";
 
 export default function Page() {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
+  const { setTopbarColor, setDefaultColor } = useContext(ColorContext);
+  useEffect(() => {
+    searchOpen ? setTopbarColor("#a2a5ac") : setDefaultColor();
+  }, [searchOpen]);
   return (
     <div className="relative page-container">
       <SrcMaterial isOpen={searchOpen} setIsOpen={setSearchOpen} />

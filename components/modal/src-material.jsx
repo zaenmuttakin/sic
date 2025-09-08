@@ -14,6 +14,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { MaterialdataContext } from "../../lib/context/material-data";
+import { ColorContext } from "../../lib/context/topbar-color";
 import { formatDateToDDMMMYYMMHH } from "../../lib/func/isoString-toDateTime";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
@@ -32,6 +33,11 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
   const router = useRouter();
   const [isLgScreen, setIsLgScreen] = useState(false);
   const { materialData } = useContext(MaterialdataContext);
+  const { setTopbarColor, setDefaultColor } = useContext(ColorContext);
+
+  useEffect(() => {
+    maximize ? setTopbarColor("#ffffff") : setDefaultColor();
+  }, [maximize]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
