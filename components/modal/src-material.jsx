@@ -33,10 +33,11 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
   const router = useRouter();
   const [isLgScreen, setIsLgScreen] = useState(false);
   const { materialData } = useContext(MaterialdataContext);
-  const { setTopbarColor, setDefaultColor } = useContext(ColorContext);
+  const { setTopbarColor, topColors } = useContext(ColorContext);
 
   useEffect(() => {
-    maximize ? setTopbarColor("#ffffff") : setDefaultColor();
+    maximize && isOpen && setTopbarColor(topColors.white);
+    !maximize && isOpen && setTopbarColor(topColors.onmodal);
   }, [maximize]);
 
   useEffect(() => {

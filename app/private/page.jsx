@@ -20,9 +20,11 @@ import { ColorContext } from "../../lib/context/topbar-color";
 export default function Page() {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
-  const { setTopbarColor, setDefaultColor } = useContext(ColorContext);
+  const { setTopbarColor, topColors } = useContext(ColorContext);
   useEffect(() => {
-    searchOpen ? setTopbarColor("#a2a5ac") : setDefaultColor();
+    searchOpen
+      ? setTopbarColor(topColors.onmodal)
+      : setTopbarColor(topColors.default);
   }, [searchOpen]);
   return (
     <div className="relative page-container">
