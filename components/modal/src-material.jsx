@@ -12,9 +12,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MaterialdataContext } from "../../lib/context/material-data";
 import { formatDateToDDMMMYYMMHH } from "../../lib/func/isoString-toDateTime";
-import { getMonitor } from "../../lib/gas/report-spp-central";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
@@ -31,6 +31,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
   const inputRef = useRef(null);
   const router = useRouter();
   const [isLgScreen, setIsLgScreen] = useState(false);
+  const { materialData } = useContext(MaterialdataContext);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -48,29 +49,39 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
   };
 
   const handleSearch = async () => {
-    if (valueToSrc) {
+    !materialData && alert("Not any data");
+    !valueToSrc && setCekvalue(true);
+    if (materialData && valueToSrc) {
       setCekvalue(false);
       setIsLoading(true);
       setFirstOpen(false);
       inputRef.current && inputRef.current.blur();
+      const term = valueToSrc.toLowerCase().trim();
+      console.log(materialData);
 
-      const getData = await getMonitor({
-        by: "mid",
-        value: Number(valueToSrc),
+      const dataFiltered = materialData.data.filter((item) => {
+        return (
+          item.mid.toString() === term ||
+          item.desc.toLowerCase().includes(term) ||
+          item.uom.toLowerCase().includes(term) ||
+          Object.values(item.bin).some((bins) =>
+            bins.some((bin) => bin.toLowerCase().includes(term))
+          ) ||
+          Object.keys(item.actualStock).some((wh) =>
+            wh.toLowerCase().includes(term)
+          )
+        );
       });
-      if (getData.success) {
-        getData.response.data.length > 0
-          ? setData(getData.response.data[0])
-          : setData(null);
-        getData.response.stockUpdated &&
-          setUpdateAt(getData.response.stockUpdated);
-        setIsLoading(false);
+      if (dataFiltered) {
+        setTimeout(() => {
+          setData(dataFiltered[0]);
+          setUpdateAt(materialData.stockUpdated);
+          setIsLoading(false);
+        }, 1000);
       } else {
         alert("gagal");
         setIsLoading(false);
       }
-    } else {
-      setCekvalue(true);
     }
   };
 
@@ -96,35 +107,32 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
         <motion.div
           initial={{
             opacity: 0,
-            padding: "1rem",
-            paddingBottom: "5.5rem",
             zIndex: 10,
+            padding: "1rem",
           }}
           animate={{
             opacity: 1,
-            padding: maximize ? "0rem" : "1rem",
-            paddingBottom: maximize ? "0rem" : "5.5rem",
             zIndex: maximize ? 30 : 10,
+            padding: maximize ? 0 : "1rem",
           }}
           exit={{ opacity: 0 }}
-          transition={{
-            ease: "easeInOut",
-            exit: { duration: 0.1, delay: 0.2 },
-          }}
           name="backdrop"
-          className="fixed justify-center w-full min-h-svh top-0 left-0 flex items-end"
+          className="fixed justify-end w-full min-h-svh top-0 left-0 flex flex-col items-end"
         >
           <div
             onClick={() => setIsOpen(false)}
             className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"
           ></div>
+
           <motion.div
             initial={{
               opacity: 0,
-              scale: 0.9,
-              y: 80,
-              x: 10,
-              borderRadius: "1.5rem",
+              scale: 0.2,
+              y: 60,
+              x: 120,
+              widths: "10rem",
+              height: "10rem",
+              borderRadius: "5rem",
               width: "100%",
               minHeight: "30vh",
               maxHeight: "80svh",
@@ -136,28 +144,27 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
               x: 0,
               borderRadius: maximize ? "0rem" : "1.5rem",
               width: "100%",
-              minHeight: maximize ? "100svh" : "30vh",
-              maxHeight: getMaxHeight(),
+              minHeight: maximize
+                ? "100svh"
+                : isLgScreen
+                ? "95vh"
+                : data
+                ? "60vh"
+                : "15rem",
             }}
             exit={{
               opacity: 0,
-              scale: 0.9,
-              y: 80,
-              x: 10,
+              scale: 0.2,
+              y: 60,
+              x: 120,
               borderRadius: "1.5rem",
               width: "100%",
               minHeight: "30vh",
             }}
-            transition={{
-              delay: 0.1,
-              duration: 0.2,
-              ease: "easeInOut",
-              minHeight: { duration: 0.5, ease: "easeInOut" },
-            }}
             name="modal"
-            className="lg:absolute lg:top-1/2 lg:-translate-y-1/2 h-full max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start gap-4 p-6"
+            className="lg:absolute lg:top-1/2 lg:-translate-y-1/2 max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
-            <div className="flex items-center justify-between ">
+            <div className="flex items-center justify-between pt-6 px-6">
               <p className="font-semibold flex-1">Search Material</p>
               <div className="lg:hidden">
                 <GrayBtn
@@ -191,7 +198,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                 }
               />
             </div>
-            <form className="flex gap-3 mt-4 justify-between ">
+            <form className="flex gap-3 justify-between px-6 py-4">
               <div className="relative flex-1" disabled={isLoading}>
                 <Inputz
                   type="number"
@@ -243,7 +250,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
               />
             </form>
             {data && !isLoading && (
-              <div className="lg:flex gap-3 hidden">
+              <div className="lg:flex gap-3 hidden px-6">
                 <p className="text-sm text-gray-400 font-medium">
                   Search result
                 </p>
@@ -282,15 +289,9 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                   animate={{
                     opacity: 1,
                     y: 0,
-                    height: "100%",
                   }}
                   exit={{ opacity: 0, y: 20 }}
-                  transition={{
-                    duration: 0.3,
-                    delay: 0.1,
-                    height: { delay: 0.3 },
-                  }}
-                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:py-0 c-scrollbar pr-2"
+                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:py-0 c-scrollbar px-6"
                 >
                   <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
                     <Image

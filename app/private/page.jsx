@@ -25,13 +25,9 @@ export default function Page() {
       {!searchOpen && (
         <AnimatePresence>
           <motion.div
-            initial={{ x: 20 }}
-            animate={{ x: 0 }}
-            exit={{ x: 20 }}
-            transition={{
-              duration: 0.2,
-              ease: "easeOut",
-            }}
+            initial={{ x: 0, scale: 0.5 }}
+            animate={{ x: 0, scale: 1 }}
+            exit={{ x: 20, scale: 0.6 }}
             className="fixed lg:hidden bottom-4 right-4 z-20"
           >
             <SicBtn

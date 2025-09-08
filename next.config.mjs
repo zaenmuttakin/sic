@@ -7,6 +7,9 @@ const nextConfig = {
       // e.g., 'example.com', 'another-cdn.net'
     ],
   },
+  experimental: {
+    turbo: undefined,
+  },
 };
 
 export default nextConfig;

@@ -14,7 +14,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { formatDateToDDMMMYYMMHH } from "../lib/func/isoString-toDateTime";
-import { getMonitor } from "../lib/gas/report-spp-central";
+import { getMonitor } from "../lib/gas/sic";
 import GrayBtn from "./button/gray-btn";
 import PrimaryBtn from "./button/primary-btn";
 import Inputz from "./input/input";
