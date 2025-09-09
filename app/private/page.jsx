@@ -15,12 +15,15 @@ import SrcMaterial from "../../components/modal/src-material";
 import SearchCard from "../../components/srccard";
 import Table from "../../components/table/table";
 import Topbar from "../../components/topbar/topbar";
+import { MaterialdataContext } from "../../lib/context/material-data";
 import { ColorContext } from "../../lib/context/topbar-color";
 
 export default function Page() {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
   const { setTopbarColor, topColors } = useContext(ColorContext);
+  const { isLoadMaterialData } = useContext(MaterialdataContext);
+
   useEffect(() => {
     searchOpen
       ? setTopbarColor(topColors.onmodal)
@@ -32,8 +35,8 @@ export default function Page() {
       {!searchOpen && (
         <AnimatePresence>
           <motion.div
-            initial={{ x: 0, scale: 0.5 }}
-            animate={{ x: 0, scale: 1 }}
+            initial={{ x: 0, scale: 0.7 }}
+            animate={{ x: 0, scale: isLoadMaterialData ? 0.7 : 1 }}
             exit={{ x: 20, scale: 0.6 }}
             className="fixed lg:hidden bottom-4 right-4 z-20"
           >

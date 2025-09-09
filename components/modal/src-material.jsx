@@ -6,6 +6,7 @@ import {
   faMagnifyingGlass,
   faMinus,
   faQrcode,
+  faRefresh,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -15,7 +16,9 @@ import { useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { ColorContext } from "../../lib/context/topbar-color";
+import filterMaterialdata from "../../lib/func/filterMaterialdata";
 import { formatDateToDDMMMYYMMHH } from "../../lib/func/isoString-toDateTime";
+import { timestampToTime } from "../../lib/func/timestampToTime";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
@@ -26,13 +29,12 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
   const [isLoading, setIsLoading] = useState(false);
   const [valueToSrc, setValueToSrc] = useState("");
   const [cekvalue, setCekvalue] = useState(false);
-  const [data, setData] = useState(null);
-  const [updateAt, setUpdateAt] = useState("");
   const [firstOpen, setFirstOpen] = useState(true);
   const inputRef = useRef(null);
   const router = useRouter();
   const [isLgScreen, setIsLgScreen] = useState(false);
-  const { materialData } = useContext(MaterialdataContext);
+  const { materialData, filteredData, setFilteredData, isLoadMaterialData } =
+    useContext(MaterialdataContext);
   const { setTopbarColor, topColors } = useContext(ColorContext);
 
   useEffect(() => {
@@ -50,10 +52,6 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
       return () => window.removeEventListener("resize", checkScreenSize);
     }
   }, []);
-  const getMaxHeight = () => {
-    if (maximize) return "100svh";
-    return isLgScreen ? "95vh" : "80vh";
-  };
 
   const handleSearch = async () => {
     !materialData && alert("Not any data");
@@ -66,23 +64,10 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
       const term = valueToSrc.toLowerCase().trim();
       console.log(materialData);
 
-      const dataFiltered = materialData.data.filter((item) => {
-        return (
-          item.mid.toString() === term ||
-          item.desc.toLowerCase().includes(term) ||
-          item.uom.toLowerCase().includes(term) ||
-          Object.values(item.bin).some((bins) =>
-            bins.some((bin) => bin.toLowerCase().includes(term))
-          ) ||
-          Object.keys(item.actualStock).some((wh) =>
-            wh.toLowerCase().includes(term)
-          )
-        );
-      });
+      const dataFiltered = filterMaterialdata("equal", materialData.data, term);
       if (dataFiltered) {
         setTimeout(() => {
-          setData(dataFiltered[0]);
-          setUpdateAt(materialData.stockUpdated);
+          setFilteredData(dataFiltered[0]);
           setIsLoading(false);
         }, 1000);
       } else {
@@ -98,7 +83,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
     } else {
       document.body.classList.remove("overflow-hidden");
       setValueToSrc("");
-      setData(null);
+      setFilteredData(null);
       setMaximize(false);
       setCekvalue(false);
       setFirstOpen(true);
@@ -124,10 +109,13 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
           }}
           exit={{ opacity: 0 }}
           name="backdrop"
-          className="fixed justify-end w-full min-h-svh top-0 left-0 flex flex-col items-end"
+          className="fixed justify-end items-end lg:justify-center lg:items-center w-full min-h-svh top-0 left-0 flex flex-col "
         >
           <div
-            onClick={() => setIsOpen(false)}
+            onClick={() => {
+              setIsOpen(false);
+              setFilteredData(null);
+            }}
             className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"
           ></div>
 
@@ -155,7 +143,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                 ? "100svh"
                 : isLgScreen
                 ? "95vh"
-                : data
+                : filteredData
                 ? "60vh"
                 : "15rem",
             }}
@@ -169,10 +157,22 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
               minHeight: "30vh",
             }}
             name="modal"
-            className="lg:absolute lg:top-1/2 lg:-translate-y-1/2 max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
+            className="max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
             <div className="flex items-center justify-between pt-6 px-6">
-              <p className="font-semibold flex-1">Search Material</p>
+              <p className="font-semibold">Search Material</p>
+              <div className="flex-1 flex flex-nowrap items-center">
+                <div className="text-xs w-fit px-2 ml-2 py-[4px] text-indigo-400 rounded-full bg-indigo-50">
+                  <FontAwesomeIcon
+                    icon={faRefresh}
+                    className={`${
+                      isLoadMaterialData ? "animate-spin" : " pr-1"
+                    } text-xs`}
+                  />
+                  {!isLoadMaterialData &&
+                    timestampToTime(materialData?.timestamp)}
+                </div>
+              </div>
               <div className="lg:hidden">
                 <GrayBtn
                   type="submit"
@@ -196,7 +196,10 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
               <GrayBtn
                 type="submit"
                 style="bg-white w-10"
-                onClick={() => setIsOpen(false)}
+                onClick={() => {
+                  setIsOpen(false);
+                  setFilteredData(null);
+                }}
                 label={
                   <FontAwesomeIcon
                     icon={faTimes}
@@ -220,7 +223,9 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                 {valueToSrc && !isLoading && (
                   <FontAwesomeIcon
                     icon={faTimes}
-                    onClick={() => setValueToSrc("")}
+                    onClick={() => {
+                      setValueToSrc("");
+                    }}
                     className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm cursor-pointer bg-white p-2 hover:text-gray-400"
                   />
                 )}
@@ -256,15 +261,15 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                 disabled={isLoading}
               />
             </form>
-            {data && !isLoading && (
-              <div className="lg:flex gap-3 hidden px-6">
+            {filteredData && !isLoading && (
+              <div className="lg:flex gap-3 hidden px-6 pb-4">
                 <p className="text-sm text-gray-400 font-medium">
                   Search result
                 </p>
                 <p className="text-sm text-gray-200 cursor-pointer">|</p>
                 <p
                   onClick={() => {
-                    setData("");
+                    setFilteredData(null);
                     setFirstOpen(true);
                     setValueToSrc("");
                   }}
@@ -279,17 +284,17 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                 Loading...
               </p>
             )}
-            {!firstOpen && !data && !isLoading && (
+            {!firstOpen && !filteredData && !isLoading && (
               <p className="lg:min-h-svh w-full text-center py-6  lg:py-16 text-sm text-gray-400">
                 Data tidak ditemukan
               </p>
             )}
-            {firstOpen && !data && !isLoading && (
+            {firstOpen && !filteredData && !isLoading && (
               <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
                 Masukan mid untuk melihat data stock
               </p>
             )}
-            {data && !isLoading && (
+            {filteredData && !isLoading && (
               <AnimatePresence>
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -298,7 +303,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                     y: 0,
                   }}
                   exit={{ opacity: 0, y: 20 }}
-                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:py-0 c-scrollbar px-6"
+                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:py-0 lg:pb-6 c-scrollbar px-6"
                 >
                   <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
                     <Image
@@ -308,15 +313,21 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                       height={35}
                       className="mb-4 absolute top-6 right-6 text-white/20 cursor-none opacity-[0.1]"
                     />
-                    <p className="font-semibold">{data.mid}</p>
-                    <p>{data.desc}</p>
-                    <p>{data.uom}</p>
+                    <p className="font-semibold">{filteredData.mid}</p>
+                    <p>{filteredData.desc}</p>
+                    <p>{filteredData.uom}</p>
                   </div>
                   <div className="flex flex-col gap-3">
                     <p className="font-medium text-gray-400">Draft</p>
                     <Table
                       header={["Ewo", "Espar/WO", "Reservasi"]}
-                      data={[[data.drf.ewo, data.drf.espar, data.drf.res]]}
+                      data={[
+                        [
+                          filteredData.drf.ewo,
+                          filteredData.drf.espar,
+                          filteredData.drf.res,
+                        ],
+                      ]}
                     />
                   </div>
                   <div className="flex flex-col gap-3">
@@ -326,24 +337,27 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                         G005 belum update
                       </span>
                     </p>
-                    <Table header={["G002"]} data={[[data.actualStock.g002]]} />
+                    <Table
+                      header={["G002"]}
+                      data={[[filteredData.actualStock.g002]]}
+                    />
                   </div>
                   <div className="flex flex-col gap-3">
                     <p className="font-medium text-gray-400">
                       SAP Stock
                       <span className="text-xs px-2 py-0.5 bg-indigo-50 text-[#7A6DFF] rounded-full ml-2 font-normal">
-                        {formatDateToDDMMMYYMMHH(updateAt)}
+                        {formatDateToDDMMMYYMMHH(materialData.stockUpdated)}
                       </span>
                     </p>
                     <Table
                       header={["G002", "G003", "G004", "G005", "Total"]}
                       data={[
                         [
-                          data.sapStock.g002,
-                          data.sapStock.g003,
-                          data.sapStock.g004,
-                          data.sapStock.g005,
-                          data.sapStock.total,
+                          filteredData.sapStock.g002,
+                          filteredData.sapStock.g003,
+                          filteredData.sapStock.g004,
+                          filteredData.sapStock.g005,
+                          filteredData.sapStock.total,
                         ],
                       ]}
                     />
@@ -355,7 +369,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                       data={[
                         [
                           <div className="flex flex-wrap gap-2">
-                            {data.bin.g002.map((bin, i) => (
+                            {filteredData.bin.g002.map((bin, i) => (
                               <p
                                 key={i}
                                 className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
@@ -372,7 +386,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
                       data={[
                         [
                           <div className="flex flex-wrap gap-2">
-                            {data.bin.g005.map((bin, i) => (
+                            {filteredData.bin.g005.map((bin, i) => (
                               <p
                                 key={i}
                                 className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"

@@ -12,9 +12,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MaterialdataContext } from "../lib/context/material-data";
+import { ColorContext } from "../lib/context/topbar-color";
+import filterMaterialdata from "../lib/func/filterMaterialdata";
 import { formatDateToDDMMMYYMMHH } from "../lib/func/isoString-toDateTime";
-import { getMonitor } from "../lib/gas/sic";
 import GrayBtn from "./button/gray-btn";
 import PrimaryBtn from "./button/primary-btn";
 import Inputz from "./input/input";
@@ -25,35 +27,41 @@ export default function SrcCard({ isOpen, setIsOpen }) {
   const [isLoading, setIsLoading] = useState(false);
   const [valueToSrc, setValueToSrc] = useState("");
   const [cekvalue, setCekvalue] = useState(false);
-  const [data, setData] = useState(null);
   const [updateAt, setUpdateAt] = useState("");
   const [firstOpen, setFirstOpen] = useState(true);
   const inputRef = useRef(null);
   const router = useRouter();
+  const { materialData, filteredData, setFilteredData } =
+    useContext(MaterialdataContext);
+  const { setTopbarColor, topColors } = useContext(ColorContext);
+
+  useEffect(() => {
+    maximize && isOpen && setTopbarColor(topColors.white);
+    !maximize && isOpen && setTopbarColor(topColors.onmodal);
+  }, [maximize]);
+
   const handleSearch = async () => {
-    if (valueToSrc) {
+    !materialData && alert("Not any data");
+    !valueToSrc && setCekvalue(true);
+    if (materialData && valueToSrc) {
       setCekvalue(false);
       setIsLoading(true);
       setFirstOpen(false);
       inputRef.current && inputRef.current.blur();
+      const term = valueToSrc.toLowerCase().trim();
+      console.log(materialData);
 
-      const getData = await getMonitor({
-        by: "mid",
-        value: Number(valueToSrc),
-      });
-      if (getData.success) {
-        getData.response.data.length > 0
-          ? setData(getData.response.data[0])
-          : setData(null);
-        getData.response.stockUpdated &&
-          setUpdateAt(getData.response.stockUpdated);
-        setIsLoading(false);
+      const dataFiltered = filterMaterialdata("equal", materialData.data, term);
+      if (dataFiltered) {
+        setTimeout(() => {
+          setFilteredData(dataFiltered[0]);
+          setUpdateAt(materialData.stockUpdated);
+          setIsLoading(false);
+        }, 1000);
       } else {
         alert("gagal");
         setIsLoading(false);
       }
-    } else {
-      setCekvalue(true);
     }
   };
 
@@ -63,7 +71,7 @@ export default function SrcCard({ isOpen, setIsOpen }) {
     } else {
       document.body.classList.remove("overflow-hidden");
       setValueToSrc("");
-      setData(null);
+      setFilteredData(null);
       setMaximize(false);
       setCekvalue(false);
       setFirstOpen(true);
@@ -161,13 +169,13 @@ export default function SrcCard({ isOpen, setIsOpen }) {
           disabled={isLoading}
         />
       </form>
-      {data && !isLoading && (
+      {filteredData && !isLoading && (
         <div className="flex gap-3">
           <p className="text-sm text-gray-400 font-medium">Search result</p>
           <p className="text-sm text-gray-200 cursor-pointer">|</p>
           <p
             onClick={() => {
-              setData("");
+              setFilteredData("");
               setFirstOpen(true);
               setValueToSrc("");
             }}
@@ -182,17 +190,17 @@ export default function SrcCard({ isOpen, setIsOpen }) {
           Loading...
         </p>
       )}
-      {!firstOpen && !data && !isLoading && (
+      {!firstOpen && !filteredData && !isLoading && (
         <p className="min-h-[18rem] w-full a-middle py-12 text-gray-400">
           Data tidak ditemukan
         </p>
       )}
-      {firstOpen && !data && !isLoading && (
+      {firstOpen && !filteredData && !isLoading && (
         <p className="min-h-[18rem] w-full a-middle text-gray-400">
           Masukan mid untuk melihat data stock
         </p>
       )}
-      {data && !isLoading && (
+      {filteredData && !isLoading && (
         <AnimatePresence>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -217,15 +225,21 @@ export default function SrcCard({ isOpen, setIsOpen }) {
                 height={35}
                 className="mb-4 absolute top-6 right-6 text-white/20 cursor-none opacity-[0.1]"
               />
-              <p className="font-semibold">{data.mid}</p>
-              <p>{data.desc}</p>
-              <p>{data.uom}</p>
+              <p className="font-semibold">{filteredData.mid}</p>
+              <p>{filteredData.desc}</p>
+              <p>{filteredData.uom}</p>
             </div>
             <div className="flex flex-col gap-3">
               <p className="font-medium text-gray-400">Draft</p>
               <Table
                 header={["Ewo", "Espar/WO", "Reservasi"]}
-                data={[[data.drf.ewo, data.drf.espar, data.drf.res]]}
+                data={[
+                  [
+                    filteredData.drf.ewo,
+                    filteredData.drf.espar,
+                    filteredData.drf.res,
+                  ],
+                ]}
               />
             </div>
             <div className="flex flex-col gap-3">
@@ -235,7 +249,10 @@ export default function SrcCard({ isOpen, setIsOpen }) {
                   G005 belum update
                 </span>
               </p>
-              <Table header={["G002"]} data={[[data.actualStock.g002]]} />
+              <Table
+                header={["G002"]}
+                data={[[filteredData.actualStock.g002]]}
+              />
             </div>
             <div className="flex flex-col gap-3">
               <p className="font-medium text-gray-400">
@@ -248,11 +265,11 @@ export default function SrcCard({ isOpen, setIsOpen }) {
                 header={["G002", "G003", "G004", "G005", "Total"]}
                 data={[
                   [
-                    data.sapStock.g002,
-                    data.sapStock.g003,
-                    data.sapStock.g004,
-                    data.sapStock.g005,
-                    data.sapStock.total,
+                    filteredData.sapStock.g002,
+                    filteredData.sapStock.g003,
+                    filteredData.sapStock.g004,
+                    filteredData.sapStock.g005,
+                    filteredData.sapStock.total,
                   ],
                 ]}
               />
@@ -264,7 +281,7 @@ export default function SrcCard({ isOpen, setIsOpen }) {
                 data={[
                   [
                     <div className="flex flex-wrap gap-2">
-                      {data.bin.g002.map((bin, i) => (
+                      {filteredData.bin.g002.map((bin, i) => (
                         <p
                           key={i}
                           className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
@@ -281,7 +298,7 @@ export default function SrcCard({ isOpen, setIsOpen }) {
                 data={[
                   [
                     <div className="flex flex-wrap gap-2">
-                      {data.bin.g005.map((bin, i) => (
+                      {filteredData.bin.g005.map((bin, i) => (
                         <p
                           key={i}
                           className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"

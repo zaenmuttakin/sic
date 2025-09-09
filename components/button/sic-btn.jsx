@@ -11,15 +11,14 @@ export default function SicBtn({
 
   ...props
 }) {
-  const { isLoadMaterialData } = useContext(MaterialdataContext);
+  const { cekLs } = useContext(MaterialdataContext);
   return (
     <button
       {...props}
-      className={`${style} ${
-        isLoadMaterialData && "opacity-70"
-      } aspect-square a-middle w-14 font-medium text-white bg-[#7A6DFF] rounded-full hover:bg-[#6A5BFF] cursor-pointer shadow-lg`}
+      disabled={!cekLs}
+      className={`${style} aspect-square a-middle w-14 font-medium text-white bg-[#7A6DFF] rounded-full hover:bg-[#6A5BFF] cursor-pointer shadow-lg disabled:opacity-75`}
     >
-      {isLoadMaterialData ? (
+      {!cekLs ? (
         <FontAwesomeIcon
           icon={faCircleNotch}
           className="animate-spin text-2xl"
