@@ -58,6 +58,7 @@ export default function Page() {
         </AnimatePresence>
       )}
       <Topbar />
+      <div className="hidden lg:block h-20 relative"></div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-y-4 lg:gap-6">
         <div className="order-last lg:order-first">
           <div className="h-full rounded-3xl bg-white p-6 ">
