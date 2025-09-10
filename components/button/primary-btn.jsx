@@ -1,6 +1,4 @@
 import Image from "next/image";
-import React from "react";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 export default function PrimaryBtn({
   label,
@@ -24,7 +22,7 @@ export default function PrimaryBtn({
           className="inline mr-2.5"
         />
       )}
-      {icon && <FontAwesomeIcon icon={imgsrc} className="inline mr-2.5" />}
+      {icon}
       {label}
     </button>
   );

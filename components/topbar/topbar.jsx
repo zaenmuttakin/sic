@@ -28,13 +28,18 @@ export default function Topbar() {
           />
         </div>
         <div className="hidden lg:flex gap-2 rounded-full">
-          <p className="py-3 px-4 rounded-full text-[#7A6DFF] font-medium">
+          <p className="py-3 px-4 hover:text-[#7A6DFF] duration-100 cursor-pointer">
             Dashboard
           </p>
-          <p className="py-3 px-4">Menu</p>
-          <p className="py-3 px-4">Sheets</p>
-          <p className="py-3 px-4">About</p>
-          <p className="py-3 px-4">Profile</p>
+          <p className="py-3 px-4 hover:text-[#7A6DFF] duration-100 cursor-pointer">
+            Menu
+          </p>
+          <p className="py-3 px-4 hover:text-[#7A6DFF] duration-100 cursor-pointer">
+            About
+          </p>
+          <p className="py-3 px-4 hover:text-[#7A6DFF] duration-100 cursor-pointer">
+            Profile
+          </p>
         </div>
         <div className="flex gap-4 items-center">
           <div className="hidden lg:flex gap-2 pl-2 items-end">

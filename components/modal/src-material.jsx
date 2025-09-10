@@ -69,7 +69,7 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
         setTimeout(() => {
           setFilteredData(dataFiltered[0]);
           setIsLoading(false);
-        }, 1000);
+        }, 500);
       } else {
         alert("gagal");
         setIsLoading(false);
