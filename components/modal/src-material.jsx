@@ -24,10 +24,14 @@ import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
 import Table from "../table/table";
 
-export default function SrcMaterial({ isOpen, setIsOpen }) {
+export default function SrcMaterial({
+  isOpen,
+  setIsOpen,
+  valueToSrc,
+  setValueToSrc,
+}) {
   const [maximize, setMaximize] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [valueToSrc, setValueToSrc] = useState("");
   const [cekvalue, setCekvalue] = useState(false);
   const [firstOpen, setFirstOpen] = useState(true);
   const inputRef = useRef(null);
@@ -79,7 +83,8 @@ export default function SrcMaterial({ isOpen, setIsOpen }) {
 
   useEffect(() => {
     if (isOpen) {
-      document.body.classList.add("overflow-hidden");
+      valueToSrc && handleSearch();
+      // document.body.classList.add("overflow-hidden");
     } else {
       document.body.classList.remove("overflow-hidden");
       setValueToSrc("");

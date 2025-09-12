@@ -21,11 +21,14 @@ export default function Table({ header, data, footer = false }) {
           {/* Table Body */}
           <tbody className="divide-y divide-gray-200">
             {data.map((row, i) => (
-              <tr key={i} className="hover:bg-gray-50 transition-colors">
+              <tr
+                key={i}
+                className="hover:bg-gray-50 transition-colors relative"
+              >
                 {row.map((col, j) => (
                   <td
                     key={j}
-                    className={`${row.length - 1 == j && "w-full pr-6"} ${
+                    className={`${row.length - 1 == j && " w-full pr-6"} ${
                       j == 0 && "pl-5"
                     } px-3 py-3`}
                   >

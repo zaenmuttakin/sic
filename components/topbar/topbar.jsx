@@ -5,7 +5,7 @@ import ProfileImg from "../../components/image/profile";
 
 export default function Topbar() {
   return (
-    <div className="lg:fixed relative inset-0 h-fit items-start justify-center w-full top-0 left-0 z-2">
+    <div className="lg:fixed relative inset-0 h-fit items-start justify-center w-full top-0 left-0 z-4">
       <div className="hidden lg:block absolute bg-[#E8ECF7] h-18 top-0 w-full"></div>
       <div className="lg:fixed top-6 left-6 right-6 flex w-full lg:w-auto gap-2 justify-between p-4 lg:px-6 items-center bg-white rounded-t-3xl lg:rounded-3xl lg:shadow-md shadow-black/5">
         <div className="rounded-2xl p-3 lg:p-4 block lg:hidden cursor-pointer hover:bg-gray-100 duration-100">

@@ -1,4 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
 
 export default function GrayBtn({
@@ -23,7 +22,6 @@ export default function GrayBtn({
           className="inline mr-2.5"
         />
       )}
-      {icon && <FontAwesomeIcon icon={imgsrc} className="inline mr-2.5" />}
       <p>{label}</p>
     </button>
   );
