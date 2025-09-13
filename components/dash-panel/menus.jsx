@@ -25,7 +25,7 @@ export default function Menus() {
           title="Stock Opname"
         />
         <MenuItem
-          to="/private/monitor-g002"
+          to="/private/material-data"
           icon={faBoxesPacking}
           title="Material Data"
         />

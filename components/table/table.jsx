@@ -1,16 +1,67 @@
-export default function Table({ header, data, footer = false }) {
+import { useEffect, useState } from "react";
+
+export default function Table({
+  header,
+  data,
+  itemsPerPage = 20,
+  isFeching = false,
+  searchTerm = "",
+  footer = false,
+  trClick = () => {},
+}) {
+  if (!data || data.length === 0)
+    return <p className="w-full p-6 text-center">No data to display.</p>;
+
+  const [currentPage, setCurrentPage] = useState(1);
+  // const headers = Object.keys(data[0]).filter(
+  //   (key) => !excludeKeys.includes(key)
+  // );
+
+  const filteredData = data?.filter((item) => {
+    // Search across all string fields
+    const matchesSearch =
+      searchTerm === "" ||
+      Object.entries(item)
+        .filter(([key, value]) => !excludeKeys.includes(key))
+        .some(([key, value]) =>
+          String(value).toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+    // Filter by specific key-value pairs
+    // const matchesFilterBy =
+    //   filterBy.length === 0 ||
+    //   filterBy.every((filter) => {
+    //     if (!filter.key || filter.value === undefined) return true;
+    //     return String(item[filter.key]) === String(filter.value);
+    //   });
+    // return matchesSearch && matchesFilterBy;
+    return matchesSearch;
+  });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredData?.length / itemsPerPage);
+  const paginatedData = filteredData?.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   return (
     <div className="max-w-6xl flex flex-col justify-between w-full text-sm mx-auto bg-white rounded-t-2xl overflow-hidden">
       <div className="overflow-x-auto c-scrollbar h-full">
         <table className="w-full text-left text-nowrap min-h-full">
           <thead>
-            <tr className="bg-gray-100 text-gray-600 text-left">
+            <tr className="bg-gray-100 text-gray-600 text-left align-bottom ">
               {header.map((item, i) => (
                 <th
                   key={i}
-                  className={`${header.length - 1 == i && "w-full pr-6"} ${
-                    i == 0 && "pl-5"
-                  } px-3 py-3 font-semibold`}
+                  className={`${
+                    header.length - 1 == i &&
+                    "w-full pr-6 align-bottom relative"
+                  } ${i == 0 && "pl-5"} px-3 py-3 font-semibold`}
                 >
                   {item}
                 </th>
@@ -20,10 +71,11 @@ export default function Table({ header, data, footer = false }) {
 
           {/* Table Body */}
           <tbody className="divide-y divide-gray-200">
-            {data.map((row, i) => (
+            {paginatedData.map((row, i) => (
               <tr
                 key={i}
-                className="hover:bg-gray-50 transition-colors relative"
+                className="hover:bg-gray-50 transition-colors relative cursor-pointer "
+                onClick={() => trClick(row[0])}
               >
                 {row.map((col, j) => (
                   <td
@@ -37,83 +89,6 @@ export default function Table({ header, data, footer = false }) {
                 ))}
               </tr>
             ))}
-            {/*
-                // <tr key={i} className="hover:bg-gray-50 transition-colors">
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <div className="flex items-center">
-                //       <div className="h-3 w-3 rounded-full bg-[#7A6DFF] mr-3"></div>
-                //       <div className="font-medium text-gray-900">
-                //         {item.material}
-                //       </div>
-                //     </div>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <div className="flex items-center">
-                //       <div className=" text-gray-900">G002</div>
-                //     </div>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <div className="flex items-center">
-                //       <div className=" text-gray-900">{item.material}</div>
-                //     </div>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <div className="flex items-center">
-                //       <div className=" text-gray-900">{item.name}</div>
-                //     </div>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <span
-                //       className={`px-2 py-1 text-xs font-medium rounded-full ${
-                //         statusColors[item.status]
-                //       }`}
-                //     >
-                //       {item.status}
-                //     </span>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <span
-                //       className={`font-medium ${priorityColors[item.priority]}`}
-                //     >
-                //       {item.priority}
-                //     </span>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap">
-                //     <div className="flex items-center">
-                //       <div className="w-24 h-2 bg-gray-200 rounded-full mr-2">
-                //         <div
-                //           className="h-2 rounded-full bg-[#7A6DFF]"
-                //           style={{ width: `${item.completion}%` }}
-                //         ></div>
-                //       </div>
-                //       <span className="text-sm text-gray-500">
-                //         {item.completion}%
-                //       </span>
-                //     </div>
-                //   </td>
-                //   <td className="px-6 py-2 whitespace-nowrap">
-                //     <div className="flex -space-x-2">
-                //       {[...Array(Math.min(item.team, 5))].map((_, i) => (
-                //         <div
-                //           key={i}
-                //           className="h-8 w-8 rounded-full border-2 border-white bg-gray-300 flex items-center justify-center text-xs font-medium text-gray-700"
-                //         >
-                //           {i === 4 && item.team > 5
-                //             ? `+${item.team - 5}`
-                //             : i + 1}
-                //         </div>
-                //       ))}
-                //     </div>
-                //   </td>
-                //   <td className="px-4 py-4 whitespace-nowrap text-right">
-                //     <button className="text-[#7A6DFF] hover:text-[#6A5BFF] mr-3">
-                //       Edit
-                //     </button>
-                //     <button className="text-red-500 hover:text-red-700">
-                //       Delete
-                //     </button>
-                //   </td>
-                // </tr> */}
           </tbody>
         </table>
       </div>

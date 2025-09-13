@@ -27,7 +27,9 @@ export default function RekapTabung() {
   return (
     <div className="relative max-h-[30rem] h-full overflow-none p-6 bg-white rounded-3xl w-full flex flex-col justify-start">
       <div className="flex justify-between items-center mb-6">
-        <p className="text-md lg:text-lg font-bold">Rekap Tabung BSG</p>
+        <p className="text-md lg:text-lg font-bold a-middle">
+          Rekap Tabung BSG
+        </p>
         <button className="a-middle px-4 py-2.5  gap-2 text-sm bg-indigo-50 rounded-xl text-[#7A6DFF] hover:bg-[#7A6DFF] hover:text-white cursor-pointer duration-100">
           <span className="hidden lg:block">Details</span>
           <span className="lg:hidden block text-sm">

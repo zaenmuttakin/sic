@@ -65,7 +65,7 @@ export default function SrcMaterial({
       setIsLoading(true);
       setFirstOpen(false);
       inputRef.current && inputRef.current.blur();
-      const term = valueToSrc.toLowerCase().trim();
+      const term = valueToSrc;
       console.log(materialData);
 
       const dataFiltered = filterMaterialdata("equal", materialData.data, term);
@@ -167,15 +167,18 @@ export default function SrcMaterial({
             <div className="flex items-center justify-between pt-6 px-6">
               <p className="font-semibold">Search Material</p>
               <div className="flex-1 flex flex-nowrap items-center">
-                <div className="text-xs w-fit px-2 ml-2 py-[4px] text-indigo-400 rounded-full bg-indigo-50">
+                <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
                   <FontAwesomeIcon
                     icon={faRefresh}
                     className={`${
-                      isLoadMaterialData ? "animate-spin" : " pr-1"
+                      isLoadMaterialData ? "animate-spin" : " pr-0.5"
                     } text-xs`}
                   />
-                  {!isLoadMaterialData &&
-                    timestampToTime(materialData?.timestamp)}
+                  {!isLoadMaterialData && (
+                    <span className="pr-0.5">
+                      {timestampToTime(materialData?.timestamp)}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="lg:hidden">
@@ -336,15 +339,15 @@ export default function SrcMaterial({
                     />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <p className="font-medium text-gray-400">
-                      Actual Stock
-                      <span className="text-xs px-2 py-0.5 bg-indigo-50 text-[#7A6DFF] rounded-full ml-2 font-normal">
-                        G005 belum update
-                      </span>
-                    </p>
+                    <p className="font-medium text-gray-400">Actual Stock</p>
                     <Table
-                      header={["G002"]}
-                      data={[[filteredData.actualStock.g002]]}
+                      header={["G002", "G005"]}
+                      data={[
+                        [
+                          filteredData.actualStock.g002,
+                          filteredData.actualStock.g005,
+                        ],
+                      ]}
                     />
                   </div>
                   <div className="flex flex-col gap-3">
