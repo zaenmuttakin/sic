@@ -39,7 +39,7 @@ export default function Table({
 
   return (
     <div className="max-w-6xl flex flex-col justify-between w-full text-sm mx-auto bg-white rounded-t-2xl overflow-hidden">
-      <div className="overflow-x-auto c-scrollbar h-full">
+      <div className="overflow-x-auto c-scrollbar h-full pb-2">
         <table className="w-full text-left text-nowrap min-h-full">
           <thead>
             <tr className="bg-gray-100 text-gray-600 text-left align-bottom ">

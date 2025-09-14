@@ -1,10 +1,13 @@
 "use client";
 import {
   faArrowLeft,
+  faChevronRight,
+  faMagnifyingGlass,
   faRefresh,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import GrayBtn from "../../../components/button/gray-btn";
@@ -14,6 +17,7 @@ import DataTable from "../../../components/table/data-table";
 import { MaterialdataContext } from "../../../lib/context/material-data";
 import { ColorContext } from "../../../lib/context/topbar-color";
 import { timestampToDateTime } from "../../../lib/func/timestampToDateTime";
+import { timestampToTime } from "../../../lib/func/timestampToTime";
 
 export default function Page() {
   const { materialData, isLoadMaterialData } = useContext(MaterialdataContext);
@@ -27,40 +31,108 @@ export default function Page() {
   useEffect(() => {
     setData(materialData.data);
   }, [materialData]);
+  useEffect(() => {
+    setTopbarColor(topColors.white);
+  }, []);
+  useEffect(() => {
+    searchOpen && setTopbarColor("#b3b3b3");
+    !searchOpen && setTopbarColor(topColors.white);
+  }, [searchOpen]);
   return (
     <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
       <div className="flex flex-col h-full w-full bg-white p-0 lg:p-6 rounded-3xl max-w-4xl">
-        <div className="flex justify-start items-center mb-4 lg:mb-6">
+        <div className="relative flex justify-start items-center mb-6">
           <GrayBtn
             label={<FontAwesomeIcon icon={faArrowLeft} />}
             onClick={() => router.back()}
             style="bg-white"
           />
-          <p className="ml-2 text-lg font-semibold">Material data </p>
+          <p className="ml-1 text-lg font-semibold">Material data </p>
           <div className="a-middle gap-2 ml-2">
-            <span className="text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
+            <span className="hidden lg:block text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
               {timestampToDateTime(materialData.timestamp)}
             </span>
+            <span className="block lg:hidden text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
+              {timestampToTime(materialData.timestamp)}
+            </span>
           </div>
-          <div className="flex-1 flex justify-end pr-2">
+          <div className="flex-1 w-full flex items-center justify-end gap-2 pr-2 lg:pr-0">
             {isLoadMaterialData && (
-              <div className="w-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400">
-                <FontAwesomeIcon icon={faRefresh} className=" animate-spin" />
+              <div className="w-6 h-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400 ml-2">
+                <FontAwesomeIcon icon={faRefresh} className="animate-spin" />
               </div>
             )}
+            <div className="flex items-center justify-end w-full h-[46px]">
+              <button
+                className={`${
+                  searchFormOpen
+                    ? "bg-gray-100 order-last border-1 border-gray-50"
+                    : "bg-indigo-50 order-last border-1 border-indigo-50"
+                } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer`}
+                onClick={() => {
+                  setSearchFormOpen(!searchFormOpen);
+                  setValueToSrcMaterial("");
+                }}
+              >
+                {searchFormOpen ? (
+                  <FontAwesomeIcon
+                    icon={faChevronRight}
+                    className="text-gray-500"
+                  />
+                ) : (
+                  <FontAwesomeIcon
+                    icon={faMagnifyingGlass}
+                    className="text-indigo-400"
+                  />
+                )}
+              </button>
+              {searchFormOpen && (
+                <AnimatePresence>
+                  <motion.div
+                    initial={{ x: 20, opacity: 0, scale: 0.8 }}
+                    animate={{ x: 0, opacity: 1, scale: 1 }}
+                    exit={{ x: 20, opacity: 0, scale: 0.8 }}
+                    className="absolute flex w-full top-0 left-0 z-2 pl-2 lg:pl-0 gap-6 lg:gap-4"
+                  >
+                    <SeacrhForm
+                      isOpen={searchFormOpen}
+                      setIsOpen={setSearchFormOpen}
+                      valueToSrc={valueToSrcMaterial}
+                      setValueToSrc={setValueToSrcMaterial}
+                    />
+                    <button
+                      className={`${
+                        searchFormOpen
+                          ? "bg-gray-100 order-last border-1 border-gray-50"
+                          : "bg-indigo-50 order-last border-1 border-indigo-50"
+                      } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer opacity-0`}
+                      onClick={() => {
+                        setSearchFormOpen(!searchFormOpen);
+                        setValueToSrcMaterial("");
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-gray-500"
+                      />
+                    </button>
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </div>
           </div>
         </div>
-        <div className="min-h-[90vh] h-full w-full rounded-t-3xl overflow-x-auto px-2 lg:px-0 pb-20 lg:pb-18">
+        <div className="h-full w-full rounded-t-3xl overflow-x-auto px-2 lg:px-0 pb-4">
           {data && (
             <DataTable
               itemsPerPage={15}
               header={[
-                <p className="pt-8">MID</p>,
+                <p className="pt-5">MID</p>,
                 "Deskripsi",
                 "Uom",
                 "Draft",
                 <div className="relative">
-                  <p className="absolute -top-8 -left-2  pl-2 pr-8 py-1 bg-indigo-100 text-indigo-400 rounded-2xl  text-xs">
+                  <p className="absolute -top-5 -left-2  pl-1.5 pr-12  bg-indigo-100 text-indigo-400 rounded-2xl  text-xs">
                     Actual Stock
                   </p>
                   <p>G002</p>
@@ -87,18 +159,13 @@ export default function Page() {
           )}
         </div>
       </div>
-      <SeacrhForm
-        isOpen={searchFormOpen}
-        setIsOpen={setSearchFormOpen}
-        valueToSrc={valueToSrcMaterial}
-        setValueToSrc={setValueToSrcMaterial}
-      />
+
       <SrcMaterial
         isOpen={searchOpen}
         setIsOpen={setSearchOpen}
         valueToSrc={valueToSrc}
         setValueToSrc={setValueToSrc}
-        loadtime={0}
+        loadtime={300}
       />
     </div>
   );
@@ -115,7 +182,7 @@ const SeacrhForm = ({
   const inputRef = useRef(null);
 
   return (
-    <form className="fixed flex gap-3 justify-between px-6 py-4 bg-white w-full max-w-4xl rounded-t-2xl bottom-0">
+    <div className="flex gap-3 justify-between bg-white w-full rounded-t-2xl">
       <div className="relative flex-1" disabled={isLoading}>
         <Inputz
           type="text"
@@ -124,6 +191,7 @@ const SeacrhForm = ({
           value={valueToSrc}
           style={`${cekvalue && "cekval"}  focus:border-indigo-400/80 `}
           onChange={(e) => setValueToSrc(e.target.value)}
+          autoFocus={true}
           disabled={isLoading}
         />
         {valueToSrc && !isLoading && (
@@ -136,22 +204,6 @@ const SeacrhForm = ({
           />
         )}
       </div>
-      {/* <PrimaryBtn
-        type="submit"
-        name="maximize"
-        label={
-          isLoading ? (
-            <FontAwesomeIcon icon={faCircleNotch} className="animate-spin" />
-          ) : (
-            <FontAwesomeIcon icon={faMagnifyingGlass} />
-          )
-        }
-        onClick={(e) => {
-          e.preventDefault();
-          handleSearch();
-        }}
-        disabled={isLoading}
-      /> */}
-    </form>
+    </div>
   );
 };
