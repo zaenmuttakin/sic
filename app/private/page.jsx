@@ -29,19 +29,20 @@ export default function Page() {
     <div className="relative page-container">
       <Topbar />
       <div className="hidden lg:block h-20 relative"></div>
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-y-4 lg:gap-6">
-        <Sheets />
-        <div className="col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 ">
+      <div className="grid grid-cols-1 lg:grid-cols-4 xl:grid-cols-7 gap-y-4 lg:gap-6">
+        <div className="flex flex-col rounded-3xl gap-4 col-span-2 order-last lg:order-first">
+          <SrcCard
+            isOpen={searchOpen}
+            setIsOpen={setSearchOpen}
+            valueToSrc={valueToSrc}
+            setValueToSrc={setValueToSrc}
+          />
+          <Sheets />
+        </div>
+        <div className="lg:col-span-4 xl:col-span-5 grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6 ">
           <DiffSO />
-          <div className="flex flex-col rounded-3xl gap-4">
-            <SrcCard
-              isOpen={searchOpen}
-              setIsOpen={setSearchOpen}
-              valueToSrc={valueToSrc}
-              setValueToSrc={setValueToSrc}
-            />
-            <RekapTabung />
-          </div>
+
+          <RekapTabung />
           <Menus />
         </div>
       </div>

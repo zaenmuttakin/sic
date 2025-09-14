@@ -110,7 +110,7 @@ export default function DiffSO() {
           />
         )}
       </div>
-      <div className="flex-1 h-full flex gap-6 justify-between items-center pt-4 lg:pt-0">
+      <div className="flex-1 h-full flex gap-6 justify-between items-start pt-4 lg:pt-2">
         {diffData && (
           <div className="text-xs lg:text-sm text-gray-400 py-2.5 ">
             Showing <span className="font-medium">1</span> to{" "}

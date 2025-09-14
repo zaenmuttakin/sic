@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 export default function Table({
   header,
   data,
-  itemsPerPage = 20,
+  itemsPerPage = 15,
   isFeching = false,
   searchTerm = "",
   footer = false,
@@ -13,9 +13,6 @@ export default function Table({
     return <p className="w-full p-6 text-center">No data to display.</p>;
 
   const [currentPage, setCurrentPage] = useState(1);
-  // const headers = Object.keys(data[0]).filter(
-  //   (key) => !excludeKeys.includes(key)
-  // );
 
   const filteredData = data?.filter((item) => {
     // Search across all string fields
@@ -27,18 +24,9 @@ export default function Table({
           String(value).toLowerCase().includes(searchTerm.toLowerCase())
         );
 
-    // Filter by specific key-value pairs
-    // const matchesFilterBy =
-    //   filterBy.length === 0 ||
-    //   filterBy.every((filter) => {
-    //     if (!filter.key || filter.value === undefined) return true;
-    //     return String(item[filter.key]) === String(filter.value);
-    //   });
-    // return matchesSearch && matchesFilterBy;
     return matchesSearch;
   });
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredData?.length / itemsPerPage);
   const paginatedData = filteredData?.slice(
     (currentPage - 1) * itemsPerPage,
@@ -97,15 +85,15 @@ export default function Table({
       {footer && (
         <div className=" px-0 lg:px-4 pt-6  flex gap-8 justify-between items-center">
           <div className="text-sm text-gray-500">
-            Showing <span className="font-medium">1</span> to{" "}
+            <span className="font-medium">1</span> to{" "}
             <span className="font-medium">{data.length}</span> of{" "}
             <span className="font-medium">{data.length}</span> results
           </div>
           <div className="flex space-x-2">
-            <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200">
+            <button className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200">
               Previous
             </button>
-            <button className="px-4 py-2 text-sm font-medium text-white bg-[#7A6DFF] rounded-xl hover:bg-[#6A5BFF]">
+            <button className="px-4 py-2 text-sm font-medium text-indigo-500 bg-indigo-50 rounded-xl hover:bg-indigo-100">
               Next
             </button>
           </div>

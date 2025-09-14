@@ -29,6 +29,7 @@ export default function SrcMaterial({
   setIsOpen,
   valueToSrc,
   setValueToSrc,
+  loadtime = 500,
 }) {
   const [maximize, setMaximize] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -73,7 +74,7 @@ export default function SrcMaterial({
         setTimeout(() => {
           setFilteredData(dataFiltered[0]);
           setIsLoading(false);
-        }, 500);
+        }, loadtime);
       } else {
         alert("gagal");
         setIsLoading(false);

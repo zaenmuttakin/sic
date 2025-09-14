@@ -59,7 +59,7 @@ export function SrcCard({ isOpen, setIsOpen, valueToSrc, setValueToSrc }) {
   }, [isOpen]);
 
   return (
-    <div className="hidden relative max-h-[30rem] overflow-none p-6 bg-white rounded-3xl w-full lg:flex flex-col justify-start gap-4">
+    <div className="order-first hidden relative max-h-[30rem] overflow-none p-6 bg-white rounded-3xl w-full lg:flex flex-col justify-start gap-4">
       {isOpen && (
         <AnimatePresence>
           <motion.div

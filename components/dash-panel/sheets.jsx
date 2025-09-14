@@ -4,7 +4,7 @@ import { openInNewWindow } from "../../lib/func/openInNewWindow";
 
 export function Sheets() {
   return (
-    <div className="order-last lg:order-first">
+    <div className="order-last lg:order-first h-full">
       <div className="h-full rounded-3xl bg-white p-6 flex flex-col gap-4">
         <p className="text-md lg:text-lg font-bold mb-2">Sheets</p>
         <Buttons
@@ -26,14 +26,6 @@ export function Sheets() {
         <Buttons
           label="Rekap Tabung BGS"
           to="https://docs.google.com/spreadsheets/d/1BL8uKssA8HhFn7Oj136bz2Uj0g1hCx5JQT2retl_eYU/edit?usp=drive_link"
-        />
-        <Buttons
-          label="Daily Report"
-          to="https://docs.google.com/spreadsheets/d/1zXbeE2-CFjBOpNoQPhzGAwn7lAnJxrOSeLMYXexoQTg"
-        />
-        <Buttons
-          label="Monitor Consumable"
-          to="https://docs.google.com/spreadsheets/d/1kPPrL23cp_HLV0MQgiJyF4jiS7KEC3er1EThIrMPLqo/edit?gid=0#gid=0"
         />
       </div>
     </div>
