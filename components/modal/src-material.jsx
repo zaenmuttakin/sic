@@ -5,6 +5,7 @@ import {
   faCircleNotch,
   faMagnifyingGlass,
   faMinus,
+  faPlus,
   faQrcode,
   faRefresh,
   faTimes,
@@ -35,6 +36,7 @@ export default function SrcMaterial({
   const [isLoading, setIsLoading] = useState(false);
   const [cekvalue, setCekvalue] = useState(false);
   const [firstOpen, setFirstOpen] = useState(true);
+  const [openAddMapping, setOpenAddMapping] = useState(false);
   const inputRef = useRef(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -67,7 +69,7 @@ export default function SrcMaterial({
         e.preventDefault();
         setIsOpen(false);
         // Push a new entry to history to keep the user on the same page
-        window.history.pushState(null, "", pathname);
+        router.push(pathname);
       }
     };
     window.addEventListener("popstate", handleBackButton);
@@ -79,7 +81,7 @@ export default function SrcMaterial({
   // Add history entry when modal opens
   useEffect(() => {
     if (isOpen) {
-      window.history.pushState({ modal: true }, "");
+      window.history.pushState({ modal: true }, pathname);
     }
   }, [isOpen]);
 
@@ -118,6 +120,7 @@ export default function SrcMaterial({
       setMaximize(false);
       setCekvalue(false);
       setFirstOpen(true);
+      setOpenAddMapping(false);
     }
     return () => {
       document.body.classList.remove("overflow-hidden");
@@ -188,8 +191,14 @@ export default function SrcMaterial({
               minHeight: "30vh",
             }}
             name="modal"
-            className="max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
+            className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
+            <AddMapModal
+              isOpen={openAddMapping}
+              setIsOpen={setOpenAddMapping}
+              maximize={maximize}
+            />
+            {/* ---------------------------------------------------- */}
             <div className="flex items-center justify-between pt-6 px-6">
               <p className="font-semibold">Search Material</p>
               <div className="flex-1 flex flex-nowrap items-center">
@@ -404,13 +413,20 @@ export default function SrcMaterial({
                         [
                           <div className="flex flex-wrap gap-2">
                             {filteredData.bin.g002.map((bin, i) => (
-                              <p
+                              <button
                                 key={i}
-                                className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
                               >
                                 {bin}
-                              </p>
+                              </button>
                             ))}
+
+                            <button
+                              onClick={() => setOpenAddMapping(true)}
+                              className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
+                            >
+                              <FontAwesomeIcon icon={faPlus} className="" />
+                            </button>
                           </div>,
                         ],
                       ]}
@@ -421,13 +437,19 @@ export default function SrcMaterial({
                         [
                           <div className="flex flex-wrap gap-2">
                             {filteredData.bin.g005.map((bin, i) => (
-                              <p
+                              <button
                                 key={i}
-                                className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
                               >
                                 {bin}
-                              </p>
+                              </button>
                             ))}
+                            <button
+                              onClick={() => setOpenAddMapping(true)}
+                              className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
+                            >
+                              <FontAwesomeIcon icon={faPlus} className="" />
+                            </button>
                           </div>,
                         ],
                       ]}
@@ -475,3 +497,42 @@ export default function SrcMaterial({
     </AnimatePresence>
   );
 }
+
+const AddMapModal = ({ isOpen, setIsOpen, maximize }) => {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className={`${
+            maximize && "p-6 rounded-none"
+          } absolute rounded-3xl h-full z-11 w-full bg-black/30 top-0 left-0 a-middle`}
+        >
+          <motion.div
+            initial={{ y: 10, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 10, opacity: 0 }}
+            className="bg-white rounded-3xl z-12 w-full max-w-lg flex flex-col justify-start p-6 pt-8"
+          >
+            <p className="text-center font-medium mb-8 a-middle">
+              <span className="text-xs text-center py-1 px-3 rounded-2xl text-indigo-400 bg-indigo-50 mr-2">
+                G002
+              </span>
+              <span>Tambah Bin 16000011 ?</span>
+            </p>
+            <div className="gap-2 a-middle">
+              <GrayBtn
+                label="Batal"
+                style="flex-1"
+                onClick={() => setIsOpen(false)}
+              />
+              <PrimaryBtn label="Ya, Lanjutkan" style="flex-1 text-nowrap" />
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
