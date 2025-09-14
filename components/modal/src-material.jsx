@@ -12,7 +12,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { ColorContext } from "../../lib/context/topbar-color";
@@ -37,6 +37,7 @@ export default function SrcMaterial({
   const [firstOpen, setFirstOpen] = useState(true);
   const inputRef = useRef(null);
   const router = useRouter();
+  const pathname = usePathname();
   const [isLgScreen, setIsLgScreen] = useState(false);
   const { materialData, filteredData, setFilteredData, isLoadMaterialData } =
     useContext(MaterialdataContext);
@@ -57,6 +58,30 @@ export default function SrcMaterial({
       return () => window.removeEventListener("resize", checkScreenSize);
     }
   }, []);
+
+  // Handle browser back button
+  useEffect(() => {
+    console.log(pathname);
+    const handleBackButton = (e) => {
+      if (isOpen) {
+        e.preventDefault();
+        setIsOpen(false);
+        // Push a new entry to history to keep the user on the same page
+        window.history.pushState(null, "", pathname);
+      }
+    };
+    window.addEventListener("popstate", handleBackButton);
+    return () => {
+      window.removeEventListener("popstate", handleBackButton);
+    };
+  }, [isOpen, pathname]);
+
+  // Add history entry when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      window.history.pushState({ modal: true }, "");
+    }
+  }, [isOpen]);
 
   const handleSearch = async () => {
     !materialData && alert("Not any data");
