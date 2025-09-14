@@ -49,7 +49,7 @@ export default function SrcMaterial({
     maximize && isOpen && setTopbarColor(topColors.white);
     !maximize && isOpen && setTopbarColor(topColors.onmodal);
     maximize && openAddMapping && setTopbarColor("#b3b3b3");
-  }, [maximize]);
+  }, [maximize, isOpen, openAddMapping]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
