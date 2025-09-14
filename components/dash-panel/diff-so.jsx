@@ -1,4 +1,4 @@
-import { faArrowUpLong } from "@fortawesome/free-solid-svg-icons";
+import { faArrowUpLong, faRefresh } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
@@ -36,7 +36,14 @@ export default function DiffSO() {
   return (
     <div className="relative flex flex-col rounded-3xl bg-white p-6 h-full">
       <div className="flex items-center justify-between mb-6">
-        <p className="text-md lg:text-lg font-bold">Selisih SO Internal</p>
+        <div className="a-middle">
+          <p className="text-md lg:text-lg font-bold">Selisih SO Internal</p>
+          {isLoadDiffData && (
+            <div className="w-6 h-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400 ml-2">
+              <FontAwesomeIcon icon={faRefresh} className="animate-spin" />
+            </div>
+          )}
+        </div>
         <button
           onClick={() =>
             openInNewWindow(

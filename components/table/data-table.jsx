@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 export default function DataTable({
   data,
   excludeKeys = ["mid"],
-  itemsPerPage = 15,
+  itemsPerPage = 25,
   isFetching = false,
   searchTerm = "",
   filterBy = [],
@@ -12,11 +12,12 @@ export default function DataTable({
   styleTd = [],
   func = {},
   header = [],
+  numbering = false,
 }) {
   if (!data || data.length === 0)
     return <p className="w-full p-6 text-center">No data to display.</p>;
 
-  const [currentPage, setCurrentPage] = useState(15);
+  const [currentPage, setCurrentPage] = useState(1);
   // Generate headers if not provided
   const headers =
     header.length > 0
@@ -61,16 +62,19 @@ export default function DataTable({
         <table className="w-full text-left text-nowrap min-h-full">
           <thead>
             <tr className="bg-gray-100 text-gray-600 text-left align-bottom ">
-              <th className="pl-5 pr-6 align-bottom relative px-3 py-3 font-semibold">
-                No
-              </th>
+              {numbering && (
+                <th className="pl-5 pr-6 align-bottom relative px-3 py-3 font-semibold">
+                  No
+                </th>
+              )}
               {headers.map((th, i) => (
                 <th
                   key={i}
                   className={`${
                     header.length - 1 == i &&
                     "w-full pr-10 align-bottom relative"
-                  } px-3 py-3 font-semibold`}
+                  } ${!numbering && i == 0 && "pl-5"} 
+                  px-3 py-3 font-semibold`}
                 >
                   {th}
                 </th>
@@ -90,9 +94,11 @@ export default function DataTable({
                     func.onClickRow && func.onClickRow(row[0]);
                   }}
                 >
-                  <td className="pl-5 px-4 py-3 text-gray-500">
-                    {absoluteIndex + 1}
-                  </td>
+                  {numbering && (
+                    <td className="pl-5 px-4 py-3 text-gray-500">
+                      {absoluteIndex + 1}
+                    </td>
+                  )}
                   {Object.entries(row)
                     .filter(([key]) => !excludeKeys.includes(key))
                     .map(([key, value]) => (
@@ -100,7 +106,7 @@ export default function DataTable({
                         key={key}
                         className={`px-4 py-3 ${
                           styleTd.find((s) => s.key === key)?.style || ""
-                        }`}
+                        }  ${!numbering && key == 0 && "pl-5"} `}
                       >
                         {typeof value === "object"
                           ? JSON.stringify(value)

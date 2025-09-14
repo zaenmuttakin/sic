@@ -1,4 +1,4 @@
-import { faArrowRight } from "@fortawesome/free-solid-svg-icons";
+import { faArrowRight, faRefresh } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
 import { getTabungBsg } from "../../lib/gas/sic";
@@ -6,30 +6,40 @@ import Table from "../table/table";
 
 export default function RekapTabung() {
   const [dataTabung, setDataTabung] = useState(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const handleError = () => {
     console.log("gagal memuat data tabung");
   };
   const handleFetch = async () => {
     console.log("fetch");
+    setIsLoading(true);
     const tabung = await getTabungBsg();
     !tabung.success && handleError();
     if (tabung.success) {
       setDataTabung(tabung.response);
+      localStorage.setItem("rekap-tabung", JSON.stringify(tabung.response));
+      setIsLoading(false);
       console.log(tabung.response);
     }
   };
 
   useEffect(() => {
+    const lsRekapTabung = localStorage.getItem("rekap-tabung");
+    lsRekapTabung && setDataTabung(JSON.parse(lsRekapTabung));
     handleFetch();
   }, []);
 
   return (
     <div className="relative max-h-[30rem] h-full overflow-none p-6 bg-white rounded-3xl w-full flex flex-col justify-start">
       <div className="flex justify-between items-center mb-6">
-        <p className="text-md lg:text-lg font-bold a-middle">
-          Rekap Tabung BSG
-        </p>
+        <div className="a-middle">
+          <p className="text-md lg:text-lg font-bold">Rekap Tabung BSG</p>
+          {isLoading && (
+            <div className="w-6 h-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400 ml-2">
+              <FontAwesomeIcon icon={faRefresh} className="animate-spin" />
+            </div>
+          )}
+        </div>
         <button className="a-middle px-4 py-2.5  gap-2 text-sm bg-indigo-50 rounded-xl text-[#7A6DFF] hover:bg-[#7A6DFF] hover:text-white cursor-pointer duration-100">
           <span className="hidden lg:block">Details</span>
           <span className="lg:hidden block text-sm">

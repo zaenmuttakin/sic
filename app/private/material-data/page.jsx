@@ -125,7 +125,7 @@ export default function Page() {
         <div className="h-full w-full rounded-t-3xl overflow-x-auto px-2 lg:px-0 pb-4">
           {data && (
             <DataTable
-              itemsPerPage={15}
+              itemsPerPage={25}
               header={[
                 <p className="pt-5">MID</p>,
                 "Deskripsi",
@@ -182,7 +182,13 @@ const SeacrhForm = ({
   const inputRef = useRef(null);
 
   return (
-    <div className="flex gap-3 justify-between bg-white w-full rounded-t-2xl">
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        inputRef.current && inputRef.current.blur();
+      }}
+      className="flex gap-3 justify-between bg-white w-full rounded-t-2xl"
+    >
       <div className="relative flex-1" disabled={isLoading}>
         <Inputz
           type="text"
@@ -204,6 +210,6 @@ const SeacrhForm = ({
           />
         )}
       </div>
-    </div>
+    </form>
   );
 };
