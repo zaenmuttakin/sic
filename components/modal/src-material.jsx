@@ -48,6 +48,7 @@ export default function SrcMaterial({
   useEffect(() => {
     maximize && isOpen && setTopbarColor(topColors.white);
     !maximize && isOpen && setTopbarColor(topColors.onmodal);
+    maximize && openAddMapping && setTopbarColor("#b3b3b3");
   }, [maximize]);
 
   useEffect(() => {
