@@ -36,7 +36,7 @@ export default function SrcMaterial({
   const [isLoading, setIsLoading] = useState(false);
   const [cekvalue, setCekvalue] = useState(false);
   const [firstOpen, setFirstOpen] = useState(true);
-  const [openAddMapping, setOpenAddMapping] = useState(false);
+  const [opnAddMap, setOpnAddMap] = useState(false);
   const inputRef = useRef(null);
   const router = useRouter();
   const pathname = usePathname();
@@ -46,12 +46,28 @@ export default function SrcMaterial({
   const { setTopbarColor, topColors } = useContext(ColorContext);
 
   useEffect(() => {
-    maximize && isOpen && setTopbarColor(topColors.white);
-    !maximize && isOpen && setTopbarColor(topColors.onmodal);
-    maximize && openAddMapping && setTopbarColor("#b3b3b3");
-    !maximize && openAddMapping && setTopbarColor(topColors.onmodal);
-  }, [maximize, isOpen, openAddMapping]);
+    switch (pathname) {
+      case "/private":
+        maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal2);
+        maximize && isOpen && !opnAddMap && setTopbarColor(topColors.white);
+        !maximize && !isOpen && !opnAddMap && setTopbarColor(topColors.default);
+        !maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal);
+        !maximize && isOpen && !opnAddMap && setTopbarColor(topColors.onmodal);
+        break;
+      case "/private/material-data":
+        maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal2);
+        maximize && isOpen && !opnAddMap && setTopbarColor(topColors.white);
+        !maximize && !isOpen && !opnAddMap && setTopbarColor(topColors.default);
+        !maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal);
+        !maximize && isOpen && !opnAddMap && setTopbarColor(topColors.onmodal);
+        break;
 
+      default:
+        break;
+    }
+  }, [maximize, isOpen, opnAddMap]);
+
+  // handle screen size
   useEffect(() => {
     if (typeof window !== "undefined") {
       const checkScreenSize = () => {
@@ -63,29 +79,21 @@ export default function SrcMaterial({
     }
   }, []);
 
-  // Handle browser back button
+  // handle back button
   useEffect(() => {
-    console.log(pathname);
-    const handleBackButton = (e) => {
-      if (isOpen) {
-        e.preventDefault();
+    const handlePopState = (event) => {
+      if (window.location.hash === "#srcmaterial") {
+        // We're still in the modal's history entry, so we do nothing.
+        // This is a failsafe to prevent unexpected behavior.
+      } else {
         setIsOpen(false);
-        // Push a new entry to history to keep the user on the same page
-        router.push(pathname);
       }
     };
-    window.addEventListener("popstate", handleBackButton);
+    window.addEventListener("popstate", handlePopState);
     return () => {
-      window.removeEventListener("popstate", handleBackButton);
+      window.removeEventListener("popstate", handlePopState);
     };
-  }, [isOpen, pathname]);
-
-  // Add history entry when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      window.history.pushState({ modal: true }, pathname);
-    }
-  }, [isOpen]);
+  }, []);
 
   const handleSearch = async () => {
     !materialData && alert("Not any data");
@@ -96,7 +104,6 @@ export default function SrcMaterial({
       setFirstOpen(false);
       inputRef.current && inputRef.current.blur();
       const term = valueToSrc;
-      console.log(materialData);
 
       const dataFiltered = filterMaterialdata("equal", materialData.data, term);
       if (dataFiltered) {
@@ -111,9 +118,26 @@ export default function SrcMaterial({
     }
   };
 
+  // handle modal open and close
+  const handleOpenModal = () => {
+    window.history.pushState({ modal: true }, null, "#srcmaterial");
+  };
+
+  const handleCloseModal = () => {
+    setValueToSrc("");
+    setFilteredData(null);
+    setMaximize(false);
+    setCekvalue(false);
+    setFirstOpen(true);
+    setIsOpen(false);
+    setOpnAddMap(false);
+    window.history.back();
+  };
+
   useEffect(() => {
     if (isOpen) {
       valueToSrc && handleSearch();
+      handleOpenModal();
       // document.body.classList.add("overflow-hidden");
     } else {
       document.body.classList.remove("overflow-hidden");
@@ -122,7 +146,7 @@ export default function SrcMaterial({
       setMaximize(false);
       setCekvalue(false);
       setFirstOpen(true);
-      setOpenAddMapping(false);
+      setOpnAddMap(false);
     }
     return () => {
       document.body.classList.remove("overflow-hidden");
@@ -149,7 +173,8 @@ export default function SrcMaterial({
         >
           <div
             onClick={() => {
-              setIsOpen(false);
+              // setIsOpen(false);
+              handleCloseModal();
               setFilteredData(null);
             }}
             className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"
@@ -196,8 +221,8 @@ export default function SrcMaterial({
             className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
             <AddMapModal
-              isOpen={openAddMapping}
-              setIsOpen={setOpenAddMapping}
+              isOpen={opnAddMap}
+              setIsOpen={setOpnAddMap}
               maximize={maximize}
             />
             {/* ---------------------------------------------------- */}
@@ -242,7 +267,8 @@ export default function SrcMaterial({
                 type="submit"
                 style="bg-white w-10"
                 onClick={() => {
-                  setIsOpen(false);
+                  // setIsOpen(false);
+                  handleCloseModal();
                   setFilteredData(null);
                 }}
                 label={
@@ -424,7 +450,7 @@ export default function SrcMaterial({
                             ))}
 
                             <button
-                              onClick={() => setOpenAddMapping(true)}
+                              onClick={() => setOpnAddMap(true)}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
                               <FontAwesomeIcon icon={faPlus} className="" />
@@ -447,7 +473,7 @@ export default function SrcMaterial({
                               </button>
                             ))}
                             <button
-                              onClick={() => setOpenAddMapping(true)}
+                              onClick={() => setOpnAddMap(true)}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
                               <FontAwesomeIcon icon={faPlus} className="" />
