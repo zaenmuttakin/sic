@@ -11,13 +11,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import GrayBtn from "../../../../components/button/gray-btn";
 import PrimaryBtn from "../../../../components/button/primary-btn";
 import Inputz from "../../../../components/input/input";
 import SeacrhForm from "../../../../components/input/search-form";
 
-export default function Page() {
+export function AddBin() {
   const [searchFormOpen, setSearchFormOpen] = useState(false);
   const [addForm, setAddForm] = useState(false);
   const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
@@ -196,4 +196,12 @@ export default function Page() {
       </div>
     </div>
   );
+}
+
+export default function Page() {
+  return (
+    <Suspense>
+<AddBin/>
+    </Suspense>
+  )
 }
