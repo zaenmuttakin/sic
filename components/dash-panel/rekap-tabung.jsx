@@ -40,7 +40,7 @@ export default function RekapTabung() {
             </div>
           )}
         </div>
-        <button className="a-middle px-4 py-2.5  gap-2 text-sm bg-indigo-50 rounded-xl text-[#7A6DFF] hover:bg-[#7A6DFF] hover:text-white cursor-pointer duration-100">
+        <button className="a-middle px-4 py-2.5  gap-2 text-sm bg-indigo-50 rounded-xl text-[#7A6DFF] hover:bg-[#7A6DFF] hover:text-white cursor-pointer duration-150">
           <span className="hidden lg:block">Details</span>
           <span className="lg:hidden block text-sm">
             <FontAwesomeIcon icon={faArrowRight} />

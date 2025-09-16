@@ -1,7 +1,7 @@
 import {
-  faBookmark,
   faBoxesPacking,
   faClipboardList,
+  faLocationDot,
   faQuestion,
 } from "@fortawesome/free-solid-svg-icons";
 import MenuItem from "../button/menu-item";
@@ -29,7 +29,7 @@ export default function Menus() {
           icon={faBoxesPacking}
           title="Material Data"
         />
-        <MenuItem to="/not-available" icon={faBookmark} title="Mapping" />
+        <MenuItem to="/not-available" icon={faLocationDot} title="Mapping" />
         <MenuItem to="/try" icon={faQuestion} title="About" />
       </div>
     </div>

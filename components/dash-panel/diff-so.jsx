@@ -50,7 +50,7 @@ export default function DiffSO() {
               "https://docs.google.com/spreadsheets/d/1E4n8mtQo0_cFrWv9V6jJjt7fg6neO4UvU0XniEI2XhA/edit?gid=1220006404#gid=1220006404"
             )
           }
-          className="a-middle px-4 py-2.5  gap-2 text-sm bg-indigo-50 rounded-xl text-[#7A6DFF] hover:bg-[#7A6DFF] hover:text-white cursor-pointer duration-100"
+          className="a-middle px-4 py-2.5  gap-2 text-sm bg-indigo-50 rounded-xl text-[#7A6DFF] hover:bg-[#7A6DFF] hover:text-white cursor-pointer duration-150"
         >
           <p className="hidden lg:block text-nowrap">Buka sheet</p>
           <span className="lg:hidden">

@@ -36,16 +36,16 @@ const Buttons = ({ label, to }) => {
   return (
     <button
       onClick={() => openInNewWindow(to)}
-      className="flex gap-4 items-center group relative rounded-2xl bg-indigo-50/50 hover:bg-indigo-50 p-4 w-full duration-100 cursor-pointer"
+      className="flex gap-4 items-center group relative rounded-2xl bg-indigo-50/50 hover:bg-indigo-50 p-4 w-full duration-150 cursor-pointer"
     >
       <FontAwesomeIcon
         icon={faSortUp}
-        className="absolute text-3xl rotate-45 top-8 right-8 opacity-0 group-hover:opacity-100 group-hover:top-4 group-hover:right-3 text-gray-100 group-hover:text-[#7A6DFF] duration-100"
+        className="absolute text-3xl rotate-45 top-8 right-8 opacity-0 group-hover:opacity-100 group-hover:top-4 group-hover:right-3 text-gray-100 group-hover:text-[#7A6DFF] duration-150"
       />
       <div className="flex items-center justify-center text-white p-3 rounded-full aspect-square bg-[#7A6DFF] ">
         <FontAwesomeIcon icon={faTable} className="" />
       </div>
-      <p className="text-sm font-medium lg:text-md text-left text-black group-hover:text-[#7A6DFF] duration-100 line-clamp-1 truncate pr-3">
+      <p className="text-sm font-medium lg:text-md text-left text-black group-hover:text-[#7A6DFF] duration-150 line-clamp-1 truncate pr-3">
         {label}
       </p>
     </button>

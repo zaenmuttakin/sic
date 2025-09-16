@@ -24,6 +24,7 @@ import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
 import Table from "../table/table";
+import AddBin from "./add-bin";
 
 export default function SrcMaterial({
   isOpen,
@@ -41,6 +42,12 @@ export default function SrcMaterial({
   const router = useRouter();
   const pathname = usePathname();
   const [isLgScreen, setIsLgScreen] = useState(false);
+  const [selectedBin, setSelectedBin] = useState({
+    // typeAction: "add /edit"
+    // sloc: "",
+    // mid: "",
+    // uom: "",
+  });
   const { materialData, filteredData, setFilteredData, isLoadMaterialData } =
     useContext(MaterialdataContext);
   const { setTopbarColor, topColors } = useContext(ColorContext);
@@ -109,6 +116,8 @@ export default function SrcMaterial({
       if (dataFiltered) {
         setTimeout(() => {
           setFilteredData(dataFiltered[0]);
+          console.log(dataFiltered[0]);
+
           setIsLoading(false);
         }, loadtime);
       } else {
@@ -120,10 +129,10 @@ export default function SrcMaterial({
 
   // handle modal open and close
   const handleOpenModal = () => {
-    window.history.pushState({ modal: true }, null, "#srcmaterial");
+    window.history.pushState({ srcmaterial: true }, null, "#srcmaterial");
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (afterClose, sendData) => {
     setValueToSrc("");
     setFilteredData(null);
     setMaximize(false);
@@ -132,6 +141,14 @@ export default function SrcMaterial({
     setIsOpen(false);
     setOpnAddMap(false);
     window.history.back();
+    afterClose &&
+      sendData &&
+      setTimeout(() => {
+        const queryParams = new URLSearchParams({
+          data: JSON.stringify(sendData),
+        }).toString();
+        router.push(afterClose + "?" + queryParams);
+      }, 50);
   };
 
   useEffect(() => {
@@ -220,10 +237,14 @@ export default function SrcMaterial({
             name="modal"
             className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
-            <AddMapModal
+            <AddBin
+              data={selectedBin}
               isOpen={opnAddMap}
               setIsOpen={setOpnAddMap}
               maximize={maximize}
+              to={() => {
+                handleCloseModal("/private/mapping/add-bin", selectedBin);
+              }}
             />
             {/* ---------------------------------------------------- */}
             <div className="flex items-center justify-between pt-6 px-6">
@@ -450,7 +471,17 @@ export default function SrcMaterial({
                             ))}
 
                             <button
-                              onClick={() => setOpnAddMap(true)}
+                              onClick={() => {
+                                setSelectedBin({
+                                  typeAction: "add",
+                                  sloc: "G002",
+                                  mid: filteredData.mid,
+                                  desc: filteredData.desc,
+                                  uom: filteredData.uom,
+                                  bin: filteredData.bin.g002,
+                                });
+                                setOpnAddMap(true);
+                              }}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
                               <FontAwesomeIcon icon={faPlus} className="" />
@@ -473,7 +504,17 @@ export default function SrcMaterial({
                               </button>
                             ))}
                             <button
-                              onClick={() => setOpnAddMap(true)}
+                              onClick={() => {
+                                setSelectedBin({
+                                  typeAction: "add",
+                                  sloc: "G005",
+                                  mid: filteredData.mid,
+                                  desc: filteredData.desc,
+                                  uom: filteredData.uom,
+                                  bin: filteredData.bin.g005,
+                                });
+                                setOpnAddMap(true);
+                              }}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
                               <FontAwesomeIcon icon={faPlus} className="" />
@@ -525,42 +566,3 @@ export default function SrcMaterial({
     </AnimatePresence>
   );
 }
-
-const AddMapModal = ({ isOpen, setIsOpen, maximize }) => {
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className={`${
-            maximize && "p-6 rounded-none"
-          } absolute rounded-3xl h-full z-11 w-full bg-black/30 top-0 left-0 a-middle`}
-        >
-          <motion.div
-            initial={{ y: 10, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 10, opacity: 0 }}
-            className="bg-white rounded-3xl z-12 w-full max-w-lg flex flex-col justify-start p-6 pt-8"
-          >
-            <p className="text-center font-medium mb-8 a-middle">
-              <span className="text-xs text-center py-1 px-3 rounded-2xl text-indigo-400 bg-indigo-50 mr-2">
-                G002
-              </span>
-              <span>Tambah Bin 16000011 ?</span>
-            </p>
-            <div className="gap-2 a-middle">
-              <GrayBtn
-                label="Batal"
-                style="flex-1"
-                onClick={() => setIsOpen(false)}
-              />
-              <PrimaryBtn label="Ya, Lanjutkan" style="flex-1 text-nowrap" />
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-};
