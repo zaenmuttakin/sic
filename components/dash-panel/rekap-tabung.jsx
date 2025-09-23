@@ -19,7 +19,6 @@ export default function RekapTabung() {
       setDataTabung(tabung.response);
       localStorage.setItem("rekap-tabung", JSON.stringify(tabung.response));
       setIsLoading(false);
-      console.log(tabung.response);
     }
   };
 

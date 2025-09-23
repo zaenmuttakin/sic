@@ -17,7 +17,7 @@ import PrimaryBtn from "../../../../components/button/primary-btn";
 import Inputz from "../../../../components/input/input";
 import SeacrhForm from "../../../../components/input/search-form";
 
-export function AddBin() {
+export function UpdateBin() {
   const [searchFormOpen, setSearchFormOpen] = useState(false);
   const [addForm, setAddForm] = useState(false);
   const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
@@ -51,7 +51,7 @@ export function AddBin() {
               onClick={() => router.back()}
               style="bg-white"
             />
-            <p className="ml-1 text-lg font-semibold">Tambah Bin</p>
+            <p className="ml-1 text-lg font-semibold">Update Bin</p>
 
             {searchFormOpen && (
               <AnimatePresence>
@@ -201,7 +201,7 @@ export function AddBin() {
 export default function Page() {
   return (
     <Suspense>
-<AddBin/>
+      <UpdateBin />
     </Suspense>
-  )
+  );
 }

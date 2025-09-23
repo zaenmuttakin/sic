@@ -1,6 +1,7 @@
 "use client";
 import {
   faArrowsUpDown,
+  faArrowUpLong,
   faChevronRight,
   faCircleNotch,
   faMagnifyingGlass,
@@ -116,7 +117,6 @@ export default function SrcMaterial({
       if (dataFiltered) {
         setTimeout(() => {
           setFilteredData(dataFiltered[0]);
-          console.log(dataFiltered[0]);
 
           setIsLoading(false);
         }, loadtime);
@@ -243,7 +243,7 @@ export default function SrcMaterial({
               setIsOpen={setOpnAddMap}
               maximize={maximize}
               to={() => {
-                handleCloseModal("/private/mapping/add-bin", selectedBin);
+                handleCloseModal("/private/mapping/update-bin", selectedBin);
               }}
             />
             {/* ---------------------------------------------------- */}
@@ -464,7 +464,7 @@ export default function SrcMaterial({
                             {filteredData.bin.g002.map((bin, i) => (
                               <button
                                 key={i}
-                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
+                                className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
                               >
                                 {bin}
                               </button>
@@ -484,7 +484,14 @@ export default function SrcMaterial({
                               }}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
-                              <FontAwesomeIcon icon={faPlus} className="" />
+                              {filteredData.bin.g002.length === 0 ? (
+                                <FontAwesomeIcon icon={faPlus} />
+                              ) : (
+                                <FontAwesomeIcon
+                                  icon={faArrowUpLong}
+                                  className="rotate-45"
+                                />
+                              )}
                             </button>
                           </div>,
                         ],
@@ -517,7 +524,14 @@ export default function SrcMaterial({
                               }}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
-                              <FontAwesomeIcon icon={faPlus} className="" />
+                              {filteredData.bin.g005.length === 0 ? (
+                                <FontAwesomeIcon icon={faPlus} />
+                              ) : (
+                                <FontAwesomeIcon
+                                  icon={faArrowUpLong}
+                                  className="rotate-45"
+                                />
+                              )}
                             </button>
                           </div>,
                         ],

@@ -30,7 +30,7 @@ export default function AddBin({
               <span className="text-xs text-center py-1 px-3 rounded-2xl text-indigo-400 bg-indigo-50 mr-2">
                 {data?.sloc}
               </span>
-              <span>Tambah Bin {data?.mid} ?</span>
+              <span>Update Bin {data?.mid} ?</span>
             </p>
             <div className="gap-2 a-middle">
               <GrayBtn
