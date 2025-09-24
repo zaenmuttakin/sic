@@ -1,10 +1,7 @@
 "use client";
 import {
   faArrowLeft,
-  faChevronRight,
-  faFloppyDisk,
   faLocationDot,
-  faMagnifyingGlass,
   faPlus,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
@@ -16,10 +13,12 @@ import GrayBtn from "../../../../components/button/gray-btn";
 import PrimaryBtn from "../../../../components/button/primary-btn";
 import Inputz from "../../../../components/input/input";
 import SeacrhForm from "../../../../components/input/search-form";
+import CheckBinModal from "../../../../components/modal/check-bin";
 
 export function UpdateBin() {
   const [searchFormOpen, setSearchFormOpen] = useState(false);
   const [addForm, setAddForm] = useState(false);
+  const [checkModal, setCheckModal] = useState(false);
   const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
   const [extractedData, setExtractedData] = useState(null);
   const router = useRouter();
@@ -71,7 +70,7 @@ export function UpdateBin() {
               </AnimatePresence>
             )}
           </div>
-          <button
+          {/* <button
             className={`${
               searchFormOpen
                 ? "bg-gray-100 order-last border-1 border-gray-50"
@@ -95,7 +94,7 @@ export function UpdateBin() {
                 />
               )}
             </p>
-          </button>
+          </button> */}
         </div>
 
         {/* content */}
@@ -138,12 +137,12 @@ export function UpdateBin() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="shadow-lg shadow-indigo-50 border border-gray-200  rounded-3xl flex flex-col gap-4 p-6 py-8 text mt-2 lg:mt-0"
+                  className=" border border-gray-200  rounded-3xl flex flex-col gap-4 p-6 py-8 text mt-2 lg:mt-0"
                 >
                   <div className="flex gap-4">
                     <div className="">
                       <p className="mb-2 text-gray-500">Rak</p>
-                      <Inputz type="text" />
+                      <Inputz type="text" autoFocus={true} />
                     </div>
                     <div className="">
                       <p className="mb-2 text-gray-500">Bin</p>
@@ -155,15 +154,15 @@ export function UpdateBin() {
                     <PrimaryBtn
                       label={
                         <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
-                          <FontAwesomeIcon icon={faFloppyDisk} />
-                          Save
+                          Check
                         </span>
                       }
-                      style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 mt-4 lg:mt-0"
+                      onClick={() => setCheckModal(true)}
+                      style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 mt-4 lg:mt-0 cursor-pointer"
                     />
                     <GrayBtn
                       label={<span className="a-middle">Cancel</span>}
-                      style="flex-1 "
+                      style="flex-1 cursor-pointer"
                       onClick={() => setAddForm(false)}
                     />
                   </div>
@@ -193,6 +192,9 @@ export function UpdateBin() {
             )}
           </div>
         </div>
+
+        {/* modal */}
+        <CheckBinModal isOpen={checkModal} setIsOpen={setCheckModal} />
       </div>
     </div>
   );

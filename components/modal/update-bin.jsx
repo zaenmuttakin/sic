@@ -2,7 +2,7 @@ import { AnimatePresence, motion } from "motion/react";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 
-export default function AddBin({
+export default function UpdateBinModal({
   data,
   isOpen,
   setIsOpen,

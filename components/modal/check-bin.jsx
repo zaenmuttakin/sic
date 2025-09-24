@@ -1,0 +1,163 @@
+import { faRefresh, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "motion/react";
+import { useState } from "react";
+import GrayBtn from "../button/gray-btn";
+import PrimaryBtn from "../button/primary-btn";
+import Table from "../table/table";
+
+export default function CheckBinModal({ isOpen, setIsOpen }) {
+  const [maximize, setMaximize] = useState(false);
+  return (
+    <ContainerModal
+      isOpen={isOpen}
+      setIsOpen={setIsOpen}
+      maximize={maximize}
+      setMaximize={setMaximize}
+    >
+      {/* --------------top---------------- */}
+      <div className="flex items-center justify-between pt-6 px-6">
+        <p className="font-semibold">Check Bin</p>
+        <div className="flex-1 flex flex-nowrap items-center">
+          <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
+            <FontAwesomeIcon
+              icon={faRefresh}
+              className="text-xs animate-spin"
+            />
+          </div>
+        </div>
+        <GrayBtn
+          type="submit"
+          style="bg-white w-10"
+          onClick={() => {
+            setIsOpen(false);
+          }}
+          label={
+            <FontAwesomeIcon icon={faTimes} className="text-lg text-gray-500" />
+          }
+        />
+      </div>
+
+      {/* --------------text--------------- */}
+      <div className="px-6 py-4 flex flex-col">
+        <p className="text-gray-500 text-">
+          <span className="text-gray-600 font-semibold mr-2">
+            G002 - ZONA 1
+          </span>
+          <span>
+            bin sudah digunakan, cek data berikut sebelum melanjutkan proses.
+          </span>
+        </p>
+        {/* <p className="text-gray-500 text-center">Loading...</p> */}
+      </div>
+
+      {/* --------------detail------------- */}
+      <div className="px-6">
+        <div className="max-h-[30vh]  border border-gray-200 rounded-2xl overflow-auto c-scrollbar">
+          <Table
+            header={["MID", "Desc", "Qty"]}
+            data={[
+              [1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1],
+              [1, 1, 1],
+            ]}
+          />
+        </div>
+      </div>
+
+      {/* --------------button------------- */}
+      <div className="flex flex-col lg:flex-row gap-4 p-6">
+        <PrimaryBtn
+          label={
+            <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
+              Tambahkan
+            </span>
+          }
+          onClick={() => setCheckModal(true)}
+          style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer lg:order-last"
+        />
+        <PrimaryBtn
+          label={
+            <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
+              Replace
+            </span>
+          }
+          onClick={() => setCheckModal(true)}
+          style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer"
+        />
+        <GrayBtn
+          label={<span className="a-middle">Cancel</span>}
+          style="flex-1 cursor-pointer lg:order-first"
+          onClick={() => setIsOpen(false)}
+        />
+      </div>
+    </ContainerModal>
+  );
+}
+
+function ContainerModal({
+  isOpen,
+  setIsOpen,
+  maximize,
+  setMaximize,
+  children,
+}) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            zIndex: 10,
+            padding: "1rem",
+          }}
+          animate={{
+            opacity: 1,
+            zIndex: maximize ? 30 : 10,
+            padding: maximize ? 0 : "1rem",
+          }}
+          exit={{ opacity: 0 }}
+          name="backdrop"
+          className="fixed justify-center items-center w-full min-h-svh top-0 left-0 flex flex-col"
+        >
+          <div className="absolute h-full z-10 w-full bg-black/30 top-0 left-0" />
+          <motion.div
+            initial={{
+              opacity: 0,
+              scale: 0.2,
+              y: 60,
+              x: 120,
+              borderRadius: "5rem",
+              width: "100%",
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              y: 0,
+              x: 0,
+              borderRadius: maximize ? "0rem" : "1.5rem",
+              width: "100%",
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.2,
+              y: 60,
+              x: 120,
+              borderRadius: "1.5rem",
+              width: "100%",
+            }}
+            name="modal"
+            className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
+          >
+            {children}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

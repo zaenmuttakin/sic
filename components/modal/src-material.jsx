@@ -25,7 +25,7 @@ import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
 import Table from "../table/table";
-import AddBin from "./add-bin";
+import UpdateBinModal from "./update-bin";
 
 export default function SrcMaterial({
   isOpen,
@@ -237,7 +237,7 @@ export default function SrcMaterial({
             name="modal"
             className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
-            <AddBin
+            <UpdateBinModal
               data={selectedBin}
               isOpen={opnAddMap}
               setIsOpen={setOpnAddMap}
@@ -251,16 +251,15 @@ export default function SrcMaterial({
               <p className="font-semibold">Search Material</p>
               <div className="flex-1 flex flex-nowrap items-center">
                 <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
-                  <FontAwesomeIcon
-                    icon={faRefresh}
-                    className={`${
-                      isLoadMaterialData ? "animate-spin" : " pr-0.5"
-                    } text-xs`}
-                  />
-                  {!isLoadMaterialData && (
-                    <span className="pr-0.5">
+                  {!isLoadMaterialData ? (
+                    <span className="px-1">
                       {timestampToTime(materialData?.timestamp)}
                     </span>
+                  ) : (
+                    <FontAwesomeIcon
+                      icon={faRefresh}
+                      className="text-xs animate-spin"
+                    />
                   )}
                 </div>
               </div>
