@@ -21,6 +21,7 @@ export function UpdateBin() {
   const [checkModal, setCheckModal] = useState(false);
   const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
   const [extractedData, setExtractedData] = useState(null);
+  const [newBin, setNewBin] = useState("");
   const router = useRouter();
 
   const searchParams = useSearchParams();
@@ -39,6 +40,10 @@ export function UpdateBin() {
       setError("Error parsing data: " + err.message);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    setNewBin("");
+  }, [addForm]);
   return (
     <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
       <div className="flex flex-col h-full w-full bg-white p-0 lg:p-6 rounded-3xl max-w-4xl">
@@ -133,7 +138,7 @@ export function UpdateBin() {
 
             {addForm && (
               <AnimatePresence>
-                <motion.div
+                <motion.form
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -142,22 +147,31 @@ export function UpdateBin() {
                   <div className="flex gap-4">
                     <div className="">
                       <p className="mb-2 text-gray-500">Rak</p>
-                      <Inputz type="text" autoFocus={true} />
+                      <Inputz type="text" autoFocus={true} style="uppercase" />
                     </div>
                     <div className="">
                       <p className="mb-2 text-gray-500">Bin</p>
-                      <Inputz type="text-gray-700" />
+                      <Inputz
+                        type="text"
+                        value={newBin}
+                        style="uppercase"
+                        onChange={(e) => setNewBin(e.target.value)}
+                      />
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-4 mt-2">
                     <PrimaryBtn
+                      type="submit"
                       label={
                         <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
                           Check
                         </span>
                       }
-                      onClick={() => setCheckModal(true)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCheckModal(true);
+                      }}
                       style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 mt-4 lg:mt-0 cursor-pointer"
                     />
                     <GrayBtn
@@ -166,7 +180,7 @@ export function UpdateBin() {
                       onClick={() => setAddForm(false)}
                     />
                   </div>
-                </motion.div>
+                </motion.form>
               </AnimatePresence>
             )}
             {!addForm && (
@@ -194,7 +208,15 @@ export function UpdateBin() {
         </div>
 
         {/* modal */}
-        <CheckBinModal isOpen={checkModal} setIsOpen={setCheckModal} />
+        <CheckBinModal
+          isOpen={checkModal}
+          setIsOpen={setCheckModal}
+          binData={{
+            sloc: extractedData ? extractedData.sloc : "",
+            mid: extractedData ? extractedData.mid : "",
+            bin: newBin ? newBin : "",
+          }}
+        />
       </div>
     </div>
   );

@@ -11,7 +11,7 @@ export default function PrimaryBtn({
   return (
     <button
       {...props}
-      className={`${style} a-middle px-4 py-2.5 font-medium text-white bg-[#7A6DFF] rounded-2xl hover:bg-[#6A5BFF] disabled:opacity-90 cursor-pointer`}
+      className={`${style} a-middle px-4 py-2.5 font-medium text-white bg-[#7A6DFF] rounded-2xl hover:bg-[#6A5BFF]d disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed`}
     >
       {image && (
         <Image

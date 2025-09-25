@@ -1,5 +1,4 @@
 "use client";
-import GrayBtn from "@/components/button/gray-btn";
 import PrimaryBtn from "@/components/button/primary-btn";
 import Inputz from "@/components/input/input";
 import { MaterialdataContext } from "@/lib/context/material-data";
@@ -118,7 +117,7 @@ export function SrcCard({ isOpen, setIsOpen, valueToSrc, setValueToSrc }) {
           }}
           disabled={isLoading}
         />
-        <GrayBtn
+        {/* <GrayBtn
           type="submit"
           name="maximize"
           label={
@@ -132,7 +131,7 @@ export function SrcCard({ isOpen, setIsOpen, valueToSrc, setValueToSrc }) {
             setIsOpen(true);
           }}
           disabled={isLoading}
-        />
+        /> */}
       </form>
     </div>
   );
