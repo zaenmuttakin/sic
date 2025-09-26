@@ -21,14 +21,15 @@ export function UpdateBin() {
   const [checkModal, setCheckModal] = useState(false);
   const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
   const [extractedData, setExtractedData] = useState(null);
+  const [newRak, setNewRak] = useState("");
   const [newBin, setNewBin] = useState("");
+  const [cekval, setCekval] = useState(false);
   const router = useRouter();
 
   const searchParams = useSearchParams();
   useEffect(() => {
     try {
       const dataParam = searchParams.get("data");
-
       if (dataParam) {
         const decodedData = decodeURIComponent(dataParam);
         const parsedData = JSON.parse(decodedData);
@@ -42,7 +43,9 @@ export function UpdateBin() {
   }, [searchParams]);
 
   useEffect(() => {
+    setNewRak("");
     setNewBin("");
+    setCekval(false);
   }, [addForm]);
   return (
     <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
@@ -147,14 +150,20 @@ export function UpdateBin() {
                   <div className="flex gap-4">
                     <div className="">
                       <p className="mb-2 text-gray-500">Rak</p>
-                      <Inputz type="text" autoFocus={true} style="uppercase" />
+                      <Inputz
+                        type="text"
+                        autoFocus={true}
+                        value={newRak}
+                        style={`${cekval && !newRak && "cekval"} uppercase`}
+                        onChange={(e) => setNewRak(e.target.value)}
+                      />
                     </div>
                     <div className="">
                       <p className="mb-2 text-gray-500">Bin</p>
                       <Inputz
                         type="text"
                         value={newBin}
-                        style="uppercase"
+                        style={`${cekval && !newBin && "cekval"} uppercase`}
                         onChange={(e) => setNewBin(e.target.value)}
                       />
                     </div>
@@ -170,7 +179,8 @@ export function UpdateBin() {
                       }
                       onClick={(e) => {
                         e.preventDefault();
-                        setCheckModal(true);
+                        setCekval(true);
+                        newRak && newBin && setCheckModal(true);
                       }}
                       style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 mt-4 lg:mt-0 cursor-pointer"
                     />
@@ -214,7 +224,10 @@ export function UpdateBin() {
           binData={{
             sloc: extractedData ? extractedData.sloc : "",
             mid: extractedData ? extractedData.mid : "",
+            rak: newRak ? newRak : "",
             bin: newBin ? newBin : "",
+            uom: extractedData ? extractedData.uom : "",
+            desc: extractedData ? extractedData.desc : "",
           }}
         />
       </div>

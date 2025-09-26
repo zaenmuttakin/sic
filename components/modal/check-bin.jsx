@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import { useContext, useEffect, useState } from "react";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
-import { getCheckBin } from "../../lib/gas/sic";
+import { getAddBin, getCheckBin } from "../../lib/gas/sic";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Table from "../table/table";
@@ -83,7 +83,7 @@ export default function CheckBinModal({ isOpen, setIsOpen, binData }) {
           <div className="px-6 py-4 flex flex-col">
             <p className="text-gray-500 text-sm">
               <span className="text-gray-600 font-semibold mr-2 uppercase">
-                {binData.sloc} \ {binData.bin}
+                {binData.sloc} \ {binData.rak} \ {binData.bin}
               </span>
               <br />
               {sameBin?.length > 0 ? (
@@ -128,8 +128,21 @@ export default function CheckBinModal({ isOpen, setIsOpen, binData }) {
               Tambahkan
             </span>
           }
-          onClick={() => setCheckModal(true)}
+          onClick={async () => {
+            const add = await getAddBin({
+              sloc: binData.sloc,
+              mid: binData.mid,
+              desc: binData.desc,
+              uom: binData.uom,
+              rak: binData.rak.toUpperCase(),
+              bin: binData.bin.toUpperCase(),
+            });
+
+            add && console.log(add);
+            add && setIsOpen(false);
+          }}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer lg:order-last"
+          disabled={isLoad}
         />
         <PrimaryBtn
           label={
@@ -139,7 +152,7 @@ export default function CheckBinModal({ isOpen, setIsOpen, binData }) {
           }
           onClick={() => setCheckModal(true)}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer"
-          disabled
+          disabled={sameBin?.length == 1 ? false : isLoad || true}
         />
         <GrayBtn
           label={<span className="a-middle">Cancel</span>}
