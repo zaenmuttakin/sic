@@ -2,7 +2,10 @@ import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { Poppins } from "next/font/google";
 import DynamicMetaTags from "../components/metatag/DynamicMetaTags";
+import Toast from "../components/toast/toast";
+import { AuthProvider } from "../lib/context/auth";
 import { MaterialDataProvider } from "../lib/context/material-data";
+import { ToastProvider } from "../lib/context/toast";
 import { ColorProvider } from "../lib/context/topbar-color";
 import "./globals.css";
 config.autoAddCss = false;
@@ -37,12 +40,17 @@ export default function RootLayout({ children }) {
         />
       </head>
       <body className={`${poppins.variable} antialiased`}>
-        <ColorProvider>
-          <MaterialDataProvider>
-            <DynamicMetaTags />
-            {children}
-          </MaterialDataProvider>
-        </ColorProvider>
+        <AuthProvider>
+          <ColorProvider>
+            <MaterialDataProvider>
+              <ToastProvider>
+                <DynamicMetaTags />
+                <Toast />
+                {children}
+              </ToastProvider>
+            </MaterialDataProvider>
+          </ColorProvider>
+        </AuthProvider>
       </body>
     </html>
   );

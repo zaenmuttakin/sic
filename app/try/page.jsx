@@ -1,8 +1,9 @@
-// "use client";
+"use client";
 // import { useState } from "react";
 
-import { faCircleNotch } from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { useContext } from "react";
+import GrayBtn from "../../components/button/gray-btn";
+import { AuthContext } from "../../lib/context/auth";
 
 // export default function AwesomeListCard() {
 //   const [selectedItem, setSelectedItem] = useState(null);
@@ -307,12 +308,10 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 // }
 
 export default function page() {
+  const { logout } = useContext(AuthContext);
   return (
     <div className="h-svh w-full a-middle">
-      <FontAwesomeIcon
-        icon={faCircleNotch}
-        className="text-indigo-400 text-4xl animate-spin"
-      />
+      <GrayBtn label="Logout" onClick={logout} />
     </div>
   );
 }

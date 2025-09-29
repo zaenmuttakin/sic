@@ -12,6 +12,7 @@ import { Sheets } from "../../components/dash-panel/sheets";
 import { SrcCard } from "../../components/dash-panel/srccard";
 import SrcMaterial from "../../components/modal/src-material";
 import Topbar from "../../components/topbar/topbar";
+import { AuthContext } from "../../lib/context/auth";
 import { ColorContext } from "../../lib/context/topbar-color";
 
 export default function Page() {
@@ -19,12 +20,14 @@ export default function Page() {
   const [searchOpen, setSearchOpen] = useState(false);
   const { setTopbarColor, topColors } = useContext(ColorContext);
   const [valueToSrc, setValueToSrc] = useState("");
+  const { isAuth, isLoad, user } = useContext(AuthContext);
 
   useEffect(() => {
     searchOpen
       ? setTopbarColor(topColors.onmodal)
       : setTopbarColor(topColors.default);
   }, [searchOpen]);
+
   return (
     <div className="relative page-container">
       <Topbar />

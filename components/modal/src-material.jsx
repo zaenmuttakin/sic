@@ -472,12 +472,8 @@ export default function SrcMaterial({
                             <button
                               onClick={() => {
                                 setSelectedBin({
-                                  typeAction: "add",
                                   sloc: "G002",
                                   mid: filteredData.mid,
-                                  desc: filteredData.desc,
-                                  uom: filteredData.uom,
-                                  bin: filteredData.bin.g002,
                                 });
                                 setOpnAddMap(true);
                               }}
@@ -512,12 +508,8 @@ export default function SrcMaterial({
                             <button
                               onClick={() => {
                                 setSelectedBin({
-                                  typeAction: "add",
                                   sloc: "G005",
                                   mid: filteredData.mid,
-                                  desc: filteredData.desc,
-                                  uom: filteredData.uom,
-                                  bin: filteredData.bin.g005,
                                 });
                                 setOpnAddMap(true);
                               }}

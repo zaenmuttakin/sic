@@ -8,12 +8,13 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import GrayBtn from "../../../../components/button/gray-btn";
 import PrimaryBtn from "../../../../components/button/primary-btn";
 import Inputz from "../../../../components/input/input";
 import SeacrhForm from "../../../../components/input/search-form";
 import CheckBinModal from "../../../../components/modal/check-bin";
+import { MaterialdataContext } from "../../../../lib/context/material-data";
 
 export function UpdateBin() {
   const [searchFormOpen, setSearchFormOpen] = useState(false);
@@ -25,20 +26,35 @@ export function UpdateBin() {
   const [newBin, setNewBin] = useState("");
   const [cekval, setCekval] = useState(false);
   const router = useRouter();
+  const { materialData } = useContext(MaterialdataContext);
 
   const searchParams = useSearchParams();
   useEffect(() => {
     try {
       const dataParam = searchParams.get("data");
+
       if (dataParam) {
         const decodedData = decodeURIComponent(dataParam);
         const parsedData = JSON.parse(decodedData);
-        setExtractedData(parsedData);
+        const filteredData = materialData.data.find(
+          (item) => item.mid === parsedData.mid
+        );
+        setExtractedData({
+          ...parsedData,
+          desc: filteredData.desc,
+          uom: filteredData.uom,
+          bin:
+            parsedData.sloc === "G002"
+              ? filteredData.bin.g002
+              : filteredData.bin.g005,
+        });
       } else {
         setError("No data parameter found in URL");
       }
     } catch (err) {
-      setError("Error parsing data: " + err.message);
+      console.log(err);
+
+      // setError("Error parsing data: " + err.message);
     }
   }, [searchParams]);
 
@@ -47,6 +63,11 @@ export function UpdateBin() {
     setNewBin("");
     setCekval(false);
   }, [addForm]);
+
+  useEffect(() => {
+    console.log("extractedData");
+    console.log(extractedData);
+  }, [extractedData]);
   return (
     <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
       <div className="flex flex-col h-full w-full bg-white p-0 lg:p-6 rounded-3xl max-w-4xl">
@@ -124,7 +145,7 @@ export function UpdateBin() {
           )}
           <div className="grid lg:grid-cols-2 gap-4 p-0 lg:p-2 ">
             {extractedData &&
-              extractedData.bin.map((item, i) => (
+              extractedData?.bin.map((item, i) => (
                 <p
                   key={i}
                   className="p-4 h-fit px-6 bg-indigo-50 rounded-2xl flex items-center justify-between text-indigo-400 relative"
@@ -221,6 +242,8 @@ export function UpdateBin() {
         <CheckBinModal
           isOpen={checkModal}
           setIsOpen={setCheckModal}
+          extractedData={extractedData}
+          setExtractedData={setExtractedData}
           binData={{
             sloc: extractedData ? extractedData.sloc : "",
             mid: extractedData ? extractedData.mid : "",

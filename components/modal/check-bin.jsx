@@ -1,6 +1,7 @@
 import { faRefresh, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
@@ -9,11 +10,18 @@ import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Table from "../table/table";
 
-export default function CheckBinModal({ isOpen, setIsOpen, binData }) {
+export default function CheckBinModal({
+  isOpen,
+  setIsOpen,
+  binData,
+  extractedData,
+  setExtractedData,
+}) {
   const [maximize, setMaximize] = useState(false);
   const [sameBin, setSameBin] = useState(null);
   const [isLoad, setIsLoad] = useState(false);
   const { materialData } = useContext(MaterialdataContext);
+  const router = useRouter();
 
   const handleGetStock = (sloc, mid) => {
     if (!materialData) return null;
@@ -139,7 +147,9 @@ export default function CheckBinModal({ isOpen, setIsOpen, binData }) {
             });
 
             add && console.log(add);
+            add && setExtractedData((extractedData.bin = ["xx", "xx"]));
             add && setIsOpen(false);
+            add && router.back();
           }}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer lg:order-last"
           disabled={isLoad}
