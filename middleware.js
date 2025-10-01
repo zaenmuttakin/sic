@@ -10,10 +10,10 @@ export default async function middleware(request) {
   const isAuthRoute = authRoutes.includes(pathname);
   const token = request.cookies.get("token");
 
-  if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL("/", request.url));
-  }
-  if (isAuthRoute && token) {
+  // if (isProtectedRoute && !token) {
+  //   return NextResponse.redirect(new URL("/", request.url));
+  // }
+  if (isAuthRoute) {
     return NextResponse.redirect(new URL("/private", request.url));
   }
 
