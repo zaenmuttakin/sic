@@ -57,6 +57,7 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
           label="Logout"
           onClick={() =>
             logout().then(() => {
+              localStorage.removeItem("user");
               const queryParams = new URLSearchParams({
                 alert: JSON.stringify("Logged out successfully"),
                 type: JSON.stringify("info"),

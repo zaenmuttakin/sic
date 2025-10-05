@@ -3,21 +3,23 @@
 import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../lib/context/auth";
+import { ColorContext } from "../../lib/context/topbar-color";
 import MenuModal from "../modal/menu";
 import ProfileModal from "../modal/profile";
 
 export default function Topbar() {
-  const [user, setUser] = useState();
   const [profileModal, setProfileModal] = useState(false);
   const [menuModal, setMenuModal] = useState(false);
+  const { setTopbarColor, topColors } = useContext(ColorContext);
+  const { user } = useContext(AuthContext);
 
-  // useEffect(() => {
-  //   const userData = localStorage.getItem("user");
-  //   if (userData) {
-  //     setUser(JSON.parse(userData));
-  //   }
-  // }, []);
+  useEffect(() => {
+    profileModal || menuModal
+      ? setTopbarColor(topColors.onmodal)
+      : setTopbarColor(topColors.default);
+  }, [profileModal, menuModal]);
   return (
     <div className="lg:fixed relative inset-0 h-fit items-start justify-center w-full top-0 left-0 z-4">
       <div className="hidden lg:block absolute bg-[#E8ECF7] h-18 top-0 w-full"></div>

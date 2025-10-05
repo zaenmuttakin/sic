@@ -45,7 +45,7 @@ export default function Toast() {
                     : "bg-indigo-400/90"
                 }`}
               />
-              <p className="flex-1 text-gray-600">{toastData.text}</p>
+              <div className="flex-1 text-gray-600">{toastData.text}</div>
               <GrayBtn
                 type="submit"
                 style="bg-white w-10"

@@ -61,7 +61,7 @@ export default function ContainerModal({
             name="modal"
             className={
               maxWidth +
-              " relative bg-white rounded-3xl z-12 w-full max-h-[90vh] flex flex-col justify-start overflow-y-scroll"
+              " relative bg-white rounded-3xl z-12 w-full max-h-[90vh] flex flex-col justify-start overflow-y-auto"
             }
           >
             {children}

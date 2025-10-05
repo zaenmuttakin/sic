@@ -12,6 +12,7 @@ export default function Home() {
   const [nik, setNik] = useState("");
   const [pass, setPass] = useState("");
   const [cekval, setCekval] = useState(false);
+  const [isload, setIsload] = useState(false);
   const { login, alert } = useContext(AuthContext);
   const { setToast, closeToast } = useContext(ToastContext);
   const searchParams = useSearchParams();
@@ -22,8 +23,10 @@ export default function Home() {
       open: true,
       text: "Verifying...",
     });
+    setIsload(true);
     await login(new Number(nik), pass).then((res) => {
       console.log(res);
+      setIsload(false);
       closeToast();
       !res.success &&
         setToast({
@@ -47,8 +50,10 @@ export default function Home() {
       open: true,
       text: "Verifying...",
     });
+    setIsload(true);
     await login(new Number(paramNik), paramPass).then((res) => {
       console.log(res);
+      setIsload(false);
       closeToast();
       !res.success &&
         setToast({
@@ -77,6 +82,21 @@ export default function Home() {
         text: JSON.parse(alertParam),
         type: JSON.parse(alertType),
         autoHide: true,
+      });
+
+    !alertParam &&
+      setToast({
+        open: true,
+        text: (
+          <p>
+            Login dengan NIK, <br /> Password:{" "}
+            <span className="underline font-medium text-indigo-400 underline-offset-2">
+              12345678
+            </span>
+          </p>
+        ),
+        autoHide: false,
+        type: "info",
       });
   }, []);
 
@@ -114,10 +134,16 @@ export default function Home() {
           onChange={(e) => setPass(e.target.value)}
           style={cekval && !pass && "cekval"}
         />
-        <PrimaryBtn type="submit" label="Masuk" style="mt-3" />
+        <PrimaryBtn
+          type="submit"
+          label="Masuk"
+          style="mt-3"
+          disabled={isload}
+        />
         <GrayBtn
           type="button"
           label="Masuk Sebagai Tamu"
+          disabled={isload}
           onClick={() => handleGuest("111111", "12345678")}
         />
       </form>

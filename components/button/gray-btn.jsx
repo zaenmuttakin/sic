@@ -11,7 +11,7 @@ export default function GrayBtn({
   return (
     <button
       {...props}
-      className={`${style} a-middle px-4 py-2.5 font-medium text-gray-700 bg-gray-100 rounded-2xl hover:bg-gray-200 cursor-pointer`}
+      className={`${style} a-middle px-4 py-2.5 font-medium text-gray-700 bg-gray-100 rounded-2xl hover:bg-gray-200 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 duration-150`}
     >
       {image && (
         <Image
