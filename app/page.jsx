@@ -1,6 +1,6 @@
 "use client";
-import Cookies from "js-cookie";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
 import GrayBtn from "../components/button/gray-btn";
 import PrimaryBtn from "../components/button/primary-btn";
@@ -14,6 +14,7 @@ export default function Home() {
   const [cekval, setCekval] = useState(false);
   const { login, alert } = useContext(AuthContext);
   const { setToast, closeToast } = useContext(ToastContext);
+  const searchParams = useSearchParams();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,22 +22,24 @@ export default function Home() {
       open: true,
       text: "Verifying...",
     });
-    const loginData = await login(new Number(nik), pass);
-    closeToast();
-    !loginData.success &&
-      setToast({
-        open: true,
-        text: loginData.response || "Terjadi kesalahan, coba lagi",
-        type: "error",
-      });
-    if (loginData.success) {
-      setToast({
-        open: true,
-        text: "Wait a moment",
-      });
-      const token = Cookies.get("token");
-      token && window.location.reload();
-    }
+    await login(new Number(nik), pass).then((res) => {
+      console.log(res);
+      closeToast();
+      !res.success &&
+        setToast({
+          open: true,
+          text: res.response || "Terjadi kesalahan, coba lagi",
+          type: "error",
+          autoHide: true,
+        });
+      if (res.success) {
+        setToast({
+          open: true,
+          text: "Wait a moment",
+        });
+        window.location.reload();
+      }
+    });
   };
 
   const handleGuest = async (paramNik, paramPass) => {
@@ -44,27 +47,38 @@ export default function Home() {
       open: true,
       text: "Verifying...",
     });
-    const loginData = await login(new Number(paramNik), paramPass);
-    !loginData.success &&
-      setToast({
-        open: true,
-        text: "Terjadi kesalahan, coba lagi",
-        type: "error",
-        autoHide: true,
-      });
-    if (loginData.success) {
-      setToast({
-        open: true,
-        text: "Wait a moment",
-      });
-      const token = Cookies.get("token");
-      token && window.location.reload();
-    }
+    await login(new Number(paramNik), paramPass).then((res) => {
+      console.log(res);
+      closeToast();
+      !res.success &&
+        setToast({
+          open: true,
+          text: res.response || "Terjadi kesalahan, coba lagi",
+          type: "error",
+          autoHide: true,
+        });
+      if (res.success) {
+        setToast({
+          open: true,
+          text: "Wait a moment",
+        });
+        window.location.reload();
+      }
+    });
   };
 
   useEffect(() => {
     alert.open && setToast(alert);
-  }, [alert]);
+    const alertParam = searchParams.get("alert");
+    const alertType = searchParams.get("type");
+    alertParam &&
+      setToast({
+        open: true,
+        text: JSON.parse(alertParam),
+        type: JSON.parse(alertType),
+        autoHide: true,
+      });
+  }, []);
 
   return (
     <div className="flex h-screen items-center justify-center px-4">
@@ -106,13 +120,6 @@ export default function Home() {
           label="Masuk Sebagai Tamu"
           onClick={() => handleGuest("111111", "12345678")}
         />
-
-        {/* <p className="text-center text-gray-500 text-sm mt-4 lg:mt-6">
-          Belum punya akun?{" "}
-          <a href="http://" className="text-blue-500">
-            Daftar
-          </a>
-        </p> */}
       </form>
     </div>
   );

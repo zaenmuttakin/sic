@@ -9,7 +9,6 @@ import {
 import { useContext } from "react";
 import { AuthContext } from "../../lib/context/auth";
 import MenuItem from "../button/menu-item";
-import Skeleton from "../skeleton/skeleton";
 
 export default function Menus() {
   const { user } = useContext(AuthContext);
@@ -18,17 +17,8 @@ export default function Menus() {
     <div className="order-first lg:order-last lg:col-span-2 rounded-b-3xl lg:rounded-3xl bg-white pt-4 lg:pt-6 p-6 pb-8 h-full lg:min-h-[30vh]">
       <p className="text-md hidden lg:block lg:text-lg font-bold mb-6">Menu</p>
       <div className="text-sm text-gray-500 mb-6 lg:hidden">
-        {user ? (
-          <>
-            <span className="font-medium">Tetap fokus!</span> <br />
-            <span>Akurasi adalah tujuan utama 🔥</span>
-          </>
-        ) : (
-          <>
-            <span className="font-medium">Wait a moment..</span> <br />
-            <Skeleton width="w-42" height="h-3" className="rounded-2xl mt-2" />
-          </>
-        )}
+        <span className="font-medium">Tetap fokus!</span> <br />
+        <span>Akurasi adalah tujuan utama 🔥</span>
       </div>
       {/* <p className="text-left text-sm text-gray-500 mb-6 lg:mb-8 lg:hidden">
               <span className="font-medium">Let's rock!</span> <br />

@@ -3,7 +3,7 @@
 import { faBars, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import MenuModal from "../modal/menu";
 import ProfileModal from "../modal/profile";
 
@@ -12,12 +12,12 @@ export default function Topbar() {
   const [profileModal, setProfileModal] = useState(false);
   const [menuModal, setMenuModal] = useState(false);
 
-  useEffect(() => {
-    const userData = localStorage.getItem("user");
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const userData = localStorage.getItem("user");
+  //   if (userData) {
+  //     setUser(JSON.parse(userData));
+  //   }
+  // }, []);
   return (
     <div className="lg:fixed relative inset-0 h-fit items-start justify-center w-full top-0 left-0 z-4">
       <div className="hidden lg:block absolute bg-[#E8ECF7] h-18 top-0 w-full"></div>
