@@ -1,7 +1,7 @@
 "use client";
 import Cookies from "js-cookie";
 import Image from "next/image";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import GrayBtn from "../components/button/gray-btn";
 import PrimaryBtn from "../components/button/primary-btn";
 import Inputz from "../components/input/input";
@@ -12,7 +12,7 @@ export default function Home() {
   const [nik, setNik] = useState("");
   const [pass, setPass] = useState("");
   const [cekval, setCekval] = useState(false);
-  const { login } = useContext(AuthContext);
+  const { login, alert } = useContext(AuthContext);
   const { setToast, closeToast } = useContext(ToastContext);
 
   const handleSubmit = async (e) => {
@@ -61,6 +61,10 @@ export default function Home() {
       token && window.location.reload();
     }
   };
+
+  useEffect(() => {
+    alert.open && setToast(alert);
+  }, [alert]);
 
   return (
     <div className="flex h-screen items-center justify-center px-4">

@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
+import { AuthContext } from "../../lib/context/auth";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
 import { getAddBin, getCheckBin } from "../../lib/gas/sic";
@@ -22,6 +23,7 @@ export default function CheckBinModal({
   const [isLoad, setIsLoad] = useState(false);
   const { materialData } = useContext(MaterialdataContext);
   const router = useRouter();
+  const { user } = useContext(AuthContext);
 
   const handleGetStock = (sloc, mid) => {
     if (!materialData) return null;
@@ -144,6 +146,7 @@ export default function CheckBinModal({
               uom: binData.uom,
               rak: binData.rak.toUpperCase(),
               bin: binData.bin.toUpperCase(),
+              pic: user?.NAME,
             });
 
             add && console.log(add);
