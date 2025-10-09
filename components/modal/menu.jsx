@@ -90,7 +90,12 @@ export default function MenuModal({ isOpen, setIsOpen }) {
   };
 
   return (
-    <ContainerModal isOpen={isOpen} setIsOpen={setIsOpen} align="top">
+    <ContainerModal
+      isOpen={isOpen}
+      setIsOpen={setIsOpen}
+      align="top"
+      overlayToClose={true}
+    >
       <div className="flex items-center justify-between pt-6 px-6">
         <p className="font-semibold">List Of Content</p>
         <GrayBtn

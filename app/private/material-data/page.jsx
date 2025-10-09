@@ -152,6 +152,7 @@ export default function Page() {
         setIsOpen={setSearchOpen}
         valueToSrc={valueToSrc}
         setValueToSrc={setValueToSrc}
+        hiddenSrcBtn={true}
         loadtime={300}
       />
     </div>

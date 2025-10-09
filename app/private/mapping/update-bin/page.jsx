@@ -8,7 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useContext, useEffect, useState } from "react";
+import { Suspense, useContext, useEffect, useRef, useState } from "react";
 import GrayBtn from "../../../../components/button/gray-btn";
 import PrimaryBtn from "../../../../components/button/primary-btn";
 import Inputz from "../../../../components/input/input";
@@ -27,6 +27,7 @@ export function UpdateBin() {
   const [cekval, setCekval] = useState(false);
   const router = useRouter();
   const { materialData } = useContext(MaterialdataContext);
+  const inputRef = useRef(null);
 
   const searchParams = useSearchParams();
   useEffect(() => {
@@ -173,6 +174,7 @@ export function UpdateBin() {
                       <p className="mb-2 text-gray-500">Rak</p>
                       <Inputz
                         type="text"
+                        ref={inputRef}
                         autoFocus={true}
                         value={newRak}
                         style={`${cekval && !newRak && "cekval"} uppercase`}
@@ -184,6 +186,7 @@ export function UpdateBin() {
                       <Inputz
                         type="text"
                         value={newBin}
+                        ref={inputRef}
                         style={`${cekval && !newBin && "cekval"} uppercase`}
                         onChange={(e) => setNewBin(e.target.value)}
                       />
@@ -201,6 +204,7 @@ export function UpdateBin() {
                       onClick={(e) => {
                         e.preventDefault();
                         setCekval(true);
+                        inputRef.current && inputRef.current.blur();
                         newRak && newBin && setCheckModal(true);
                       }}
                       style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 mt-4 lg:mt-0 cursor-pointer"

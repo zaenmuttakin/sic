@@ -33,6 +33,7 @@ export default function SrcMaterial({
   valueToSrc,
   setValueToSrc,
   loadtime = 500,
+  hiddenSrcBtn = false,
 }) {
   const [maximize, setMaximize] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -248,7 +249,9 @@ export default function SrcMaterial({
             />
             {/* ---------------------------------------------------- */}
             <div className="flex items-center justify-between pt-6 px-6">
-              <p className="font-semibold">Search Material</p>
+              <p className="font-semibold">
+                {hiddenSrcBtn ? "Material Details" : "Search Material"}
+              </p>
               <div className="flex-1 flex flex-nowrap items-center">
                 <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
                   {!isLoadMaterialData ? (
@@ -299,7 +302,11 @@ export default function SrcMaterial({
                 }
               />
             </div>
-            <form className="flex gap-3 justify-between px-6 py-4">
+            <form
+              className={`items-center gap-2 px-6 mt-4 mb-2 ${
+                hiddenSrcBtn ? "hidden" : "flex"
+              }`}
+            >
               <div className="relative flex-1" disabled={isLoading}>
                 <Inputz
                   type="number"
@@ -352,24 +359,7 @@ export default function SrcMaterial({
                 disabled={isLoading}
               />
             </form>
-            {filteredData && !isLoading && (
-              <div className="lg:flex gap-3 hidden px-6 pb-4">
-                <p className="text-sm text-gray-400 font-medium">
-                  Search result
-                </p>
-                <p className="text-sm text-gray-200 cursor-pointer">|</p>
-                <p
-                  onClick={() => {
-                    setFilteredData(null);
-                    setFirstOpen(true);
-                    setValueToSrc("");
-                  }}
-                  className="text-sm text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
-                >
-                  clear
-                </p>
-              </div>
-            )}
+
             {isLoading && (
               <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
                 Loading...
@@ -394,7 +384,7 @@ export default function SrcMaterial({
                     y: 0,
                   }}
                   exit={{ opacity: 0, y: 20 }}
-                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:py-0 lg:pb-6 c-scrollbar px-6"
+                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:pb-6 c-scrollbar px-6"
                 >
                   <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
                     <Image

@@ -1,7 +1,11 @@
-import { faTimes, faUser } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCircleNotch,
+  faTimes,
+  faUser,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../lib/context/auth";
 import GrayBtn from "../button/gray-btn";
 import Skeleton from "../skeleton/skeleton";
@@ -10,6 +14,7 @@ import ContainerModal from "./container";
 export default function ProfileModal({ isOpen, setIsOpen }) {
   const { user, logout } = useContext(AuthContext);
   const router = useRouter();
+  const [isload, setIsLoad] = useState(false);
 
   return (
     <ContainerModal
@@ -17,6 +22,7 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
       setIsOpen={setIsOpen}
       align="top"
       maxWidth="max-w-lg"
+      overlayToClose={true}
     >
       <div className="flex items-center justify-between pt-6 px-6">
         <p className="font-semibold">Profile</p>
@@ -52,10 +58,18 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
             />
           </div>
         )}
-        <GrayBtn label="Edit Profile" style="w-full mb-4" />
+        <GrayBtn label="Edit Profile" style="w-full mb-4" disabled={isload} />
         <GrayBtn
-          label="Logout"
-          onClick={() =>
+          label={
+            isload ? (
+              <FontAwesomeIcon icon={faCircleNotch} className="animate-spin" />
+            ) : (
+              "Logout"
+            )
+          }
+          disabled={isload}
+          onClick={() => {
+            setIsLoad(true);
             logout().then(() => {
               localStorage.removeItem("user");
               const queryParams = new URLSearchParams({
@@ -63,8 +77,8 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
                 type: JSON.stringify("info"),
               }).toString();
               router.push("/?" + queryParams);
-            })
-          }
+            });
+          }}
           style="bg-red-400 w-full text-white hover:bg-red-500 duration-150"
         />
       </div>

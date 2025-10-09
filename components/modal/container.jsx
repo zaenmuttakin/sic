@@ -7,6 +7,7 @@ export default function ContainerModal({
   setMaximize = () => {},
   align = "center",
   maxWidth = "max-w-3xl",
+  overlayToClose = false,
   children,
 }) {
   return (
@@ -35,7 +36,10 @@ export default function ContainerModal({
             }
             fixed justify- items-center w-full min-h-svh top-0 left-0 flex flex-col`}
         >
-          <div className="absolute h-full z-10 w-full bg-black/30 top-0 left-0" />
+          <div
+            className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"
+            onClick={() => overlayToClose && setIsOpen(false)}
+          />
           <motion.div
             initial={{
               opacity: 0,
