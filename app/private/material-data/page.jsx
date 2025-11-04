@@ -33,6 +33,7 @@ export default function Page() {
   }, [materialData]);
   useEffect(() => {
     setTopbarColor(topColors.white);
+    localStorage.removeItem("bintoedit");
   }, []);
   useEffect(() => {
     searchOpen && setTopbarColor("#b3b3b3");
@@ -40,9 +41,9 @@ export default function Page() {
   }, [searchOpen]);
   return (
     <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
-      <div className="flex flex-col h-full w-full bg-white p-0 lg:p-6 rounded-3xl max-w-4xl">
+      <div className="flex flex-col h-[96vh] w-full bg-white p-0 lg:p-6 rounded-3xl max-w-4xl">
         {/* topbar */}
-        <div className="flex items-center justify-between pr-2 lg:px-0 mb-6 gap-4">
+        <div className="flex items-center justify-between pr-2 lg:px-0 mb-4 gap-4">
           <div className="flex-1 flex justify-start items-center relative w-full">
             <GrayBtn
               label={<FontAwesomeIcon icon={faArrowLeft} />}
@@ -109,7 +110,7 @@ export default function Page() {
         </div>
 
         {/* content */}
-        <div className="h-full w-full rounded-t-3xl overflow-x-auto px-2 lg:px-0 pb-4">
+        <div className="flex-1 w-full rounded-t-3xl overflow-hidden px-2 lg:px-0">
           {data && (
             <DataTable
               itemsPerPage={25}
@@ -117,7 +118,7 @@ export default function Page() {
                 <p className="pt-5">MID</p>,
                 "Deskripsi",
                 "Uom",
-                "Draft",
+                <p className="text-gray-300">|</p>,
                 <div className="relative">
                   <p className="absolute -top-5 -left-2  pl-1.5 pr-12  bg-indigo-100 text-indigo-400 rounded-2xl  text-xs">
                     Actual Stock
@@ -125,14 +126,25 @@ export default function Page() {
                   <p>G002</p>
                 </div>,
                 "G005",
+                <p className="text-gray-300">|</p>,
+                <div className="relative">
+                  <p className="absolute -top-5 -left-2  pl-1.5 pr-12  bg-red-100 text-red-400 rounded-2xl  text-xs">
+                    SAP Stock
+                  </p>
+                  <p>G003</p>
+                </div>,
+                "G004",
               ]} // Exclude mid from display if needed
               data={data.map((item) => [
                 item.mid,
                 item.desc,
                 item.uom,
-                item.drf.espar + item.drf.ewo + item.drf.res,
+                "",
                 item.actualStock.g002,
                 item.actualStock.g005,
+                "",
+                item.sapStock.g003,
+                item.sapStock.g004,
               ])}
               searchTerm={valueToSrcMaterial}
               func={{

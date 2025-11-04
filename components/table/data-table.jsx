@@ -57,11 +57,12 @@ export default function DataTable({
   }, [searchTerm]);
 
   return (
-    <div className="max-w-6xl flex flex-col justify-between w-full text-sm mx-auto bg-white rounded-t-2xl overflow-hidden">
-      <div className="overflow-x-auto c-scrollbar h-full pb-2">
+    <div className="relative max-w-6xl flex flex-col justify-between w-full text-sm mx-auto rounded-t-2xl overflow-hidden h-full ">
+      <div className="absolute top-0 right-0  w-6 h-15.5 bg-gray-100"></div>
+      <div className=" w-full flex-1 pb-2 overflow-auto c-scrollbar">
         <table className="w-full text-left text-nowrap min-h-full">
-          <thead>
-            <tr className="bg-gray-100 text-gray-600 text-left align-bottom ">
+          <thead className="sticky -top-0.5 z-10 bg-gray-100 ">
+            <tr className="bg-gray-100 text-gray-700 text-left align-bottom">
               {numbering && (
                 <th className="pl-5 pr-6 align-bottom relative px-3 py-3 font-semibold">
                   No
@@ -74,14 +75,14 @@ export default function DataTable({
                     header.length - 1 == i &&
                     "w-full pr-10 align-bottom relative"
                   } ${!numbering && i == 0 && "pl-5"} 
-                  px-3 py-3 font-semibold`}
+                px-3 py-3 font-semibold`}
                 >
                   {th}
                 </th>
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 bg-white">
             {paginatedData.map((row, i) => {
               const absoluteIndex = data.findIndex(
                 (item) => JSON.stringify(item) === JSON.stringify(row)
@@ -140,8 +141,8 @@ const Pagination = ({
   filteredData,
 }) => {
   return (
-    <div className="px-0 lg:px-4 pt-6 flex gap-8 justify-between items-center">
-      <div className="text-sm text-gray-500">
+    <div className="px-0 lg:px-4 pt-3 flex gap-8 justify-between items-center ">
+      <div className="text-sm text-gray-500 line-clamp-1">
         <span className="font-medium">
           {(currentPage - 1) * itemsPerPage + 1}
         </span>{" "}

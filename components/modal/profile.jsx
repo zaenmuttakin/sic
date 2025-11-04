@@ -37,7 +37,7 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
           }
         />
       </div>
-      <div className="flex item-center justify-center py-4">
+      <div className="flex item-center justify-center py-4 pb-0">
         <div className="w-20 aspect-square a-middle bg-indigo-100 rounded-full">
           <FontAwesomeIcon icon={faUser} className="text-3xl text-indigo-300" />
         </div>
@@ -45,6 +45,9 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
       <div className="p-6 pt-0 text-center ">
         {user ? (
           <div className="mb-6 p-4 text-gray-600">
+            <p className="rounded-full bg-indigo-100 text-indigo-400 px-4 w-fit mx-auto mb-4">
+              {user?.NICKNAME}
+            </p>
             <p className="">{user?.NIK}</p>
             <p className="">{user?.NAME}</p>
             <p className="">{user?.DEPT}</p>
@@ -54,7 +57,7 @@ export default function ProfileModal({ isOpen, setIsOpen }) {
             <Skeleton
               height="h-4"
               width="w-36"
-              className="mb-6 inset-x-0 rounded-2xl"
+              className="mb-6 mt-4 inset-x-0 rounded-2xl"
             />
           </div>
         )}

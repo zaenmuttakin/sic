@@ -2,7 +2,6 @@
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useContext, useEffect, useState } from "react";
-import GrayBtn from "../components/button/gray-btn";
 import PrimaryBtn from "../components/button/primary-btn";
 import Inputz from "../components/input/input";
 import { AuthContext } from "../lib/context/auth";
@@ -76,6 +75,7 @@ export default function Home() {
     alert.open && setToast(alert);
     const alertParam = searchParams.get("alert");
     const alertType = searchParams.get("type");
+    localStorage.removeItem("bintoedit");
     alertParam &&
       setToast({
         open: true,
@@ -114,7 +114,7 @@ export default function Home() {
                 text: "NIK & Password wajib diisi",
               });
         }}
-        className="flex flex-col gap-4 max-w-md w-full px-6 lg:px-8 py-10 bg-white rounded-3xl"
+        className="flex flex-col gap-4 max-w-md w-full px-6 lg:px-8 py-10 pb-14 bg-white rounded-3xl"
       >
         <div className="w-full a-middle mb-8 pt-2">
           <Image src={"/sic-icon.svg"} alt="Logo" width={175} height={175} />
@@ -140,12 +140,12 @@ export default function Home() {
           style="mt-3"
           disabled={isload}
         />
-        <GrayBtn
+        {/* <GrayBtn
           type="button"
           label="Masuk Sebagai Tamu"
           disabled={isload}
           onClick={() => handleGuest("111111", "12345678")}
-        />
+        /> */}
       </form>
     </div>
   );

@@ -133,7 +133,7 @@ export default function SrcMaterial({
     window.history.pushState({ srcmaterial: true }, null, "#srcmaterial");
   };
 
-  const handleCloseModal = (afterClose, sendData) => {
+  const handleCloseModal = (bintoedit) => {
     setValueToSrc("");
     setFilteredData(null);
     setMaximize(false);
@@ -142,13 +142,10 @@ export default function SrcMaterial({
     setIsOpen(false);
     setOpnAddMap(false);
     window.history.back();
-    afterClose &&
-      sendData &&
+    bintoedit &&
       setTimeout(() => {
-        const queryParams = new URLSearchParams({
-          data: JSON.stringify(sendData),
-        }).toString();
-        router.push(afterClose + "?" + queryParams);
+        localStorage.setItem("bintoedit", JSON.stringify(bintoedit));
+        router.push("/private/mapping/update-bin");
       }, 50);
   };
 
@@ -223,7 +220,7 @@ export default function SrcMaterial({
                 : isLgScreen
                 ? "95vh"
                 : filteredData
-                ? "60vh"
+                ? "80vh"
                 : "15rem",
             }}
             exit={{
@@ -244,7 +241,7 @@ export default function SrcMaterial({
               setIsOpen={setOpnAddMap}
               maximize={maximize}
               to={() => {
-                handleCloseModal("/private/mapping/update-bin", selectedBin);
+                handleCloseModal(selectedBin);
               }}
             />
             {/* ---------------------------------------------------- */}

@@ -1,12 +1,17 @@
-import { faRefresh, faTimes } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCircleNotch,
+  faLongArrowRight,
+  faRefresh,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { AuthContext } from "../../lib/context/auth";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
-import { getAddBin, getCheckBin } from "../../lib/gas/sic";
+import { getAddBin } from "../../lib/gas/sic";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Table from "../table/table";
@@ -17,10 +22,11 @@ export default function CheckBinModal({
   binData,
   extractedData,
   setExtractedData,
+  sameBin,
 }) {
   const [maximize, setMaximize] = useState(false);
-  const [sameBin, setSameBin] = useState(null);
   const [isLoad, setIsLoad] = useState(false);
+  const [isSubmit, setIsSubmit] = useState(false);
   const { materialData } = useContext(MaterialdataContext);
   const router = useRouter();
   const { user } = useContext(AuthContext);
@@ -34,21 +40,6 @@ export default function CheckBinModal({
     return stock;
   };
 
-  const handleCheckBin = async () => {
-    setIsLoad(true);
-    const check = await getCheckBin({ sloc: binData.sloc, bin: binData.bin });
-    setSameBin(check.success ? check.response : null);
-    setIsLoad(false);
-    console.log("materialData");
-    console.log(materialData.data.filter((item) => item.mid == binData.mid));
-  };
-
-  useEffect(() => {
-    setSameBin(null);
-    console.log(binData);
-
-    isOpen && handleCheckBin();
-  }, [isOpen]);
   return (
     <ContainerModal
       isOpen={isOpen}
@@ -86,16 +77,19 @@ export default function CheckBinModal({
           <p className="text-gray-500 text-">Loading...</p>
         </div>
       ) : (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: "auto" }}
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="px-6 py-4 flex flex-col">
-            <p className="text-gray-500 text-sm">
-              <span className="text-gray-600 font-semibold mr-2 uppercase">
-                {binData.sloc} \ {binData.rak} \ {binData.bin}
-              </span>
-              <br />
+            <div className="text-gray-500 text-sm">
+              <p className="text-gray-600 font-semibold mr-2 mb-4 uppercase">
+                {binData.sloc}
+                <FontAwesomeIcon
+                  icon={faLongArrowRight}
+                  className="mx-1 text-sm text-gray-400"
+                />
+                <span className="text-sm px-3 py-1 bg-indigo-50 text-indigo-400 rounded-2xl">
+                  {binData.bin}
+                </span>
+              </p>
               {sameBin?.length > 0 ? (
                 <span>
                   Bin sudah terisi, cek data berikut sebelum melanjutkan proses.
@@ -105,11 +99,11 @@ export default function CheckBinModal({
                   Bin belum terisi, bisa digunakan. Pastikan data sudah sesuai.
                 </span>
               )}
-            </p>
+            </div>
           </div>
           {sameBin?.length > 0 && (
             <div className="px-6">
-              <div className="relative max-h-[30vh] border border-gray-200 rounded-2xl overflow-auto c-scrollbar">
+              <div className="relative max-h-[45vh] border border-gray-200 rounded-2xl overflow-auto c-scrollbar">
                 <div className="absolute w-5 h-5 right-0 bg-gray-100" />
                 <Table
                   header={["MID", "Desc", "Qty", "Validasi", "PIC"]}
@@ -135,10 +129,17 @@ export default function CheckBinModal({
         <PrimaryBtn
           label={
             <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
+              {isSubmit && (
+                <FontAwesomeIcon
+                  icon={faCircleNotch}
+                  className="animate-spin"
+                />
+              )}
               Tambahkan
             </span>
           }
           onClick={async () => {
+            setIsSubmit(true);
             const add = await getAddBin({
               sloc: binData.sloc,
               mid: binData.mid,
@@ -146,16 +147,19 @@ export default function CheckBinModal({
               uom: binData.uom,
               rak: binData.rak.toUpperCase(),
               bin: binData.bin.toUpperCase(),
-              pic: user?.NAME,
+              pic: user?.NICKNAME.toUpperCase(),
             });
 
-            add && console.log(add);
             add && setExtractedData((extractedData.bin = ["xx", "xx"]));
+            add &&
+              setExtractedData(
+                (extractedData.bin[binData.sloc] = ["zzz", binData.bin])
+              );
             add && setIsOpen(false);
             add && router.back();
           }}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer lg:order-last"
-          disabled={isLoad}
+          disabled={isLoad || isSubmit}
         />
         <PrimaryBtn
           label={
@@ -166,11 +170,6 @@ export default function CheckBinModal({
           onClick={() => setCheckModal(true)}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer"
           disabled={sameBin?.length == 1 ? false : isLoad || true}
-        />
-        <GrayBtn
-          label={<span className="a-middle">Cancel</span>}
-          style="flex-1 cursor-pointer lg:order-first"
-          onClick={() => setIsOpen(false)}
         />
       </div>
     </ContainerModal>
