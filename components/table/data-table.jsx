@@ -60,7 +60,7 @@ export default function DataTable({
     <div className="relative max-w-6xl flex flex-col justify-between w-full text-sm mx-auto rounded-t-2xl overflow-hidden h-full ">
       <div className="absolute top-0 right-0  w-6 h-15.5 bg-gray-100"></div>
       <div className=" w-full flex-1 pb-2 overflow-auto c-scrollbar">
-        <table className="w-full text-left text-nowrap min-h-full">
+        <table className="w-full text-left text-nowrap">
           <thead className="sticky -top-0.5 z-10 bg-gray-100 ">
             <tr className="bg-gray-100 text-gray-700 text-left align-bottom">
               {numbering && (
@@ -141,7 +141,7 @@ const Pagination = ({
   filteredData,
 }) => {
   return (
-    <div className="px-0 lg:px-4 pt-3 flex gap-8 justify-between items-center ">
+    <div className="px-0 lg:px-4 pt-2 flex gap-8 justify-between items-center ">
       <div className="text-sm text-gray-500 line-clamp-1">
         <span className="font-medium">
           {(currentPage - 1) * itemsPerPage + 1}

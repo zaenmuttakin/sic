@@ -110,10 +110,10 @@ export default function Page() {
         </div>
 
         {/* content */}
-        <div className="flex-1 w-full rounded-t-3xl overflow-hidden px-2 lg:px-0">
+        <div className="flex-1 w-full rounded-t-2xl overflow-hidden  px-2 lg:px-0">
           {data && (
             <DataTable
-              itemsPerPage={25}
+              itemsPerPage={15}
               header={[
                 <p className="pt-5">MID</p>,
                 "Deskripsi",

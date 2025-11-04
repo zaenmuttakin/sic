@@ -42,7 +42,7 @@ body {
   @apply w-1.5 h-1.5;
 }
 .c-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-gray-600/10 rounded-full;
+  @apply bg-gray-100 rounded-full;
 }
 .c-scrollbar::-webkit-scrollbar-track {
   @apply opacity-0 rounded-full h-[90%];

@@ -232,6 +232,7 @@ export default function SrcMaterial({
               width: "100%",
               minHeight: "30vh",
             }}
+            transition={{ duration: 0.2 }}
             name="modal"
             className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
