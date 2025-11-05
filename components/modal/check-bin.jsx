@@ -145,18 +145,19 @@ export default function CheckBinModal({
               mid: binData.mid,
               desc: binData.desc,
               uom: binData.uom,
-              rak: binData.rak.toUpperCase(),
+              rak: "",
               bin: binData.bin.toUpperCase(),
               pic: user?.NICKNAME.toUpperCase(),
             });
 
-            add && setExtractedData((extractedData.bin = ["xx", "xx"]));
-            add &&
-              setExtractedData(
-                (extractedData.bin[binData.sloc] = ["zzz", binData.bin])
-              );
+            // add && setExtractedData((extractedData.bin = ["xx", "xx"]));
+            // add &&
+            //   setExtractedData(
+            //     (extractedData.bin[binData.sloc] = ["zzz", binData.bin])
+            //   );
+            add && setIsSubmit(false);
             add && setIsOpen(false);
-            add && router.back();
+            add && window.location.reload();
           }}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer lg:order-last"
           disabled={isLoad || isSubmit}
