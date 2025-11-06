@@ -59,7 +59,7 @@ export default function DataTable({
   return (
     <div className="relative max-w-6xl flex flex-col justify-between w-full text-sm mx-auto rounded-t-2xl overflow-hidden h-full ">
       <div className="absolute top-0 right-0  w-6 h-15.5 bg-gray-100"></div>
-      <div className=" w-full flex-1 pb-2 overflow-auto c-scrollbar">
+      <div className=" w-full flex-1 pb-2 overflow-auto">
         <table className="w-full text-left text-nowrap">
           <thead className="sticky -top-0.5 z-10 bg-gray-100 ">
             <tr className="bg-gray-100 text-gray-700 text-left align-bottom">
