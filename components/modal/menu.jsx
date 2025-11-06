@@ -22,7 +22,7 @@ const listContent = [
         sublink: "/private/material-data",
         newtab: false,
       },
-      { sublabel: "Mapping", sublink: "/not-available", newtab: false },
+      { sublabel: "Mapping", sublink: "/private/mapping", newtab: false },
       { sublabel: "Report", sublink: "/not-available", newtab: false },
       {
         sublabel: "Selisih SO Internal",
