@@ -27,14 +27,11 @@ export default function ContainerModal({
           exit={{ opacity: 0 }}
           name="backdrop"
           className={`
-            ${
-              align == "top"
-                ? "justify-start"
-                  ? align == "center"
-                  : "justify-center"
-                : "justify-end"
-            }
-            fixed justify- items-center w-full min-h-svh top-0 left-0 flex flex-col`}
+            fixed items-center w-full h-full top-0 left-0 flex flex-col 
+            ${align === "center" && "justify-center "}
+            ${align === "top" && "justify-start "}
+            ${align === "end" && "justify-end "}
+            `}
         >
           <div
             className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"

@@ -1,7 +1,6 @@
 import {
   faCircleNotch,
   faLongArrowRight,
-  faRefresh,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -11,7 +10,7 @@ import { useContext, useState } from "react";
 import { AuthContext } from "../../lib/context/auth";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
-import { getAddBin } from "../../lib/gas/sic";
+import { deleteBin, getAddBin } from "../../lib/gas/sic";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Table from "../table/table";
@@ -27,6 +26,7 @@ export default function CheckBinModal({
   const [maximize, setMaximize] = useState(false);
   const [isLoad, setIsLoad] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
+  const [replaceLabel, setReplaceLabel] = useState("Replace");
   const { materialData } = useContext(MaterialdataContext);
   const router = useRouter();
   const { user } = useContext(AuthContext);
@@ -50,80 +50,76 @@ export default function CheckBinModal({
       {/* --------------top---------------- */}
       <div className="flex items-center justify-between pt-6 px-6">
         <p className="font-semibold">Check Bin</p>
-        {isLoad && (
-          <div className="flex-1 flex flex-nowrap items-center">
-            <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
-              <FontAwesomeIcon
-                icon={faRefresh}
-                className="text-xs animate-spin"
-              />
-            </div>
-          </div>
-        )}
+
         <GrayBtn
           type="submit"
           style="bg-white w-10"
           onClick={() => {
             setIsOpen(false);
           }}
+          disabled={isLoad}
           label={
             <FontAwesomeIcon icon={faTimes} className="text-lg text-gray-500" />
           }
         />
       </div>
 
-      {isLoad ? (
-        <div className="p-10 text-center">
-          <p className="text-gray-500 text-">Loading...</p>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="relative"
+      >
+        {isLoad && (
+          <div className="absolute w-full h-full a-middle bg-white z-30">
+            <p className="text-gray-500 text-">Loading...</p>
+          </div>
+        )}
+        <div className="px-6 py-4 flex flex-col">
+          <div className="text-gray-500 text-sm">
+            <p className="text-gray-600 font-semibold mr-2 mb-4 uppercase">
+              {binData.sloc}
+              <FontAwesomeIcon
+                icon={faLongArrowRight}
+                className="mx-1 text-sm text-gray-400"
+              />
+              <span className="text-sm px-3 py-1 bg-indigo-50 text-indigo-400 rounded-2xl">
+                {binData.bin}
+              </span>
+            </p>
+            {sameBin?.length > 0 ? (
+              <span>
+                Bin sudah terisi, cek data berikut sebelum melanjutkan proses.
+              </span>
+            ) : (
+              <span>
+                Bin belum terisi, bisa digunakan. Pastikan data sudah sesuai.
+              </span>
+            )}
+          </div>
         </div>
-      ) : (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="px-6 py-4 flex flex-col">
-            <div className="text-gray-500 text-sm">
-              <p className="text-gray-600 font-semibold mr-2 mb-4 uppercase">
-                {binData.sloc}
-                <FontAwesomeIcon
-                  icon={faLongArrowRight}
-                  className="mx-1 text-sm text-gray-400"
-                />
-                <span className="text-sm px-3 py-1 bg-indigo-50 text-indigo-400 rounded-2xl">
-                  {binData.bin}
-                </span>
-              </p>
-              {sameBin?.length > 0 ? (
-                <span>
-                  Bin sudah terisi, cek data berikut sebelum melanjutkan proses.
-                </span>
-              ) : (
-                <span>
-                  Bin belum terisi, bisa digunakan. Pastikan data sudah sesuai.
-                </span>
-              )}
+        {sameBin?.length > 0 && (
+          <div className="px-6">
+            <div className="relative max-h-[45vh] border border-gray-200 rounded-2xl overflow-auto c-scrollbar">
+              <div className="absolute w-5 h-5 right-0 bg-gray-100" />
+              <Table
+                header={["MID", "Desc", "Qty", "Validasi", "PIC"]}
+                data={
+                  !sameBin
+                    ? [[]]
+                    : sameBin.map((item) => [
+                        item.MID,
+                        item.DESKRIPSI,
+                        handleGetStock(binData.sloc, item.MID) || 0,
+                        formatDateIsoToDate(item.Validasi),
+                        item.PIC || "-",
+                      ])
+                }
+              />
             </div>
           </div>
-          {sameBin?.length > 0 && (
-            <div className="px-6">
-              <div className="relative max-h-[45vh] border border-gray-200 rounded-2xl overflow-auto c-scrollbar">
-                <div className="absolute w-5 h-5 right-0 bg-gray-100" />
-                <Table
-                  header={["MID", "Desc", "Qty", "Validasi", "PIC"]}
-                  data={
-                    !sameBin
-                      ? [[]]
-                      : sameBin.map((item) => [
-                          item.MID,
-                          item.DESKRIPSI,
-                          handleGetStock(binData.sloc, item.MID) || 0,
-                          formatDateIsoToDate(item.Validasi),
-                          item.PIC || "-",
-                        ])
-                  }
-                />
-              </div>
-            </div>
-          )}
-        </motion.div>
-      )}
+        )}
+      </motion.div>
+
       {/* --------------button------------- */}
       <div className="flex flex-col lg:flex-row gap-4 p-6">
         <PrimaryBtn
@@ -165,12 +161,44 @@ export default function CheckBinModal({
         <PrimaryBtn
           label={
             <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
-              Replace
+              {replaceLabel}
             </span>
           }
-          onClick={() => setCheckModal(true)}
+          onClick={async () => {
+            setIsLoad(true);
+            setReplaceLabel("Replacing...");
+            const del = await deleteBin({
+              sloc: binData.sloc,
+              mid: sameBin[0].MID,
+              bin: binData.bin.toUpperCase(),
+            });
+            if (del.success) {
+              const add = await getAddBin({
+                sloc: binData.sloc,
+                mid: binData.mid,
+                desc: binData.desc,
+                uom: binData.uom,
+                rak: "",
+                bin: binData.bin.toUpperCase(),
+                pic: user?.NICKNAME.toUpperCase(),
+              });
+              if (add.success) {
+                setIsLoad(false);
+                setIsOpen(false);
+                window.location.reload();
+              } else {
+                alert("Gagal menambahkan bin baru. Silakan coba lagi.");
+                setIsLoad(false);
+                setReplaceLabel("Replace");
+              }
+            } else {
+              alert("Gagal menghapus bin lama. Silakan coba lagi.");
+              setIsLoad(false);
+              setReplaceLabel("Replace");
+            }
+          }}
           style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 cursor-pointer"
-          disabled={sameBin?.length == 1 ? false : isLoad || true}
+          disabled={sameBin?.length == 1 ? false : isLoad || true || isLoad}
         />
       </div>
     </ContainerModal>

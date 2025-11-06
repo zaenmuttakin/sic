@@ -15,9 +15,10 @@ import GrayBtn from "../../../../components/button/gray-btn";
 import PrimaryBtn from "../../../../components/button/primary-btn";
 import ScrollInput from "../../../../components/input/scroll-input";
 import CheckBinModal from "../../../../components/modal/check-bin";
+import ContainerModal from "../../../../components/modal/container";
 import Skeleton from "../../../../components/skeleton/skeleton";
 import { MaterialdataContext } from "../../../../lib/context/material-data";
-import { getBin, getCheckBin } from "../../../../lib/gas/sic";
+import { deleteBin, getBin, getCheckBin } from "../../../../lib/gas/sic";
 import {
   colArr,
   floorArr,
@@ -30,7 +31,9 @@ import {
 export default function page() {
   const [addForm, setAddForm] = useState(false);
   const [checkModal, setCheckModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
   const [newLoc, setNewLoc] = useState("");
+  const [binToDel, setBinToDel] = useState("");
   const [existingBin, setExistingBin] = useState(null);
   const [midData, setMidData] = useState(null);
   const { materialData } = useContext(MaterialdataContext);
@@ -66,10 +69,15 @@ export default function page() {
           {midData ? (
             <TopCard midData={midData} />
           ) : (
-            <Skeleton height="h-12" width="w-full" className=" rounded-3xl" />
+            <Skeleton height="h-42" width="w-full" className=" rounded-3xl" />
           )}
           {!loadBin ? (
-            <BinCard existingBin={existingBin} setAddForm={setAddForm} />
+            <BinCard
+              existingBin={existingBin}
+              setAddForm={setAddForm}
+              setDeleteModal={setDeleteModal}
+              setBinToDel={setBinToDel}
+            />
           ) : (
             <Skeleton height="h-8" width="w-full" className=" rounded-2xl" />
           )}
@@ -94,6 +102,13 @@ export default function page() {
           ...midData,
           bin: newLoc,
         }}
+      />
+
+      <DeleteCard
+        isOpen={deleteModal}
+        setIsOpen={setDeleteModal}
+        binToDel={binToDel}
+        midData={midData}
       />
     </div>
   );
@@ -132,22 +147,28 @@ function TopCard({ midData }) {
   );
 }
 
-function BinCard({ existingBin, setAddForm }) {
+function BinCard({ existingBin, setAddForm, setDeleteModal, setBinToDel }) {
   return (
     <div className="grid lg:grid-cols-2 gap-3 p-0 lg:p-2 ">
       {existingBin?.map((item, i) => (
-        <p
+        <div
           key={i}
           className="p-4 h-fit px-6 bg-indigo-50 rounded-2xl flex items-center justify-between text-indigo-400 relative"
         >
-          <span className="font-medium">{item.BIN}</span>
-          <span className="group: absolute p-1.5 px-2.5 hover:bg-indigo-100 rounded-xl right-4 duration-150 cursor-pointer">
+          <p className="font-medium">{item.BIN}</p>
+          <button
+            onClick={() => {
+              setBinToDel(item.BIN);
+              setDeleteModal(true);
+            }}
+            className="group: absolute p-1.5 px-2.5 hover:bg-indigo-100 rounded-xl right-4 duration-150 cursor-pointer"
+          >
             <FontAwesomeIcon
               icon={faTimes}
               className="text-indigo-300 text-sm group-hover:text-indigo-400 duration-150"
             />
-          </span>
-        </p>
+          </button>
+        </div>
       ))}
       <PrimaryBtn
         style="w-full lg:h-full bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 mt-2 lg:mt-0"
@@ -448,5 +469,55 @@ function AddBinForm({
         </div>
       )}
     </AnimatePresence>
+  );
+}
+
+function DeleteCard({ isOpen, setIsOpen, binToDel, midData }) {
+  const [isLoad, setIsLoad] = useState(false);
+  const handleDeleteBin = async (sloc, mid, bin) => {
+    setIsLoad(true);
+    const res = await deleteBin({ sloc, mid, bin });
+    if (res.success) {
+      setIsLoad(false);
+      setIsOpen(false);
+      window.location.reload();
+    } else {
+      setIsLoad(false);
+      setIsOpen(false);
+      alert("Failed to delete bin. Please try again.");
+    }
+  };
+  return (
+    <ContainerModal isOpen={isOpen} setIsOpen={setIsOpen} align="center">
+      <div className="flex items-center justify-between pt-6 px-6">
+        <p className="font-semibold">Delete Bin</p>
+        <GrayBtn
+          type="submit"
+          style="bg-white w-10"
+          onClick={() => {
+            setIsOpen(false);
+          }}
+          disabled={isLoad}
+          label={
+            <FontAwesomeIcon icon={faTimes} className="text-lg text-gray-500" />
+          }
+        />
+      </div>
+      <div className="px-6 pb-6 pt-4">
+        <p className="text-center">
+          Yakin hapus
+          <span className="text-sm px-2 py-1.5 mx-2 bg-indigo-50 text-indigo-400 rounded-2xl">
+            {binToDel}
+          </span>
+          ?
+        </p>
+        <PrimaryBtn
+          label={isLoad ? "Deleting..." : "Ya, Hapus"}
+          style="w-full mt-8 bg-red-400 hover:bg-red-50 hover:outline-2 outline-red-200 group duration-150"
+          onClick={() => handleDeleteBin(midData.sloc, midData.mid, binToDel)}
+          disabled={isLoad}
+        />
+      </div>
+    </ContainerModal>
   );
 }
