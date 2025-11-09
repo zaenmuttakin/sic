@@ -19,7 +19,7 @@ export default function SeacrhForm({
         e.preventDefault();
         inputRef.current && inputRef.current.blur();
       }}
-      className="flex gap-3 justify-between bg-white w-full rounded-2xl"
+      className="flex gap-3 justify-between bg-white w-full rounded-2xl "
     >
       <div className="relative flex-1" disabled={isLoading}>
         <Inputz

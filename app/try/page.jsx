@@ -19,7 +19,7 @@ export default function page() {
       <div className="top-0 p-4 sticky flex flex-col gap-4 z-2 bg-gradient-to-b from-white from-90% via-50% to-transparent">
         <Topbar />
       </div>
-      <div className="px-4 pb-8 bg-gradient-to-b from-white from-5% to-transparent">
+      <div className="px-4 pb-8 bg-white">
         <Content params={{ viewMode }} />
       </div>
     </div>
@@ -28,22 +28,27 @@ export default function page() {
 
 function Content({ params }) {
   return (
-    <div className="flex flex-col gap-2.5 h-full pb-10">
+    <div className="flex flex-col h-full pb-10">
       {Array.from({ length: 20 }).map((_, index) => (
         <div
           key={index}
-          className={`grid grid-cols-1 lg:grid-cols-2 items-start lg:items-center gap-2 border border-gray-200 bg-white p-4 px-5  rounded-3xl shadow-lg shadow-gray-100 
-              ${params.viewMode == "list" && " px-6"}`}
+          className={`relative grid grid-cols-1 lg:grid-cols-2 items-start lg:items-center gap-2 border-t border-gray-200 bg-white p-4 px-5 `}
         >
+          <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 aspect-square a-middle rounded-2xl bg-white/60  ">
+            <FontAwesomeIcon
+              icon={faChevronRight}
+              className="text-gray-300 text-sm"
+            />
+          </div>
           <div className="flex gap-3 justify-start items-center w-full">
             <div className="flex flex-col flex-1">
               <div className="flex gap-1 items-center">
-                <p name="mid" className="font-semibold text-md mr-2">
+                <p name="mid" className="font-semibold text-sm mr-2">
                   15000133
                 </p>
                 <p
                   name="uom"
-                  className="text-xs bg-gray-100 text-gray-500 rounded-bl-xl rounded-sm px-3 py-1 font-semibold"
+                  className="text-xs bg-gray-100 text-gray-500 rounded-bl-xl rounded-r-xl rounded-l-sm  px-3 py-1 font-semibold"
                 >
                   PCS
                 </p>
@@ -54,17 +59,19 @@ function Content({ params }) {
                   <p>
                     <span className="font-semibold">G002 :</span> 100
                   </p>
-                  <span>|</span>
+                  <span className="opacity-20">|</span>
                   <p>
                     <span className="font-semibold">G005 :</span> 1500
                   </p>
                 </div>
               </div>
-              <p name="desc" className="text-sm  line-clamp-1 pt-1.5">
+              <p
+                name="desc"
+                className="text-sm text-gray-700 line-clamp-1 pt-1.5"
+              >
                 CAT Kansai Paint KF 38 MEDIUM GREY 1KG
               </p>
             </div>
-            {/* end mid & decs */}
           </div>
         </div>
       ))}

@@ -12,7 +12,6 @@ import { useContext, useEffect, useState } from "react";
 import GrayBtn from "../../../components/button/gray-btn";
 import SeacrhForm from "../../../components/input/search-form";
 import SrcMaterial from "../../../components/modal/src-material";
-import DataTable from "../../../components/table/data-table";
 import { MaterialdataContext } from "../../../lib/context/material-data";
 import { ColorContext } from "../../../lib/context/topbar-color";
 import { timestampToDateTime } from "../../../lib/func/timestampToDateTime";
@@ -27,7 +26,6 @@ export default function Page() {
   const [valueToSrc, setValueToSrc] = useState("");
   const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
 
-  const router = useRouter();
   useEffect(() => {
     setData(materialData.data);
   }, [materialData]);
@@ -40,125 +38,28 @@ export default function Page() {
     !searchOpen && setTopbarColor(topColors.white);
   }, [searchOpen]);
   return (
-    <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
-      <div className="flex flex-col h-[96vh] w-full bg-white p-0 lg:p-6 rounded-3xl max-w-4xl">
-        {/* topbar */}
-        <div className="flex items-center justify-between pr-2 lg:px-0 mb-4 gap-4">
-          <div className="flex-1 flex justify-start items-center relative w-full">
-            <GrayBtn
-              label={<FontAwesomeIcon icon={faArrowLeft} />}
-              onClick={() => router.back()}
-              style="bg-white"
-            />
-            <p className="ml-1 text-lg font-semibold">Material data </p>
-            <div className="a-middle gap-2 ml-2">
-              <span className="hidden lg:block text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
-                {timestampToDateTime(materialData.timestamp)}
-              </span>
-              <span className="block lg:hidden text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
-                {timestampToTime(materialData.timestamp)}
-              </span>
-            </div>
-            {isLoadMaterialData && (
-              <div className="w-6 h-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400 ml-2">
-                <FontAwesomeIcon icon={faRefresh} className="animate-spin" />
-              </div>
-            )}
-            {searchFormOpen && (
-              <AnimatePresence>
-                <motion.div
-                  initial={{ x: 20, opacity: 0, scale: 0.8 }}
-                  animate={{ x: 0, opacity: 1, scale: 1 }}
-                  exit={{ x: 20, opacity: 0, scale: 0.8 }}
-                  className="absolute w-full pl-2 lg:pl-0"
-                >
-                  <SeacrhForm
-                    isOpen={searchFormOpen}
-                    setIsOpen={setSearchFormOpen}
-                    valueToSrc={valueToSrcMaterial}
-                    setValueToSrc={setValueToSrcMaterial}
-                  />
-                </motion.div>
-              </AnimatePresence>
-            )}
-          </div>
-          <button
-            className={`${
-              searchFormOpen
-                ? "bg-gray-100 order-last border-1 border-gray-50"
-                : "bg-indigo-50 order-last border-1 border-indigo-50"
-            } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer`}
-            onClick={() => {
-              setSearchFormOpen(!searchFormOpen);
-              setValueToSrcMaterial("");
-            }}
-          >
-            <p>
-              {searchFormOpen ? (
-                <FontAwesomeIcon
-                  icon={faChevronRight}
-                  className="text-gray-500"
-                />
-              ) : (
-                <FontAwesomeIcon
-                  icon={faMagnifyingGlass}
-                  className="text-indigo-400"
-                />
-              )}
-            </p>
-          </button>
-        </div>
-
-        {/* content */}
-        <div className="flex-1 w-full rounded-t-2xl overflow-hidden  px-2 lg:px-0">
-          {data && (
-            <DataTable
-              itemsPerPage={15}
-              header={[
-                <p className="pt-5">MID</p>,
-                "Deskripsi",
-                "Uom",
-                <p className="text-gray-300">|</p>,
-                <div className="relative">
-                  <p className="absolute -top-5 -left-2  pl-1.5 pr-12  bg-indigo-100 text-indigo-400 rounded-2xl  text-xs">
-                    Actual Stock
-                  </p>
-                  <p>G002</p>
-                </div>,
-                "G005",
-                <p className="text-gray-300">|</p>,
-                <div className="relative">
-                  <p className="absolute -top-5 -left-2  pl-1.5 pr-12  bg-red-100 text-red-400 rounded-2xl  text-xs">
-                    SAP Stock
-                  </p>
-                  <p>G003</p>
-                </div>,
-                "G004",
-              ]} // Exclude mid from display if needed
-              data={data.map((item) => [
-                item.mid,
-                item.desc,
-                item.uom,
-                "",
-                item.actualStock.g002,
-                item.actualStock.g005,
-                "",
-                item.sapStock.g003,
-                item.sapStock.g004,
-              ])}
-              searchTerm={valueToSrcMaterial}
-              func={{
-                onClickRow: (e) => {
-                  setSearchOpen(true);
-                  setValueToSrc(e);
-                },
-                setIdToEdit: (id) => console.log("Edit ID:", id),
-              }}
-            />
-          )}
-        </div>
+    <div className="flex flex-col max-w-4xl mx-auto bg-gradient-to-b from-white from-1% to-transparent">
+      <div className="top-0 p-4 lg:p-6 sticky flex flex-col gap-4 z-2 bg-gradient-to-b from-white from-90% via-50% to-transparent">
+        <Topbar
+          params={{
+            materialData,
+            isLoadMaterialData,
+            valueToSrcMaterial,
+            setValueToSrcMaterial,
+          }}
+        />
       </div>
-
+      <div className="px-4 lg:px-6 pb-8 bg-white min-h-svh">
+        <Content
+          itemsPerPage={15}
+          params={{
+            searchTerm: valueToSrcMaterial,
+            data,
+            setSearchOpen,
+            setValueToSrc,
+          }}
+        />
+      </div>
       <SrcMaterial
         isOpen={searchOpen}
         setIsOpen={setSearchOpen}
@@ -167,6 +68,222 @@ export default function Page() {
         hiddenSrcBtn={true}
         loadtime={300}
       />
+    </div>
+  );
+}
+
+function Topbar({ params }) {
+  const router = useRouter();
+  const [searchFormOpen, setSearchFormOpen] = useState(false);
+  return (
+    <div className="flex items-center justify-between lg:px-0 gap-2">
+      <div className="flex-1 flex justify-start items-center relative w-full">
+        <GrayBtn
+          label={<FontAwesomeIcon icon={faArrowLeft} />}
+          onClick={() => router.back()}
+          style="bg-transparent"
+        />
+        <p className=" text-lg font-semibold">Material data </p>
+        <div className="a-middle gap-2 ml-2">
+          <span className="hidden lg:block text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
+            {timestampToDateTime(params.materialData.timestamp)}
+          </span>
+          <span className="block lg:hidden text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
+            {timestampToTime(params.materialData.timestamp)}
+          </span>
+        </div>
+        {params.isLoadMaterialData && (
+          <div className="w-6 h-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400 ml-2">
+            <FontAwesomeIcon icon={faRefresh} className="animate-spin" />
+          </div>
+        )}
+        {searchFormOpen && (
+          <AnimatePresence>
+            <motion.div
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: 20, opacity: 0 }}
+              className="absolute w-full pl-1 lg:pl-0"
+            >
+              <SeacrhForm
+                isOpen={searchFormOpen}
+                setIsOpen={setSearchFormOpen}
+                valueToSrc={params.valueToSrcMaterial}
+                setValueToSrc={params.setValueToSrcMaterial}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+      <button
+        className={`${
+          searchFormOpen
+            ? "bg-gray-100 order-last border-1 border-gray-50"
+            : "bg-indigo-50 order-last border-1 border-indigo-50"
+        } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer`}
+        onClick={() => {
+          setSearchFormOpen(!searchFormOpen);
+          params.setValueToSrcMaterial("");
+        }}
+      >
+        <p>
+          {searchFormOpen ? (
+            <FontAwesomeIcon icon={faChevronRight} className="text-gray-500" />
+          ) : (
+            <FontAwesomeIcon
+              icon={faMagnifyingGlass}
+              className="text-indigo-400"
+            />
+          )}
+        </p>
+      </button>
+    </div>
+  );
+}
+
+function Content({ params, data, searchTerm, itemsPerPage = 25 }) {
+  if (!params.data || params.data.length === 0) return null;
+  const [currentPage, setCurrentPage] = useState(1);
+  const filteredData = params.data.filter((item) => {
+    const matchesSearch =
+      searchTerm === "" ||
+      Object.entries(item).some(([key, value]) =>
+        String(value)
+          .toLowerCase()
+          .includes(String(params.searchTerm).toLowerCase())
+      );
+    return matchesSearch;
+  });
+  const effectivePage = params.searchTerm ? 1 : currentPage;
+
+  const totalPages = Math.ceil(filteredData?.length / itemsPerPage);
+  const paginatedData = filteredData.slice(
+    (effectivePage - 1) * itemsPerPage,
+    effectivePage * itemsPerPage
+  );
+
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+  return (
+    <>
+      <div className="flex flex-col pb-4">
+        {paginatedData.map((value, index) => (
+          <div
+            key={index}
+            onClick={() => {
+              params.setValueToSrc(value.mid);
+              params.setSearchOpen(true);
+            }}
+            className={`group relative grid grid-cols-1 lg:grid-cols-2 items-start lg:items-center gap-2 border-t border-gray-200 bg-white p-4 cursor-pointer hover:bg-gray-50 `}
+          >
+            <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-8 aspect-square align-middle">
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                className="text-white group-hover:text-gray-300 text-sm"
+              />
+            </div>
+            <div className="flex gap-3 justify-start items-center w-full">
+              <div className="flex flex-col flex-1">
+                <div className="flex gap-1 items-center">
+                  <p
+                    name="mid"
+                    className="font-semibold text-sm mr-1 text-gray-700"
+                  >
+                    {value?.mid}
+                  </p>
+                  <p
+                    name="uom"
+                    className="text-xs bg-gray-100 text-gray-500 rounded-bl-xl rounded-r-xl rounded-l-sm  px-3 py-1 font-semibold"
+                  >
+                    {value?.uom}
+                  </p>
+                  <div
+                    name="stock"
+                    className="bg-indigo-50 text-indigo-500 flex flex-nowrap text-nowrap gap-2 text-xs rounded-bl-xl rounded-sm rounded-r-xl rounded-l-sm px-3 py-1 w-fit"
+                  >
+                    <p>
+                      <span className="font-semibold">G002 :</span>{" "}
+                      {value?.actualStock.g002}
+                    </p>
+                    <span className="opacity-20">|</span>
+                    <p>
+                      <span className="font-semibold">G005 :</span>{" "}
+                      {value?.actualStock.g005}
+                    </p>
+                  </div>
+                </div>
+                <p
+                  name="desc"
+                  className="text-sm text-gray-700 line-clamp-1 pt-1.5"
+                >
+                  {value?.desc}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      {totalPages > itemsPerPage && (
+        <Pagination
+          setCurrentPage={handlePageChange}
+          currentPage={effectivePage}
+          totalPages={totalPages}
+          itemsPerPage={itemsPerPage}
+          filteredData={filteredData}
+        />
+      )}
+    </>
+  );
+}
+
+function Pagination({
+  setCurrentPage,
+  currentPage,
+  totalPages,
+  itemsPerPage,
+  filteredData,
+}) {
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  };
+  return (
+    <div className="px-4 lg:px-4 pt-2 flex justify-between items-center ">
+      <div className="text-sm text-gray-500 line-clamp-1">
+        <span className="font-medium">
+          {(currentPage - 1) * itemsPerPage + 1}
+        </span>{" "}
+        to{" "}
+        <span className="font-medium">
+          {Math.min(currentPage * itemsPerPage, filteredData?.length)}
+        </span>{" "}
+        of <span className="font-medium">{filteredData?.length}</span>
+      </div>
+      <div className="flex space-x-2">
+        <button
+          onClick={() => {
+            setCurrentPage((p) => Math.max(1, p - 1));
+            scrollToTop();
+          }}
+          disabled={currentPage === 1}
+          className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        >
+          Previous
+        </button>
+        <button
+          onClick={() => {
+            setCurrentPage((p) => Math.min(totalPages, p + 1));
+            scrollToTop();
+          }}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="px-4 py-2 text-sm font-medium text-indigo-500 bg-indigo-50 rounded-xl hover:bg-indigo-100 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 }

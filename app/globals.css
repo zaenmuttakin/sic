@@ -39,7 +39,7 @@ body {
 }
 
 .c-scrollbar::-webkit-scrollbar {
-  @apply w-1.5 h-1.5;
+  @apply w-1.5 h-1.5 lg:opacity-100 opacity-0;
 }
 .c-scrollbar::-webkit-scrollbar-thumb {
   @apply bg-gray-100 rounded-full;
