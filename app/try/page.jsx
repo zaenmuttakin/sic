@@ -1,179 +1,143 @@
 "use client";
+import {
+  faArrowLeft,
+  faChevronRight,
+  faMagnifyingGlass,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
-import { useCallback, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import GrayBtn from "../../components/button/gray-btn";
+import SeacrhForm from "../../components/input/search-form";
 
-const dataArray = ["01", "02", "03", "04", "05", "06", "07"];
-
-export default function IPhoneTimerScroll() {
-  const [index, setIndex] = useState(0);
-  const [isScrolling, setIsScrolling] = useState(false);
-  const [scrollDirection, setScrollDirection] = useState("up"); // "up" or "down"
-  const touchStartY = useRef(0);
-  const scrollTimeout = useRef(null);
-  const hasScrolled = useRef(false);
-
-  const handleValueChange = useCallback(
-    (direction) => {
-      setIndex((prev) => {
-        const next = Math.max(
-          0,
-          Math.min(dataArray.length - 1, prev + direction)
-        );
-        return next;
-      });
-      setIsScrolling(true);
-      setScrollDirection(direction > 0 ? "up" : "down");
-
-      if (scrollTimeout.current) {
-        clearTimeout(scrollTimeout.current);
-      }
-      scrollTimeout.current = setTimeout(() => {
-        setIsScrolling(false);
-      }, 100);
-    },
-    [dataArray.length]
-  );
-
-  const handleWheel = (e) => {
-    e.preventDefault();
-    const direction = e.deltaY > 0 ? -1 : 1;
-    handleValueChange(direction);
-  };
-
-  const handleTouchStart = (e) => {
-    touchStartY.current = e.touches[0].clientY;
-    setIsScrolling(true);
-    hasScrolled.current = false;
-  };
-
-  const handleTouchMove = (e) => {
-    e.preventDefault();
-    if (!touchStartY.current || hasScrolled.current) return;
-
-    const touchY = e.touches[0].clientY;
-    const deltaY = touchStartY.current - touchY;
-
-    if (Math.abs(deltaY) > 40 && !hasScrolled.current) {
-      const direction = deltaY > 0 ? 1 : -1;
-      handleValueChange(direction);
-      hasScrolled.current = true;
-    }
-  };
-
-  const handleTouchEnd = () => {
-    touchStartY.current = 0;
-    hasScrolled.current = false;
-    setTimeout(() => setIsScrolling(false), 100);
-  };
-
-  const handleDecrement = () => handleValueChange(-1);
-  const handleIncrement = () => handleValueChange(1);
+export default function page() {
+  const [viewMode, setViewMode] = useState("grid");
 
   return (
-    <div className="min-h-screen bg-white flex items-center justify-center p-4">
-      <div className=" rounded-3xl w-fit">
-        <div className="relative flex flex-col items-center">
-          {/* Top Control Button (Chevron Up) */}
-          <motion.button
-            className={`w-12 h-12 bg-gray-50 text-black rounded-full flex items-center justify-center hover:bg-gray-700 active:bg-gray-600 mb-2 transition-opacity duration-200 ${
-              index === dataArray.length - 1
-                ? "opacity-30 pointer-events-none"
-                : ""
-            }`}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleIncrement}
-            disabled={index === dataArray.length - 1}
-            aria-label="Increment"
-          >
-            {/* Chevron Up SVG */}
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 15l7-7 7 7"
-              />
-            </svg>
-          </motion.button>
-
-          {/* Main Value Display */}
-          <div
-            className="relative flex items-center justify-center"
-            onWheel={handleWheel}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-            style={{ touchAction: "none" }}
-          >
-            <div className="relative bg-gray-10 rounded-2xl w-18 h-18 flex items-center justify-center">
-              <motion.div
-                className="absolute -top-1/2 inset-0 rounded-2xl opacity-50"
-                animate={{
-                  scale: isScrolling ? 1.02 : 1,
-                }}
-                transition={{ duration: 0.1 }}
-              />
-
-              <div className="relative z-10 flex items-center justify-center">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={dataArray[index]}
-                    initial={
-                      scrollDirection === "up"
-                        ? { y: 60, opacity: 0 }
-                        : { y: -60, opacity: 0 }
-                    }
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={
-                      scrollDirection === "up"
-                        ? { y: -60, opacity: 0 }
-                        : { y: 60, opacity: 0 }
-                    }
-                    transition={{ duration: 0.1 }}
-                    className="text-black text-4xl font-light text-center tracking-tight"
-                  >
-                    {dataArray[index]}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-            {/* Top and Bottom Fades */}
-            <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-white to-transparent pointer-events-none" />
-            <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-white to-transparent pointer-events-none" />
-          </div>
-
-          {/* Bottom Control Button (Chevron Down) */}
-          <motion.button
-            className={`w-12 h-12 bg-gray-50 text-black rounded-full flex items-center justify-center hover:bg-gray-700 active:bg-gray-600 mt-2 transition-opacity duration-200 ${
-              index === 0 ? "opacity-30 pointer-events-none" : ""
-            }`}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleDecrement}
-            disabled={index === 0}
-            aria-label="Decrement"
-          >
-            {/* Chevron Down SVG */}
-            <svg
-              className="w-6 h-6"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 9l-7 7-7-7"
-              />
-            </svg>
-          </motion.button>
-        </div>
+    <div className="flex flex-col gap-2 max-w-3xl mx-auto bg-gradient-to-b from-white from-1% to-transparent">
+      <div className="top-0 p-4 sticky flex flex-col gap-4 z-2 bg-gradient-to-b from-white from-90% via-50% to-transparent">
+        <Topbar />
       </div>
+      <div className="px-4 pb-8 bg-gradient-to-b from-white from-5% to-transparent">
+        <Content params={{ viewMode }} />
+      </div>
+    </div>
+  );
+}
+
+function Content({ params }) {
+  return (
+    <div className="flex flex-col gap-2.5 h-full pb-10">
+      {Array.from({ length: 20 }).map((_, index) => (
+        <div
+          key={index}
+          className={`grid grid-cols-1 lg:grid-cols-2 items-start lg:items-center gap-2 border border-gray-200 bg-white p-4 px-5  rounded-3xl shadow-lg shadow-gray-100 
+              ${params.viewMode == "list" && " px-6"}`}
+        >
+          <div className="flex gap-3 justify-start items-center w-full">
+            <div className="flex flex-col flex-1">
+              <div className="flex gap-1 items-center">
+                <p name="mid" className="font-semibold text-md mr-2">
+                  15000133
+                </p>
+                <p
+                  name="uom"
+                  className="text-xs bg-gray-100 text-gray-500 rounded-bl-xl rounded-sm px-3 py-1 font-semibold"
+                >
+                  PCS
+                </p>
+                <div
+                  name="stock"
+                  className="bg-indigo-50 text-indigo-500 flex flex-nowrap text-nowrap gap-2 text-xs rounded-bl-xl rounded-sm rounded-r-xl rounded-l-sm px-3 py-1 w-fit"
+                >
+                  <p>
+                    <span className="font-semibold">G002 :</span> 100
+                  </p>
+                  <span>|</span>
+                  <p>
+                    <span className="font-semibold">G005 :</span> 1500
+                  </p>
+                </div>
+              </div>
+              <p name="desc" className="text-sm  line-clamp-1 pt-1.5">
+                CAT Kansai Paint KF 38 MEDIUM GREY 1KG
+              </p>
+            </div>
+            {/* end mid & decs */}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Topbar() {
+  const router = useRouter();
+  const [searchFormOpen, setSearchFormOpen] = useState(false);
+  const [valueToSrcMaterial, setValueToSrcMaterial] = useState("");
+  return (
+    <div className="flex items-center justify-between lg:px-0 gap-4">
+      <div className="flex-1 flex justify-start items-center relative w-full">
+        <GrayBtn
+          label={<FontAwesomeIcon icon={faArrowLeft} />}
+          onClick={() => router.back()}
+          style="bg-transparent"
+        />
+        <p className=" text-lg font-semibold">Material data </p>
+        {/* <div className="a-middle gap-2 ml-2">
+              <span className="hidden lg:block text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
+                {timestampToDateTime(materialData.timestamp)}
+              </span>
+              <span className="block lg:hidden text-xs font-medium bg-indigo-50 text-indigo-400 px-2 py-1 rounded-2xl">
+                {timestampToTime(materialData.timestamp)}
+              </span>
+            </div> */}
+        {/* {isLoadMaterialData && (
+              <div className="w-6 h-6 a-middle aspect-square text-xs rounded-full a-middle bg-indigo-50 text-indigo-400 ml-2">
+                <FontAwesomeIcon icon={faRefresh} className="animate-spin" />
+              </div>
+            )} */}
+        {searchFormOpen && (
+          <AnimatePresence>
+            <motion.div
+              initial={{ x: 20, opacity: 0, scale: 0.8 }}
+              animate={{ x: 0, opacity: 1, scale: 1 }}
+              exit={{ x: 20, opacity: 0, scale: 0.8 }}
+              className="absolute w-full pl-1 lg:pl-0"
+            >
+              <SeacrhForm
+                isOpen={searchFormOpen}
+                setIsOpen={setSearchFormOpen}
+                valueToSrc={valueToSrcMaterial}
+                setValueToSrc={setValueToSrcMaterial}
+              />
+            </motion.div>
+          </AnimatePresence>
+        )}
+      </div>
+      <button
+        className={`${
+          searchFormOpen
+            ? "bg-gray-100 order-last border-1 border-gray-50"
+            : "bg-indigo-50 order-last border-1 border-indigo-50"
+        } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer`}
+        onClick={() => {
+          setSearchFormOpen(!searchFormOpen);
+          setValueToSrcMaterial("");
+        }}
+      >
+        <p>
+          {searchFormOpen ? (
+            <FontAwesomeIcon icon={faChevronRight} className="text-gray-500" />
+          ) : (
+            <FontAwesomeIcon
+              icon={faMagnifyingGlass}
+              className="text-indigo-400"
+            />
+          )}
+        </p>
+      </button>
     </div>
   );
 }
