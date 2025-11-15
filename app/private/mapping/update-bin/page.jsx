@@ -402,7 +402,7 @@ function AddBinForm({
                     value={floor}
                     onChange={setFloor}
                     type="text"
-                    width="w-24"
+                    width="w-38"
                     dataArray={floorArr}
                   />
                 </div>
@@ -438,7 +438,7 @@ function AddBinForm({
                       : "text-gray-400  disactive"
                   }`}
                 >
-                  <p>Floor</p>
+                  <p>Zone</p>
                 </div>
                 <div
                   onClick={() => setActiveInputSet("input3")}

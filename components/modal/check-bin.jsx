@@ -1,6 +1,6 @@
 import {
   faCircleNotch,
-  faLongArrowRight,
+  faCodeCommit,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -79,8 +79,8 @@ export default function CheckBinModal({
             <p className="text-gray-600 font-semibold mr-2 mb-4 uppercase">
               {binData.sloc}
               <FontAwesomeIcon
-                icon={faLongArrowRight}
-                className="mx-1 text-sm text-gray-400"
+                icon={faCodeCommit}
+                className="mx-2 text-md text-gray-500"
               />
               <span className="text-sm px-3 py-1 bg-indigo-50 text-indigo-400 rounded-2xl">
                 {binData.bin}
