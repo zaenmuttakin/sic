@@ -98,7 +98,7 @@ function Topbar({ params }) {
       className={`topbar flex items-center justify-between px-0 py-2 gap-2 `}
     >
       <div
-        className={`absolute w-full h-1 rounded-lg top-0 right-0  ${
+        className={`absolute w-full h-[3px] rounded-lg top-0 right-0  ${
           params.isScrollingUp ? "glow-border" : ""
         }`}
       ></div>
@@ -272,7 +272,7 @@ function Pagination({
     setIsScrollingUp(true);
     window.scrollTo({
       top: 0,
-      behavior: "instant",
+      behavior: "smooth",
     });
   };
   return (
