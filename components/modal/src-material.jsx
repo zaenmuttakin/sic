@@ -32,6 +32,8 @@ export default function SrcMaterial({
   setIsOpen,
   valueToSrc,
   setValueToSrc,
+  setScanQrOpen,
+  autoFocus = true,
   loadtime = 500,
   hiddenSrcBtn = false,
 }) {
@@ -313,7 +315,7 @@ export default function SrcMaterial({
                   value={valueToSrc}
                   style={cekvalue && "cekval"}
                   onChange={(e) => setValueToSrc(e.target.value)}
-                  autoFocus={!isLoading}
+                  autoFocus={!valueToSrc && !isLoading}
                   disabled={isLoading}
                 />
                 {valueToSrc && !isLoading && (
@@ -349,10 +351,15 @@ export default function SrcMaterial({
                 type="submit"
                 name="maximize"
                 label={
-                  <FontAwesomeIcon icon={faQrcode} className="text-gray-500" />
+                  <FontAwesomeIcon
+                    icon={faQrcode}
+                    className="text-indigo-500"
+                  />
                 }
                 onClick={(e) => {
                   e.preventDefault();
+                  setIsOpen(false);
+                  setScanQrOpen(true);
                 }}
                 disabled={isLoading}
               />

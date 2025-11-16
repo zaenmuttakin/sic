@@ -10,6 +10,7 @@ import Menus from "../../components/dash-panel/menus";
 import RekapTabung from "../../components/dash-panel/rekap-tabung";
 import { Sheets } from "../../components/dash-panel/sheets";
 import { SrcCard } from "../../components/dash-panel/srccard";
+import ScanQr from "../../components/modal/scan-qr";
 import SrcMaterial from "../../components/modal/src-material";
 import Topbar from "../../components/topbar/topbar";
 import { AuthContext } from "../../lib/context/auth";
@@ -18,6 +19,7 @@ import { ColorContext } from "../../lib/context/topbar-color";
 export default function Page() {
   const router = useRouter();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [scanQrOpen, setScanQrOpen] = useState(false);
   const { setTopbarColor, topColors } = useContext(ColorContext);
   const [valueToSrc, setValueToSrc] = useState("");
   const { isAuth, isLoad, user } = useContext(AuthContext);
@@ -56,6 +58,13 @@ export default function Page() {
         setIsOpen={setSearchOpen}
         valueToSrc={valueToSrc}
         setValueToSrc={setValueToSrc}
+        setScanQrOpen={setScanQrOpen}
+      />
+      <ScanQr
+        isOpen={scanQrOpen}
+        setIsOpen={setScanQrOpen}
+        setValue={setValueToSrc}
+        setOpenSrcMaterial={setSearchOpen}
       />
       {!searchOpen && (
         <AnimatePresence>
