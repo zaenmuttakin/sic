@@ -1,6 +1,7 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { Poppins } from "next/font/google";
+import Head from "next/head";
 import DynamicMetaTags from "../components/metatag/DynamicMetaTags";
 import Toast from "../components/toast/toast";
 import { AuthProvider } from "../lib/context/auth";
@@ -32,18 +33,27 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <body className={`${poppins.variable} antialiased`}>
-      <AuthProvider>
-        <ColorProvider>
-          <MaterialDataProvider>
-            <ToastProvider>
-              <DynamicMetaTags />
-              <Toast />
-              {children}
-            </ToastProvider>
-          </MaterialDataProvider>
-        </ColorProvider>
-      </AuthProvider>
-    </body>
+    <html lang="en">
+      <Head>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+      </Head>
+      <body className={`${poppins.variable} antialiased`}>
+        <AuthProvider>
+          <ColorProvider>
+            <MaterialDataProvider>
+              <ToastProvider>
+                <DynamicMetaTags />
+                <Toast />
+                {children}
+              </ToastProvider>
+            </MaterialDataProvider>
+          </ColorProvider>
+        </AuthProvider>
+      </body>
+    </html>
   );
 }
