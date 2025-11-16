@@ -20,38 +20,30 @@ const poppins = Poppins({
 
 export const metadata = {
   title: "SIC Central",
-  description: "Sparepart Inventory Control",
-  display: "fullscreen",
-  themeColor: "#E8ECF7",
+  description: "Sparepart Inventory Control App",
+  generator: "Next.js",
+  manifest: "/manifest.json",
+  keywords: ["Inventory", "WMS", "SIC", "Sparepart"],
+  icons: [
+    { rel: "apple-touch-icon", url: "icon-192x192.png" },
+    { rel: "icon", url: "icon-192x192.png" },
+  ],
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <head>
-        <meta name="theme-color" content={metadata.themeColor} />
-        <meta
-          name="msapplication-navbutton-color"
-          content={metadata.themeColor}
-        />
-        <meta
-          name="apple-mobile-web-app-status-bar-style"
-          content={metadata.themeColor}
-        />
-      </head>
-      <body className={`${poppins.variable} antialiased`}>
-        <AuthProvider>
-          <ColorProvider>
-            <MaterialDataProvider>
-              <ToastProvider>
-                <DynamicMetaTags />
-                <Toast />
-                {children}
-              </ToastProvider>
-            </MaterialDataProvider>
-          </ColorProvider>
-        </AuthProvider>
-      </body>
-    </html>
+    <body className={`${poppins.variable} antialiased`}>
+      <AuthProvider>
+        <ColorProvider>
+          <MaterialDataProvider>
+            <ToastProvider>
+              <DynamicMetaTags />
+              <Toast />
+              {children}
+            </ToastProvider>
+          </MaterialDataProvider>
+        </ColorProvider>
+      </AuthProvider>
+    </body>
   );
 }

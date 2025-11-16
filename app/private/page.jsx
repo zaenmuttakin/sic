@@ -25,7 +25,7 @@ export default function Page() {
   const { isAuth, isLoad, user } = useContext(AuthContext);
 
   useEffect(() => {
-    searchOpen
+    searchOpen || scanQrOpen
       ? setTopbarColor(topColors.onmodal)
       : setTopbarColor(topColors.default);
   }, [searchOpen]);
