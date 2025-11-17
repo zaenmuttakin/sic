@@ -113,7 +113,7 @@ export default function MenuModal({ isOpen, setIsOpen }) {
       <div className="p-6 flex flex-col">
         <AnimatePresence>
           {listContent.map((item, i) => (
-            <div key={i}>
+            <div key={i} className="">
               <button
                 type="button"
                 className="w-full py-1 flex justify-between items-center mb-1 focus:outline-none"
@@ -129,16 +129,22 @@ export default function MenuModal({ isOpen, setIsOpen }) {
                   />
                 )}
               </button>
+
               {item.submenu && openIndex === i && (
                 <motion.div
                   initial={{ height: 0, opacity: 0, y: -10 }}
-                  animate={{ height: "100%", opacity: 1, y: 0 }}
+                  animate={{ height: "auto", opacity: 1, y: 0 }}
                   exit={{ height: 0, opacity: 0, y: -10 }}
+                  transition={{ duration: 0.1 }}
                   className="p-6 bg-gray-100 rounded-2xl mb-3"
                 >
                   {item.submenu.map((subitem, j) => (
-                    <p
+                    <motion.p
                       key={j}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ delay: 0.1 }}
                       onClick={() =>
                         subitem.newtab
                           ? window.open(subitem.sublink, "_blank")
@@ -147,7 +153,7 @@ export default function MenuModal({ isOpen, setIsOpen }) {
                       className="text-gray-500 py-1"
                     >
                       {subitem.sublabel}
-                    </p>
+                    </motion.p>
                   ))}
                 </motion.div>
               )}

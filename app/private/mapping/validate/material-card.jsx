@@ -1,13 +1,13 @@
 "use client";
+import { MaterialdataContext } from "@/lib/context/material-data";
+import { ColorContext } from "@/lib/context/topbar-color";
+import filterMaterialdata from "@/lib/func/filterMaterialdata";
+import { timestampToTime } from "@/lib/func/timestampToTime";
 import {
   faArrowsUpDown,
   faArrowUpLong,
-  faChevronRight,
-  faCircleNotch,
-  faMagnifyingGlass,
   faMinus,
   faPlus,
-  faQrcode,
   faRefresh,
   faTimes,
 } from "@fortawesome/free-solid-svg-icons";
@@ -16,18 +16,12 @@ import { AnimatePresence, motion } from "motion/react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
-import { MaterialdataContext } from "../../lib/context/material-data";
-import { ColorContext } from "../../lib/context/topbar-color";
-import filterMaterialdata from "../../lib/func/filterMaterialdata";
-import { formatDateToDDMMMYYMMHH } from "../../lib/func/isoString-toDateTime";
-import { timestampToTime } from "../../lib/func/timestampToTime";
-import GrayBtn from "../button/gray-btn";
-import PrimaryBtn from "../button/primary-btn";
-import Inputz from "../input/input";
-import Table from "../table/table";
-import UpdateBinModal from "./update-bin";
+import GrayBtn from "../../../../components/button/gray-btn";
+import PrimaryBtn from "../../../../components/button/primary-btn";
+import UpdateBinModal from "../../../../components/modal/update-bin";
+import Table from "../../../../components/table/table";
 
-export default function SrcMaterial({
+export default function MaterialCard({
   isOpen,
   setIsOpen,
   valueToSrc,
@@ -35,9 +29,8 @@ export default function SrcMaterial({
   setScanQrOpen,
   autoFocus = true,
   loadtime = 500,
-  hiddenSrcBtn = false,
 }) {
-  const [maximize, setMaximize] = useState(false);
+  const [maximize, setMaximize] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [cekvalue, setCekvalue] = useState(false);
   const [firstOpen, setFirstOpen] = useState(true);
@@ -181,8 +174,8 @@ export default function SrcMaterial({
           }}
           animate={{
             opacity: 1,
-            zIndex: maximize ? 30 : 10,
-            padding: maximize ? 0 : "1rem",
+            zIndex: 30,
+            padding: 0,
           }}
           exit={{ opacity: 0 }}
           name="backdrop"
@@ -215,15 +208,9 @@ export default function SrcMaterial({
               scale: 1,
               y: 0,
               x: 0,
-              borderRadius: maximize ? "0rem" : "1.5rem",
+              borderRadius: "0rem",
               width: "100%",
-              minHeight: maximize
-                ? "100svh"
-                : isLgScreen
-                ? "95vh"
-                : filteredData
-                ? "80vh"
-                : "15rem",
+              minHeight: "100vh",
             }}
             exit={{
               opacity: 0,
@@ -249,9 +236,7 @@ export default function SrcMaterial({
             />
             {/* ---------------------------------------------------- */}
             <div className="flex items-center justify-between pt-6 px-6">
-              <p className="font-semibold">
-                {hiddenSrcBtn ? "Material Details" : "Search Material"}
-              </p>
+              <p className="font-semibold">Validate Bin</p>
               <div className="flex-1 flex flex-nowrap items-center">
                 <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
                   {!isLoadMaterialData ? (
@@ -302,69 +287,6 @@ export default function SrcMaterial({
                 }
               />
             </div>
-            <form
-              className={`items-center gap-2 px-6 mt-4 mb-2 ${
-                hiddenSrcBtn ? "hidden" : "flex"
-              }`}
-            >
-              <div className="relative flex-1" disabled={isLoading}>
-                <Inputz
-                  type="number"
-                  ref={inputRef}
-                  placeholder="Cari dengan MID"
-                  value={valueToSrc}
-                  style={cekvalue && "cekval"}
-                  onChange={(e) => setValueToSrc(e.target.value)}
-                  autoFocus={!valueToSrc && !isLoading}
-                  disabled={isLoading}
-                />
-                {valueToSrc && !isLoading && (
-                  <FontAwesomeIcon
-                    icon={faTimes}
-                    onClick={() => {
-                      setValueToSrc("");
-                    }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm cursor-pointer bg-white p-2 hover:text-gray-400"
-                  />
-                )}
-              </div>
-              <PrimaryBtn
-                type="submit"
-                name="maximize"
-                label={
-                  isLoading ? (
-                    <FontAwesomeIcon
-                      icon={faCircleNotch}
-                      className="animate-spin"
-                    />
-                  ) : (
-                    <FontAwesomeIcon icon={faMagnifyingGlass} />
-                  )
-                }
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleSearch();
-                }}
-                disabled={isLoading}
-              />
-              <GrayBtn
-                type="submit"
-                name="maximize"
-                style="bg-indigo-50"
-                label={
-                  <FontAwesomeIcon
-                    icon={faQrcode}
-                    className="text-indigo-500"
-                  />
-                }
-                onClick={(e) => {
-                  e.preventDefault();
-                  setIsOpen(false);
-                  setScanQrOpen(true);
-                }}
-                disabled={isLoading}
-              />
-            </form>
 
             {isLoading && (
               <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
@@ -396,28 +318,14 @@ export default function SrcMaterial({
                     <Image
                       src="/logo-icon-white.svg"
                       alt="Logo"
-                      width={35}
-                      height={35}
-                      className="mb-4 absolute top-6 right-6 text-white/20 cursor-none opacity-[0.1]"
+                      width={30}
+                      height={30}
+                      className="mb-4 absolute top-5 right-6 text-white/20 cursor-none opacity-[0.1]"
                     />
                     <p className="font-semibold">{filteredData.mid}</p>
                     <p>{filteredData.desc}</p>
-                    <p>{filteredData.uom}</p>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    <p className="font-medium text-gray-400">Draft</p>
-                    <Table
-                      header={["Ewo", "Espar/WO", "Reservasi"]}
-                      data={[
-                        [
-                          filteredData.drf.ewo,
-                          filteredData.drf.espar,
-                          filteredData.drf.res,
-                        ],
-                      ]}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 mt-2">
                     <p className="font-medium text-gray-400">Actual Stock</p>
                     <Table
                       header={["G002", "G005"]}
@@ -430,27 +338,9 @@ export default function SrcMaterial({
                     />
                   </div>
                   <div className="flex flex-col gap-3">
-                    <p className="font-medium text-gray-400">
-                      SAP Stock
-                      <span className="text-xs px-2 py-0.5 bg-indigo-50 text-[#7A6DFF] rounded-full ml-2 font-normal">
-                        {formatDateToDDMMMYYMMHH(materialData.stockUpdated)}
-                      </span>
+                    <p className="font-medium text-gray-400 w-full">
+                      Validate Bin
                     </p>
-                    <Table
-                      header={["G002", "G003", "G004", "G005", "Total"]}
-                      data={[
-                        [
-                          filteredData.sapStock.g002,
-                          filteredData.sapStock.g003,
-                          filteredData.sapStock.g004,
-                          filteredData.sapStock.g005,
-                          filteredData.sapStock.total,
-                        ],
-                      ]}
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    <p className="font-medium text-gray-400 w-full">Bin</p>
                     <Table
                       header={["G002"]}
                       data={[
@@ -525,38 +415,18 @@ export default function SrcMaterial({
                       ]}
                     />
                   </div>
-                  <hr className="border-gray-200" />
-                  <div className="py-2 flex flex-col gap-2 w-full items-end justify-end text-sm lg:text-md">
-                    <p
-                      onClick={() => router.push("/not-available")}
-                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
-                    >
-                      Material Movement
-                      <FontAwesomeIcon
-                        icon={faChevronRight}
-                        className="text-xs ml-2"
-                      />
-                    </p>
-                    <p
-                      onClick={() => router.push("/not-available")}
-                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
-                    >
-                      Outbound History
-                      <FontAwesomeIcon
-                        icon={faChevronRight}
-                        className="text-xs ml-2"
-                      />
-                    </p>
-                    <p
-                      onClick={() => router.push("/not-available")}
-                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
-                    >
-                      Inbound History
-                      <FontAwesomeIcon
-                        icon={faChevronRight}
-                        className="text-xs ml-2"
-                      />
-                    </p>
+                  <div className="flex flex-col gap-2 mt-6">
+                    <PrimaryBtn
+                      type="submit"
+                      label={
+                        <span className="a-middle gap-2 text-white group-hover:text-indigo-400 duration-150">
+                          Validate
+                        </span>
+                      }
+                      // onClick={handleSubmitNewLoc}
+                      style="flex-1 bg-indigo-400 hover:bg-indigo-50 hover:outline-2 outline-indigo-200 group duration-150 lg:mt-0 cursor-pointer"
+                      // disabled={isLoad}
+                    />
                   </div>
                 </motion.div>
               </AnimatePresence>

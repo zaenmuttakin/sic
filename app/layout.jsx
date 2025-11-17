@@ -1,7 +1,6 @@
 import { config } from "@fortawesome/fontawesome-svg-core";
 import "@fortawesome/fontawesome-svg-core/styles.css";
 import { Poppins } from "next/font/google";
-import Head from "next/head";
 import DynamicMetaTags from "../components/metatag/DynamicMetaTags";
 import Toast from "../components/toast/toast";
 import { AuthProvider } from "../lib/context/auth";
@@ -34,13 +33,13 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <Head>
+      <head>
         <meta
           name="viewport"
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
+      </head>
       <body className={`${poppins.variable} antialiased`}>
         <AuthProvider>
           <ColorProvider>
