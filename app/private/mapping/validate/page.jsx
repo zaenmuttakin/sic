@@ -19,6 +19,7 @@ import ScrollInput from "../../../../components/input/scroll-input";
 import ScanQr from "../../../../components/modal/scan-qr";
 import { MaterialdataContext } from "../../../../lib/context/material-data";
 import filterMaterialdata from "../../../../lib/func/filterMaterialdata";
+import { checkBinList } from "../../../../lib/gas/sic";
 import {
   colArr,
   floorArr,
@@ -26,6 +27,7 @@ import {
   sisiArr,
   zonaArr,
 } from "../update-bin/swipeArr";
+import CheckBinCard from "./check-bin-card";
 import MaterialCard from "./material-card";
 
 export default function page() {
@@ -36,9 +38,13 @@ export default function page() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [scanQrOpen, setScanQrOpen] = useState(false);
   const [checkBinOpen, setCheckBinOpen] = useState(false);
+  const [checkBinCardOpen, setCheckBinCardOpen] = useState(false);
+  const [checkBinResult, setCheckBinResult] = useState();
+
   const { materialData, filteredData, setFilteredData, isLoadMaterialData } =
     useContext(MaterialdataContext);
   const router = useRouter();
+  const [newLoc, setNewLoc] = useState("-");
 
   const handleSearch = async () => {
     !materialData && alert("Not any data");
@@ -69,11 +75,28 @@ export default function page() {
         <Topbar />
       </div>
       <div className="px-4 lg:px-6 pb-8 bg-white min-h-[calc(100vh-5rem)]">
-        <div className="rounded-3xl border border-indigo-200  p-6 py-10 mb-4">
-          <div className="h-36">
-            <p className="">
-              Lorem ipsum dolor sit, amet consectetur adipisicing elit.
-              Perferendis, facilis!
+        <div className="rounded-3xl border border-indigo-200  p-6 py- mb-4">
+          <div className="text-sm">
+            <p className="font-medium mb-2">How to : </p>
+            <ul className="text-gray-700 pl-5 list-disc">
+              <li>Cari dengan MID atau scan QR</li>
+              <li>Pastikan lokasi aktual & data bin sesuai</li>
+              <li>Jika sesuai pilih valid</li>
+              <li>Jika tidak sesuai, update bin kemudian pilih valid. Atau,</li>
+              <li>Jika bin sudah diisi MID lain, pilih deletion</li>
+              <li>Check Bin, Pastikan semua mid dalam bin sudah valid.</li>
+            </ul>
+
+            <p className="py-2 pb-8">
+              Lihat MID sudah tervalidasi{" "}
+              <span
+                onClick={() =>
+                  router.push("/private/mapping/validate/already-validated")
+                }
+                className="text-indigo-400 underline cursor-pointer"
+              >
+                disini
+              </span>
             </p>
           </div>
           <form className="flex items-center gap-2">
@@ -140,7 +163,13 @@ export default function page() {
               exit={{ opacity: 0, height: 0 }}
               className=""
             >
-              <BinForm />
+              <BinForm
+                newLoc={newLoc}
+                setNewLoc={setNewLoc}
+                checkModal={checkBinCardOpen}
+                setCheckModal={setCheckBinCardOpen}
+                setCheckBinResult={setCheckBinResult}
+              />
             </motion.div>
           </AnimatePresence>
         )}
@@ -158,6 +187,15 @@ export default function page() {
       <MaterialCard
         isOpen={searchOpen}
         setIsOpen={setSearchOpen}
+        valueToSrc={valueToSrc}
+        setValueToSrc={setValueToSrc}
+        setScanQrOpen={setScanQrOpen}
+      />
+      <CheckBinCard
+        isOpen={checkBinCardOpen}
+        setIsOpen={setCheckBinCardOpen}
+        newLoc={newLoc}
+        checkBinResult={checkBinResult}
         valueToSrc={valueToSrc}
         setValueToSrc={setValueToSrc}
         setScanQrOpen={setScanQrOpen}
@@ -194,12 +232,16 @@ function BinForm({
   midData,
   addForm,
   setAddForm,
+  checkModal,
+  setCheckModal,
+  newLoc,
+  setNewLoc,
+  setCheckBinResult,
   // checkModal,
   // setCheckModal,
   // setSameBin,
 }) {
   const [isLoad, setIsLoad] = useState(false);
-  const [newLoc, setNewLoc] = useState("-");
   const [floor, setFloor] = useState("-");
   const [zona, setZona] = useState("-");
   const [sisi, setSisi] = useState("-");
@@ -211,8 +253,8 @@ function BinForm({
   const swipeRef = useRef(null);
   const swipeStartX = useRef(0);
   const [activeInputSet, setActiveInputSet] = useState("input1");
-
-  useEffect(() => {
+  const router = useRouter();
+  function resetdataBin() {
     setFloor("-");
     setZona("-");
     setSisi("-");
@@ -222,6 +264,16 @@ function BinForm({
     setActiveInputSet("input1");
     setIsLoad(false);
     setErrorMsg("");
+    setNewLoc("-");
+  }
+
+  useEffect(() => {
+    !checkModal && resetdataBin();
+  }, [checkModal]);
+
+  useEffect(() => {
+    resetdataBin();
+    setIsLoad(false);
   }, [addForm]);
 
   useEffect(() => {
@@ -289,13 +341,15 @@ function BinForm({
       setErrorMsg("Please complete the location input.");
       return;
     } else {
-      const check = await getCheckBin({
-        sloc: midData.sloc,
+      const check = await checkBinList({
         bin: newLoc,
       });
-      setIsLoad(false);
-      setCheckModal(true);
-      setAddForm(false);
+      if (check.success) {
+        setIsLoad(false);
+        setCheckModal(true);
+        setCheckBinResult(check.response);
+        console.log(check.response);
+      }
     }
   };
   return (

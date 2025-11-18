@@ -58,17 +58,17 @@ export default function Table({
           </thead>
 
           {/* Table Body */}
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100">
             {paginatedData.map((row, i) => (
               <tr
                 key={i}
-                className="hover:bg-gray-50 transition-colors relative cursor-pointer "
+                className="hover:bg-gray-50 transition-colors relative cursor-pointer"
                 onClick={() => trClick(row[0])}
               >
                 {row.map((col, j) => (
                   <td
                     key={j}
-                    className={`${row.length - 1 == j && " w-full pr-6"} ${
+                    className={`${row.length - 1 == j && "pr-6"} ${
                       j == 0 && "pl-5"
                     } px-3 py-3`}
                   >

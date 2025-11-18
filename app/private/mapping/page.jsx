@@ -23,7 +23,7 @@ export default function Page() {
             className="relative flex group p-4 border border-indigo-50/50 bg-indigo-50 rounded-3xl items-center gap-4 cursor-pointer hover:bg-indigo-100/80 hover:border-indigo-200 duration-200"
           >
             <div className="w-10 aspect-square a-middle rounded-full bg-indigo-400 text-white">
-              <FontAwesomeIcon icon={faCheckDouble} className="" />
+              <FontAwesomeIcon icon={faCheckDouble} className="text-lg" />
             </div>
             <p className=" font-medium">Validasi Mapping</p>
             <FontAwesomeIcon
@@ -36,7 +36,7 @@ export default function Page() {
             className="relative flex group p-4 border border-indigo-50/50 bg-indigo-50 rounded-3xl items-center gap-4 cursor-pointer hover:bg-indigo-100/80 hover:border-indigo-200 duration-200"
           >
             <div className="w-10 aspect-square a-middle rounded-full bg-indigo-400 text-white">
-              <FontAwesomeIcon icon={faSquareXmark} className="" />
+              <FontAwesomeIcon icon={faSquareXmark} className="text-lg" />
             </div>
             <p className=" font-medium">
               Belum Ada BIN{" "}
@@ -54,7 +54,7 @@ export default function Page() {
             className="relative flex group p-4 border border-indigo-50/50 bg-indigo-50 rounded-3xl items-center gap-4 cursor-pointer hover:bg-indigo-100/80 hover:border-indigo-200 duration-200"
           >
             <div className="w-10 aspect-square a-middle rounded-full bg-indigo-400 text-white">
-              <FontAwesomeIcon icon={faSquareXmark} className="" />
+              <FontAwesomeIcon icon={faSquareXmark} className="text-lg" />
             </div>
             <p className=" font-medium">
               Belum Ada BIN{" "}

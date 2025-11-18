@@ -6,6 +6,7 @@ import {
   faCircleNotch,
   faMagnifyingGlass,
   faMinus,
+  faPencil,
   faPlus,
   faQrcode,
   faRefresh,
@@ -478,10 +479,7 @@ export default function SrcMaterial({
                               {filteredData.bin.g002.length === 0 ? (
                                 <FontAwesomeIcon icon={faPlus} />
                               ) : (
-                                <FontAwesomeIcon
-                                  icon={faArrowUpLong}
-                                  className="rotate-45"
-                                />
+                                <FontAwesomeIcon icon={faPencil} />
                               )}
                             </button>
                           </div>,

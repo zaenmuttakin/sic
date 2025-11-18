@@ -11,7 +11,7 @@ export default function Toast() {
   return (
     <AnimatePresence>
       {toastData.open && (
-        <div className="fixed justify-start items-center p-4 lg:p-6 flex flex-col left-1/2 transform -translate-x-1/2 w-full max-w-md">
+        <div className="fixed justify-start items-center p-4 lg:p-6 flex flex-col left-1/2 transform -translate-x-1/2 w-full z-50">
           <motion.div
             initial={{
               opacity: 0,
@@ -33,7 +33,7 @@ export default function Toast() {
               borderRadius: "1.5rem",
             }}
             name="modal"
-            className="relative max-w-md bg-white drop-shadow-2xl drop-shadow-black/10 rounded-3xl z-12 w-full flex flex-col justify-start"
+            className="relative max-w-md bg-white border border-gray-100 drop-shadow-2xl drop-shadow-black/10 rounded-3xl z-12 w-full flex flex-col justify-start"
           >
             <div className="flex items-center justify-between py-6 px-6">
               <div
