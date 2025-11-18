@@ -25,16 +25,12 @@ export default function Page() {
     getData();
   }, []);
 
-  useEffect(() => {
-    console.log(header);
-    console.log(data);
-  }, [header, data]);
   return (
     <div className="flex flex-col max-w-4xl mx-auto bg-gradient-to-b from-white from-1% to-transparent">
       <div className="top-0 p-4 py-2 lg:p-6 sticky flex flex-col gap-4 z-2 bg-gradient-to-b from-white from-90% via-50% to-transparent">
         <Topbar />
       </div>
-      <div className="px-4 lg:px-6 pb-8 bg-white min-h-[calc(100vh-5rem)] text-sm">
+      <div className="px-6 lg:px-6 pb-8 bg-white min-h-[calc(100vh-5rem)] text-sm">
         {data ? <Content header={header} data={data} /> : <Load />}
       </div>
     </div>
@@ -63,6 +59,7 @@ function Content({ header, data }) {
   return (
     <Table
       header={header}
+      footer={true}
       data={data.map((item) => [
         ...item.slice(0, 6),
         formatDateIsoToDate(new Date(item[6])),

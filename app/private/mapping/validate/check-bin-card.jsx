@@ -266,7 +266,7 @@ export default function CheckBinCard({
                 }
               />
             </div>
-            <div className="px-4 pt-2">
+            <div className="p-6 pt-2 overflow-auto 2">
               <Table
                 header={["Sloc", "MID", "Description", "Bin"]}
                 data={checkBinResult.map((item) => [
@@ -275,6 +275,7 @@ export default function CheckBinCard({
                   item.DESKRIPSI,
                   item.BIN,
                 ])}
+                footer={true}
               />
             </div>
           </motion.div>

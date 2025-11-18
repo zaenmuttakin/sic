@@ -84,16 +84,34 @@ export default function Table({
       {/* Table Footer */}
       {footer && (
         <div className=" px-0 lg:px-4 pt-6  flex gap-8 justify-between items-center">
-          <div className="text-sm text-gray-500">
-            <span className="font-medium">1</span> to{" "}
-            <span className="font-medium">{data.length}</span> of{" "}
-            <span className="font-medium">{data.length}</span> results
+          <div className="text-sm text-gray-500 line-clamp-1">
+            <span className="font-medium">
+              {(currentPage - 1) * itemsPerPage + 1}
+            </span>{" "}
+            to{" "}
+            <span className="font-medium">
+              {Math.min(currentPage * itemsPerPage, filteredData?.length)}
+            </span>{" "}
+            of <span className="font-medium">{filteredData?.length}</span>{" "}
+            results
           </div>
           <div className="flex space-x-2">
-            <button className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200">
+            <button
+              onClick={() => {
+                setCurrentPage((p) => Math.max(1, p - 1));
+              }}
+              disabled={currentPage === 1}
+              className="px-4 py-2 text-sm font-medium text-gray-500 bg-gray-100 rounded-xl hover:bg-gray-200 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
               Previous
             </button>
-            <button className="px-4 py-2 text-sm font-medium text-indigo-500 bg-indigo-50 rounded-xl hover:bg-indigo-100">
+            <button
+              onClick={() => {
+                setCurrentPage((p) => Math.min(totalPages, p + 1));
+              }}
+              disabled={currentPage === totalPages || totalPages === 0}
+              className="px-4 py-2 text-sm font-medium text-indigo-500 bg-indigo-50 rounded-xl hover:bg-indigo-100 disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
+            >
               Next
             </button>
           </div>
