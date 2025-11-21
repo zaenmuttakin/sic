@@ -46,6 +46,17 @@ export default function page() {
   const router = useRouter();
   const [newLoc, setNewLoc] = useState("-");
 
+  useEffect(() => {
+    if (checkBinCardOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [checkBinCardOpen]);
+
   const handleSearch = async () => {
     !materialData && alert("Not any data");
     !valueToSrc && setCekvalue(true);
@@ -175,7 +186,7 @@ export default function page() {
         )}
         <div
           onClick={() => setCheckBinOpen(!checkBinOpen)}
-          className="text-center text-gray-400 mt-8 cursor-pointer a-middle gap-2 text-sm"
+          className="text-center text-gray-600 mt-6 cursor-pointer a-middle gap-2 text-sm"
         >
           <p className="">{checkBinOpen ? "Hide" : "Check Bin"}</p>
           <FontAwesomeIcon
@@ -199,6 +210,7 @@ export default function page() {
         valueToSrc={valueToSrc}
         setValueToSrc={setValueToSrc}
         setScanQrOpen={setScanQrOpen}
+        setSearchOpen={setSearchOpen}
       />
       <ScanQr
         isOpen={scanQrOpen}
@@ -348,12 +360,15 @@ function BinForm({
         setIsLoad(false);
         setCheckModal(true);
         setCheckBinResult(check.response);
-        console.log(check.response);
+      } else {
+        alert(check.response);
+        setIsLoad(false);
+        window.location.reload();
       }
     }
   };
   return (
-    <form className="relative bg-white border border-gray-200 w-full rounded-3xl flex flex-col gap-4 p-6 py-8 text mt-2 lg:mt-0">
+    <form className="relative bg-white border border-gray-200 w-full rounded-3xl flex flex-col gap-4 p-4 py-6 text mt-2 lg:mt-0">
       <div className="w-full a-middle">
         <p className="text-indigo-500 bg-indigo-50 rounded-2xl py-1 px-5 w-fit">
           {newLoc}

@@ -4,9 +4,7 @@ import { ColorContext } from "@/lib/context/topbar-color";
 import filterMaterialdata from "@/lib/func/filterMaterialdata";
 import { timestampToTime } from "@/lib/func/timestampToTime";
 import {
-  faArrowsUpDown,
   faCircleNotch,
-  faMinus,
   faPencil,
   faPlus,
   faRefresh,
@@ -261,7 +259,7 @@ export default function MaterialCard({
             <div className="flex items-center justify-between pt-6 px-6">
               <p className="font-semibold">Material Data</p>
               <div className="flex-1 flex flex-nowrap items-center">
-                <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
+                <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-white">
                   {!isLoadMaterialData ? (
                     <span className="px-1">
                       {timestampToTime(materialData?.timestamp)}
@@ -274,26 +272,7 @@ export default function MaterialCard({
                   )}
                 </div>
               </div>
-              <div className="lg:hidden">
-                <GrayBtn
-                  type="submit"
-                  onClick={() => setMaximize(!maximize)}
-                  style="bg-white w-10 mr-2"
-                  label={
-                    maximize ? (
-                      <FontAwesomeIcon
-                        icon={faMinus}
-                        className=" text-gray-500 "
-                      />
-                    ) : (
-                      <FontAwesomeIcon
-                        icon={faArrowsUpDown}
-                        className="rotate-45 text-gray-500 "
-                      />
-                    )
-                  }
-                />
-              </div>
+
               <GrayBtn
                 type="submit"
                 style="bg-white w-10"
@@ -353,7 +332,7 @@ export default function MaterialCard({
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="absolute a-middle top-0 left-0 w-full h-full bg-indigo-50 z-10 rounded-xl"
+                        className="absolute a-middle top-0 left-0 w-full h-full bg-white z-10 rounded-xl"
                       >
                         <FontAwesomeIcon
                           icon={faCircleNotch}
