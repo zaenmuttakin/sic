@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const protectedRoutes = ["private", "try"];
 const authRoutes = ["/", "/daftar"];
 
-export default async function middleware(request) {
+export async function proxy(request) {
   const pathname = request.nextUrl.pathname;
   const basePath = pathname.split("/")[1];
   const isProtectedRoute = protectedRoutes.includes(basePath);
