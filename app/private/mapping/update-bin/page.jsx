@@ -27,6 +27,7 @@ import {
   subbinArr,
   zonaArr,
 } from "./swipeArr";
+import { deleteBinSpBase, getBinSpBase, getCheckBinSpBase } from "@/app/api/bin/action";
 
 export default function page() {
   const [addForm, setAddForm] = useState(false);
@@ -48,7 +49,7 @@ export default function page() {
     };
     const handleGetBin = async (sloc, mid) => {
       const res = await getBin({ sloc, mid });
-      res.success && res.response.length > 0 && setExistingBin(res.response);
+      // res.success && res.response.length > 0 && setExistingBin(res.response);
       res.success && res.response.length < 1 && console.log("No ");
       !res.success && console.log("Error fetching bin data");
       setLoadBin(false);
@@ -60,6 +61,17 @@ export default function page() {
       handleGetBin(parsedData.sloc, parsedData.mid);
     }
   }, [materialData]);
+
+  useEffect(() => {
+    const fetchItems = async () => {
+      const data = await getBinSpBase(midData.sloc, midData.mid)
+      setExistingBin(data.data)
+      setLoadBin(false)
+    }
+
+    midData?.mid && fetchItems()
+  }, [midData])
+
 
   return (
     <div className="page-container items-center bg-white lg:bg-[#E8ECF7]">
@@ -155,10 +167,10 @@ function BinCard({ existingBin, setAddForm, setDeleteModal, setBinToDel }) {
           key={i}
           className="p-4 h-fit px-6 bg-indigo-50 rounded-2xl flex items-center justify-between text-indigo-400 relative"
         >
-          <p className="font-medium">{item.BIN}</p>
+          <p className="font-medium">{item.bin}</p>
           <button
             onClick={() => {
-              setBinToDel(item.BIN);
+              setBinToDel({ sloc: item.sloc, id: item.id, bin: item.bin });
               setDeleteModal(true);
             }}
             className="group: absolute p-1.5 px-2.5 hover:bg-indigo-100 rounded-xl right-4 duration-150 cursor-pointer"
@@ -293,11 +305,9 @@ function AddBinForm({
       setErrorMsg("Please complete the location input.");
       return;
     } else {
-      const check = await getCheckBin({
-        sloc: midData.sloc,
-        bin: newLoc,
-      });
-      setSameBin(check.success ? check.response : null);
+      const check = await getCheckBinSpBase(midData.sloc, newLoc);
+      console.log(check);
+      setSameBin(check.totalCount > 0 ? check.data : null);
       setIsLoad(false);
       setCheckModal(true);
       setAddForm(false);
@@ -422,31 +432,28 @@ function AddBinForm({
               <div className="flex items-center gap-0.5 btn-swipe mt-4">
                 <div
                   onClick={() => setActiveInputSet("input1")}
-                  className={`px-4 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${
-                    activeInputSet === "input1"
-                      ? "bg-gray-100 active"
-                      : "text-gray-400 disactive"
-                  }`}
+                  className={`px-4 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${activeInputSet === "input1"
+                    ? "bg-gray-100 active"
+                    : "text-gray-400 disactive"
+                    }`}
                 >
                   <p>Rack</p>
                 </div>
                 <div
                   onClick={() => setActiveInputSet("input2")}
-                  className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${
-                    activeInputSet === "input2"
-                      ? "bg-gray-100 active"
-                      : "text-gray-400  disactive"
-                  }`}
+                  className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${activeInputSet === "input2"
+                    ? "bg-gray-100 active"
+                    : "text-gray-400  disactive"
+                    }`}
                 >
                   <p>Zone</p>
                 </div>
                 <div
                   onClick={() => setActiveInputSet("input3")}
-                  className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${
-                    activeInputSet === "input3"
-                      ? "bg-gray-100 active"
-                      : "text-gray-400  disactive"
-                  }`}
+                  className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${activeInputSet === "input3"
+                    ? "bg-gray-100 active"
+                    : "text-gray-400  disactive"
+                    }`}
                 >
                   <p>Custom </p>
                 </div>
@@ -474,10 +481,10 @@ function AddBinForm({
 
 function DeleteCard({ isOpen, setIsOpen, binToDel, midData }) {
   const [isLoad, setIsLoad] = useState(false);
-  const handleDeleteBin = async (sloc, mid, bin) => {
+  const handleDeleteBin = async (sloc, id) => {
     setIsLoad(true);
-    const res = await deleteBin({ sloc, mid, bin });
-    if (res.success) {
+    const res = await deleteBinSpBase(sloc, id);
+    if (res) {
       setIsLoad(false);
       setIsOpen(false);
       window.location.reload();
@@ -507,14 +514,14 @@ function DeleteCard({ isOpen, setIsOpen, binToDel, midData }) {
         <p className="text-center">
           Yakin hapus
           <span className="text-sm px-2 py-1.5 mx-2 bg-indigo-50 text-indigo-400 rounded-2xl">
-            {binToDel}
+            {binToDel.bin}
           </span>
           ?
         </p>
         <PrimaryBtn
           label={isLoad ? "Deleting..." : "Ya, Hapus"}
-          style="w-full mt-8 bg-red-400 hover:bg-red-50 hover:outline-2 outline-red-200 group duration-150"
-          onClick={() => handleDeleteBin(midData.sloc, midData.mid, binToDel)}
+          style="w-full mt-8 bg-red-400 hover:bg-red-500 hover:outline-2 outline-red-200 group duration-150"
+          onClick={() => handleDeleteBin(midData.sloc, binToDel.id)}
           disabled={isLoad}
         />
       </div>

@@ -27,6 +27,7 @@ import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
 import Table from "../table/table";
 import UpdateBinModal from "./update-bin";
+import { getBinSpBase } from "@/app/api/bin/action";
 
 export default function SrcMaterial({
   isOpen,
@@ -56,6 +57,9 @@ export default function SrcMaterial({
   const { materialData, filteredData, setFilteredData, isLoadMaterialData } =
     useContext(MaterialdataContext);
   const { setTopbarColor, topColors } = useContext(ColorContext);
+  const [binG002, setBinG002] = useState(null);
+  const [binG005, setBinG005] = useState(null);
+
 
   useEffect(() => {
     switch (pathname) {
@@ -121,7 +125,6 @@ export default function SrcMaterial({
       if (dataFiltered) {
         setTimeout(() => {
           setFilteredData(dataFiltered[0]);
-
           setIsLoading(false);
         }, loadtime);
       } else {
@@ -152,10 +155,20 @@ export default function SrcMaterial({
       }, 50);
   };
 
+  const fetchBin = async (mid) => {
+    const bing002 = await getBinSpBase("g002", mid)
+    const bing005 = await getBinSpBase("g005", mid)
+    setBinG002(bing002)
+    setBinG005(bing005)
+  }
+
   useEffect(() => {
     if (isOpen) {
       valueToSrc && handleSearch();
       handleOpenModal();
+      fetchBin(valueToSrc)
+
+
       // document.body.classList.add("overflow-hidden");
     } else {
       document.body.classList.remove("overflow-hidden");
@@ -221,10 +234,10 @@ export default function SrcMaterial({
               minHeight: maximize
                 ? "100svh"
                 : isLgScreen
-                ? "95vh"
-                : filteredData
-                ? "80vh"
-                : "15rem",
+                  ? "95vh"
+                  : filteredData
+                    ? "80vh"
+                    : "15rem",
             }}
             exit={{
               opacity: 0,
@@ -304,9 +317,8 @@ export default function SrcMaterial({
               />
             </div>
             <form
-              className={`items-center gap-2 px-6 mt-4 mb-2 ${
-                hiddenSrcBtn ? "hidden" : "flex"
-              }`}
+              className={`items-center gap-2 px-6 mt-4 mb-2 ${hiddenSrcBtn ? "hidden" : "flex"
+                }`}
             >
               <div className="relative flex-1" disabled={isLoading}>
                 <Inputz
@@ -457,14 +469,21 @@ export default function SrcMaterial({
                       data={[
                         [
                           <div className="flex flex-wrap gap-2">
-                            {filteredData.bin.g002.map((bin, i) => (
+                            {binG002?.data.map((bin, i) => (
                               <button
-                                key={i}
+                                key={bin.id}
                                 className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
                               >
-                                {bin}
+                                {bin.bin}
                               </button>
                             ))}
+                            {!binG002 &&
+                              <button
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
+                              >
+                                <FontAwesomeIcon icon={faCircleNotch} spin />
+                              </button>
+                            }
 
                             <button
                               onClick={() => {
@@ -476,7 +495,7 @@ export default function SrcMaterial({
                               }}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
-                              {filteredData.bin.g002.length === 0 ? (
+                              {binG002?.totalCount === 0 ? (
                                 <FontAwesomeIcon icon={faPlus} />
                               ) : (
                                 <FontAwesomeIcon icon={faPencil} />
@@ -491,14 +510,23 @@ export default function SrcMaterial({
                       data={[
                         [
                           <div className="flex flex-wrap gap-2">
-                            {filteredData.bin.g005.map((bin, i) => (
+
+                            {binG005?.data.map((bin, i) => (
                               <button
-                                key={i}
+                                key={bin.id}
                                 className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
                               >
-                                {bin}
+                                {bin.bin}
                               </button>
                             ))}
+
+                            {!binG005 &&
+                              <button
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
+                              >
+                                <FontAwesomeIcon icon={faCircleNotch} spin />
+                              </button>
+                            }
                             <button
                               onClick={() => {
                                 setSelectedBin({
@@ -509,13 +537,10 @@ export default function SrcMaterial({
                               }}
                               className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
                             >
-                              {filteredData.bin.g005.length === 0 ? (
+                              {binG005?.totalCount === 0 ? (
                                 <FontAwesomeIcon icon={faPlus} />
                               ) : (
-                                <FontAwesomeIcon
-                                  icon={faArrowUpLong}
-                                  className="rotate-45"
-                                />
+                                <FontAwesomeIcon icon={faPencil} />
                               )}
                             </button>
                           </div>,

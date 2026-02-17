@@ -14,6 +14,8 @@ import { deleteBin, getAddBin } from "../../lib/gas/sic";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Table from "../table/table";
+import { addBinSpBase, deleteBinSpBase } from "@/app/api/bin/action";
+import { ToastContext } from "@/lib/context/toast";
 
 export default function CheckBinModal({
   isOpen,
@@ -30,6 +32,8 @@ export default function CheckBinModal({
   const { materialData } = useContext(MaterialdataContext);
   const router = useRouter();
   const { user } = useContext(AuthContext);
+  const { setToast, closeToast } = useContext(ToastContext);
+
 
   const handleGetStock = (sloc, mid) => {
     if (!materialData) return null;
@@ -107,12 +111,12 @@ export default function CheckBinModal({
                   !sameBin
                     ? [[]]
                     : sameBin.map((item) => [
-                        item.MID,
-                        item.DESKRIPSI,
-                        handleGetStock(binData.sloc, item.MID) || 0,
-                        formatDateIsoToDate(item.Validasi),
-                        item.PIC || "-",
-                      ])
+                      item.mid,
+                      item.desc,
+                      handleGetStock(binData.sloc, item.mid) || 0,
+                      formatDateIsoToDate(item.valid_at),
+                      item.pic || "-",
+                    ])
                 }
               />
             </div>
@@ -136,21 +140,16 @@ export default function CheckBinModal({
           }
           onClick={async () => {
             setIsSubmit(true);
-            const add = await getAddBin({
-              sloc: binData.sloc,
-              mid: binData.mid,
-              desc: binData.desc,
-              uom: binData.uom,
-              rak: "",
-              bin: binData.bin.toUpperCase(),
-              pic: user?.NICKNAME.toUpperCase(),
-            });
-
-            // add && setExtractedData((extractedData.bin = ["xx", "xx"]));
-            // add &&
-            //   setExtractedData(
-            //     (extractedData.bin[binData.sloc] = ["zzz", binData.bin])
-            //   );
+            const add = await addBinSpBase(
+              binData.sloc,
+              {
+                bin: binData.bin.toUpperCase(),
+                mid: binData.mid,
+                desc: binData.desc,
+                uom: binData.uom,
+                valid_at: new Date(),
+                pic: user?.NICKNAME.toUpperCase(),
+              });
             add && setIsSubmit(false);
             add && setIsOpen(false);
             add && window.location.reload();
@@ -167,22 +166,17 @@ export default function CheckBinModal({
           onClick={async () => {
             setIsLoad(true);
             setReplaceLabel("Replacing...");
-            const del = await deleteBin({
-              sloc: binData.sloc,
-              mid: sameBin[0].MID,
-              bin: binData.bin.toUpperCase(),
-            });
-            if (del.success) {
-              const add = await getAddBin({
-                sloc: binData.sloc,
+            const del = await deleteBinSpBase(binData.sloc, sameBin[0].id);
+            if (del) {
+              const add = await addBinSpBase(binData.sloc, {
+                bin: binData.bin.toUpperCase(),
                 mid: binData.mid,
                 desc: binData.desc,
                 uom: binData.uom,
-                rak: "",
-                bin: binData.bin.toUpperCase(),
+                valid_at: new Date(),
                 pic: user?.NICKNAME.toUpperCase(),
               });
-              if (add.success) {
+              if (add) {
                 setIsLoad(false);
                 setIsOpen(false);
                 window.location.reload();

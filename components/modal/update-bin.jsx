@@ -7,8 +7,9 @@ export default function UpdateBinModal({
   isOpen,
   setIsOpen,
   maximize,
-  to = () => {},
+  to = () => { },
 }) {
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -16,9 +17,8 @@ export default function UpdateBinModal({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className={`${
-            maximize && "p-6 rounded-none"
-          } absolute rounded-3xl h-full z-11 w-full bg-black/30 top-0 left-0 a-middle`}
+          className={`${maximize && "p-6 rounded-none"
+            } absolute rounded-3xl h-full z-11 w-full bg-black/30 top-0 left-0 a-middle`}
         >
           <motion.div
             initial={{ y: 10, opacity: 0 }}
