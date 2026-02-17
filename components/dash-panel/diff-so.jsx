@@ -1,9 +1,9 @@
 import { faArrowUpLong, faRefresh } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
-import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
-import numberToRp from "../../lib/func/numberToRp";
-import { openInNewWindow } from "../../lib/func/openInNewWindow";
+import { formatDateIsoToDate } from "../../lib/utils/isoString-toDate";
+import numberToRp from "../../lib/utils/numberToRp";
+import { openInNewWindow } from "../../lib/utils/openInNewWindow";
 import { getPendingDiffSo } from "../../lib/gas/sic";
 import Table from "../table/table";
 
@@ -102,11 +102,10 @@ export default function DiffSO() {
                 item["Unrst."],
                 item["Qty Actual"],
                 <p
-                  className={`px-3 w-fit py-.5 rounded-full ${
-                    item.Diff > 0
+                  className={`px-3 w-fit py-.5 rounded-full ${item.Diff > 0
                       ? "bg-orange-50 text-orange-400"
                       : "bg-red-100 text-red-400"
-                  }`}
+                    }`}
                 >
                   {item.Diff}
                 </p>,

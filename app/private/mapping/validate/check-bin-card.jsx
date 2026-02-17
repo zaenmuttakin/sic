@@ -5,7 +5,7 @@ import { AuthContext } from "@/lib/context/auth";
 import { MaterialdataContext } from "@/lib/context/material-data";
 import { ToastContext } from "@/lib/context/toast";
 import { ColorContext } from "@/lib/context/topbar-color";
-import filterMaterialdata from "@/lib/func/filterMaterialdata";
+import filterMaterialdata from "@/lib/utils/filterMaterialdata";
 import { faCheckCircle, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { AnimatePresence, motion } from "motion/react";
@@ -336,21 +336,19 @@ function Content({ params, itemsPerPage = 25 }) {
                     </p>
                     <p
                       name="sloc"
-                      className={`flex flex-nowrap text-nowrap gap-2 text-xs rounded-bl-xl rounded-sm rounded-r-xl rounded-l-sm px-3 py-1 w-fit ${
-                        value?.SLOC == "G002"
+                      className={`flex flex-nowrap text-nowrap gap-2 text-xs rounded-bl-xl rounded-sm rounded-r-xl rounded-l-sm px-3 py-1 w-fit ${value?.SLOC == "G002"
                           ? "bg-indigo-50 text-indigo-500"
                           : "bg-red-50 text-red-500"
-                      }`}
+                        }`}
                     >
                       {value?.SLOC}
                     </p>
                     <p
                       name="bin"
-                      className={`flex flex-nowrap text-nowrap gap-2 text-xs rounded-bl-xl rounded-sm rounded-r-xl rounded-l-sm px-3 py-1 w-fit ${
-                        value?.SLOC == "G002"
+                      className={`flex flex-nowrap text-nowrap gap-2 text-xs rounded-bl-xl rounded-sm rounded-r-xl rounded-l-sm px-3 py-1 w-fit ${value?.SLOC == "G002"
                           ? "bg-indigo-50 text-indigo-500"
                           : "bg-red-50 text-red-500"
-                      }`}
+                        }`}
                     >
                       {value?.BIN}
                     </p>

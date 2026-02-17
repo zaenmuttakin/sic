@@ -1,6 +1,6 @@
 import { faSortUp, faTable } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { openInNewWindow } from "../../lib/func/openInNewWindow";
+import { openInNewWindow } from "../../lib/utils/openInNewWindow";
 
 export function Sheets() {
   return (

@@ -14,8 +14,8 @@ import SeacrhForm from "../../../components/input/search-form";
 import SrcMaterial from "../../../components/modal/src-material";
 import { MaterialdataContext } from "../../../lib/context/material-data";
 import { ColorContext } from "../../../lib/context/topbar-color";
-import { timestampToDateTime } from "../../../lib/func/timestampToDateTime";
-import { timestampToTime } from "../../../lib/func/timestampToTime";
+import { timestampToDateTime } from "../../../lib/utils/timestampToDateTime";
+import { timestampToTime } from "../../../lib/utils/timestampToTime";
 
 export default function Page() {
   const { materialData, isLoadMaterialData } = useContext(MaterialdataContext);

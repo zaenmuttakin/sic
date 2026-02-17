@@ -19,9 +19,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useContext, useEffect, useRef, useState } from "react";
 import { MaterialdataContext } from "../../lib/context/material-data";
 import { ColorContext } from "../../lib/context/topbar-color";
-import filterMaterialdata from "../../lib/func/filterMaterialdata";
-import { formatDateToDDMMMYYMMHH } from "../../lib/func/isoString-toDateTime";
-import { timestampToTime } from "../../lib/func/timestampToTime";
+import filterMaterialdata from "../../lib/utils/filterMaterialdata";
+import { formatDateToDDMMMYYMMHH } from "../../lib/utils/isoString-toDateTime";
+import { timestampToTime } from "../../lib/utils/timestampToTime";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
 import Inputz from "../input/input";
@@ -122,6 +122,7 @@ export default function SrcMaterial({
       const term = valueToSrc;
 
       const dataFiltered = filterMaterialdata("equal", materialData.data, term);
+      fetchBin(valueToSrc)
       if (dataFiltered) {
         setTimeout(() => {
           setFilteredData(dataFiltered[0]);
@@ -162,11 +163,13 @@ export default function SrcMaterial({
     setBinG005(bing005)
   }
 
+
+
   useEffect(() => {
     if (isOpen) {
       valueToSrc && handleSearch();
       handleOpenModal();
-      fetchBin(valueToSrc)
+
 
 
       // document.body.classList.add("overflow-hidden");

@@ -18,7 +18,7 @@ import Inputz from "../../../../components/input/input";
 import ScrollInput from "../../../../components/input/scroll-input";
 import ScanQr from "../../../../components/modal/scan-qr";
 import { MaterialdataContext } from "../../../../lib/context/material-data";
-import filterMaterialdata from "../../../../lib/func/filterMaterialdata";
+import filterMaterialdata from "../../../../lib/utils/filterMaterialdata";
 import { checkBinList } from "../../../../lib/gas/sic";
 import {
   colArr,
@@ -454,31 +454,28 @@ function BinForm({
         <div className="flex items-center gap-0.5 btn-swipe mt-2">
           <div
             onClick={() => setActiveInputSet("input1")}
-            className={`px-4 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${
-              activeInputSet === "input1"
+            className={`px-4 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${activeInputSet === "input1"
                 ? "bg-gray-100 active"
                 : "text-gray-400 disactive"
-            }`}
+              }`}
           >
             <p>Rack</p>
           </div>
           <div
             onClick={() => setActiveInputSet("input2")}
-            className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${
-              activeInputSet === "input2"
+            className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${activeInputSet === "input2"
                 ? "bg-gray-100 active"
                 : "text-gray-400  disactive"
-            }`}
+              }`}
           >
             <p>Zone</p>
           </div>
           <div
             onClick={() => setActiveInputSet("input3")}
-            className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${
-              activeInputSet === "input3"
+            className={`px-3 py-2 rounded-2xl flex items-center justify-center cursor-pointer ${activeInputSet === "input3"
                 ? "bg-gray-100 active"
                 : "text-gray-400  disactive"
-            }`}
+              }`}
           >
             <p>Custom </p>
           </div>

@@ -1,8 +1,8 @@
 "use client";
 import { MaterialdataContext } from "@/lib/context/material-data";
 import { ColorContext } from "@/lib/context/topbar-color";
-import filterMaterialdata from "@/lib/func/filterMaterialdata";
-import { timestampToTime } from "@/lib/func/timestampToTime";
+import filterMaterialdata from "@/lib/utils/filterMaterialdata";
+import { timestampToTime } from "@/lib/utils/timestampToTime";
 import {
   faCircleNotch,
   faPencil,
@@ -21,7 +21,7 @@ import UpdateBinModal from "../../../../components/modal/update-bin";
 import Table from "../../../../components/table/table";
 import { AuthContext } from "../../../../lib/context/auth";
 import { ToastContext } from "../../../../lib/context/toast";
-import { formatToDDMMYYYY } from "../../../../lib/func/formatToDDMMYYYY";
+import { formatToDDMMYYYY } from "../../../../lib/utils/formatToDDMMYYYY";
 import { addValidate } from "../../../../lib/gas/sic";
 
 export default function MaterialCard({
@@ -381,22 +381,22 @@ export default function MaterialCard({
                                     }
                                     onChange={() =>
                                       selectedStatus[`G002-${i}`]?.validate ===
-                                      "valid"
+                                        "valid"
                                         ? handleCheckboxChange(
-                                            `G002-${i}`,
-                                            null
-                                          )
+                                          `G002-${i}`,
+                                          null
+                                        )
                                         : handleCheckboxChange(`G002-${i}`, {
-                                            validate: "valid",
-                                            sloc: "G002",
-                                            mid: filteredData.mid,
-                                            desc: filteredData.desc,
-                                            uom: filteredData.uom,
-                                            rak: "",
-                                            bin: bin,
-                                            date: formatToDDMMYYYY(),
-                                            pic: user?.NICKNAME.toUpperCase(),
-                                          })
+                                          validate: "valid",
+                                          sloc: "G002",
+                                          mid: filteredData.mid,
+                                          desc: filteredData.desc,
+                                          uom: filteredData.uom,
+                                          rak: "",
+                                          bin: bin,
+                                          date: formatToDDMMYYYY(),
+                                          pic: user?.NICKNAME.toUpperCase(),
+                                        })
                                     }
                                   />
                                   <span>Valid</span>
@@ -411,22 +411,22 @@ export default function MaterialCard({
                                     }
                                     onChange={() =>
                                       selectedStatus[`G002-${i}`]?.validate ===
-                                      "deletion"
+                                        "deletion"
                                         ? handleCheckboxChange(
-                                            `G002-${i}`,
-                                            null
-                                          )
+                                          `G002-${i}`,
+                                          null
+                                        )
                                         : handleCheckboxChange(`G002-${i}`, {
-                                            validate: "deletion",
-                                            sloc: "G002",
-                                            mid: filteredData.mid,
-                                            desc: filteredData.desc,
-                                            uom: filteredData.uom,
-                                            rak: "",
-                                            bin: bin,
-                                            date: formatToDDMMYYYY(),
-                                            pic: user?.NICKNAME.toUpperCase(),
-                                          })
+                                          validate: "deletion",
+                                          sloc: "G002",
+                                          mid: filteredData.mid,
+                                          desc: filteredData.desc,
+                                          uom: filteredData.uom,
+                                          rak: "",
+                                          bin: bin,
+                                          date: formatToDDMMYYYY(),
+                                          pic: user?.NICKNAME.toUpperCase(),
+                                        })
                                     }
                                   />
                                   <span>Deletion</span>
@@ -485,22 +485,22 @@ export default function MaterialCard({
                                     }
                                     onChange={() =>
                                       selectedStatus[`G005-${i}`]?.validate ===
-                                      "valid"
+                                        "valid"
                                         ? handleCheckboxChange(
-                                            `G005-${i}`,
-                                            null
-                                          )
+                                          `G005-${i}`,
+                                          null
+                                        )
                                         : handleCheckboxChange(`G005-${i}`, {
-                                            validate: "valid",
-                                            sloc: "G005",
-                                            mid: filteredData.mid,
-                                            desc: filteredData.desc,
-                                            uom: filteredData.uom,
-                                            rak: "",
-                                            bin: bin,
-                                            date: formatToDDMMYYYY(),
-                                            pic: user?.NICKNAME.toUpperCase(),
-                                          })
+                                          validate: "valid",
+                                          sloc: "G005",
+                                          mid: filteredData.mid,
+                                          desc: filteredData.desc,
+                                          uom: filteredData.uom,
+                                          rak: "",
+                                          bin: bin,
+                                          date: formatToDDMMYYYY(),
+                                          pic: user?.NICKNAME.toUpperCase(),
+                                        })
                                     }
                                   />
                                   <span>Valid</span>
@@ -515,22 +515,22 @@ export default function MaterialCard({
                                     }
                                     onChange={() =>
                                       selectedStatus[`G005-${i}`]?.validate ===
-                                      "deletion"
+                                        "deletion"
                                         ? handleCheckboxChange(
-                                            `G005-${i}`,
-                                            null
-                                          )
+                                          `G005-${i}`,
+                                          null
+                                        )
                                         : handleCheckboxChange(`G005-${i}`, {
-                                            validate: "deletion",
-                                            sloc: "G005",
-                                            mid: filteredData.mid,
-                                            desc: filteredData.desc,
-                                            uom: filteredData.uom,
-                                            rak: "",
-                                            bin: bin,
-                                            date: formatToDDMMYYYY(),
-                                            pic: user?.NICKNAME.toUpperCase(),
-                                          })
+                                          validate: "deletion",
+                                          sloc: "G005",
+                                          mid: filteredData.mid,
+                                          desc: filteredData.desc,
+                                          uom: filteredData.uom,
+                                          rak: "",
+                                          bin: bin,
+                                          date: formatToDDMMYYYY(),
+                                          pic: user?.NICKNAME.toUpperCase(),
+                                        })
                                     }
                                   />
                                   <span>Deletion</span>

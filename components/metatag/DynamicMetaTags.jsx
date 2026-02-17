@@ -3,7 +3,7 @@
 
 import { useContext } from "react";
 import { ColorContext } from "../../lib/context/topbar-color";
-import { UseDynamicMetadata } from "../../lib/func/useDynamicMetadata";
+import { UseDynamicMetadata } from "../../lib/hooks/useDynamicMetadata";
 
 export default function DynamicMetaTags() {
   const { topbarColor } = useContext(ColorContext);

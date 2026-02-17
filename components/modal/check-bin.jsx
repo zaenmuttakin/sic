@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../lib/context/auth";
 import { MaterialdataContext } from "../../lib/context/material-data";
-import { formatDateIsoToDate } from "../../lib/func/isoString-toDate";
+import { formatDateIsoToDate } from "../../lib/utils/isoString-toDate";
 import { deleteBin, getAddBin } from "../../lib/gas/sic";
 import GrayBtn from "../button/gray-btn";
 import PrimaryBtn from "../button/primary-btn";
