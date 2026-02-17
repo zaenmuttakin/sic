@@ -1,17 +1,16 @@
 import { supabase } from '@/lib/supabase/supabase'
 
 // FETCH & SEARCH
-export async function getBinSpBase(sloc, searchTerm = '', page = 0) {
+export async function getBinSpBase(sloc, searchTerm = '', page = 0, limit = 50) {
   try {
-    const ITEMS_PER_PAGE = 50;
-    const from = page * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
+    const from = page * limit;
+    const to = from + limit - 1;
 
     let query = supabase
       .from(`bin_${sloc.toLowerCase()}`)
       .select('*', { count: 'exact' }) // 'exact' returns total count of matches
       .order('id', { ascending: true })
-      .range(from, to); // This handles the "Limit 50" logic
+      .range(from, to);
 
     if (searchTerm) {
       query = query.ilike('mid', `%${searchTerm}%`);

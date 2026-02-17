@@ -4,6 +4,7 @@ import {
   faArrowRightLong,
   faCheckDouble,
   faSquareXmark,
+  faTableColumns,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useRouter } from "next/navigation";
@@ -26,6 +27,19 @@ export default function Page() {
               <FontAwesomeIcon icon={faCheckDouble} className="text-lg" />
             </div>
             <p className=" font-medium">Validasi Mapping</p>
+            <FontAwesomeIcon
+              icon={faArrowRightLong}
+              className="absolute text-indigo-500 opacity-0 transform top-1/2 -translate-y-1/2 right-12 group-hover:right-8 group-hover:opacity-100 duration-200"
+            />
+          </button>
+          <button
+            onClick={() => router.push("/private/mapping/edit-bin-g002")}
+            className="relative flex group p-4 border border-indigo-50/50 bg-indigo-50 rounded-3xl items-center gap-4 cursor-pointer hover:bg-indigo-100/80 hover:border-indigo-200 duration-200"
+          >
+            <div className="w-10 aspect-square a-middle rounded-full bg-indigo-500 text-white">
+              <FontAwesomeIcon icon={faTableColumns} className="text-lg" />
+            </div>
+            <p className=" font-medium">Edit Bin G002</p>
             <FontAwesomeIcon
               icon={faArrowRightLong}
               className="absolute text-indigo-500 opacity-0 transform top-1/2 -translate-y-1/2 right-12 group-hover:right-8 group-hover:opacity-100 duration-200"

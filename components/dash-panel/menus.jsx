@@ -35,8 +35,8 @@ export default function Menus() {
           icon={faBoxesPacking}
           title="Material Data"
         />
-        <MenuItem to="/private/mapping" icon={faLocationDot} title="Mapping" />
         <MenuItem to="/not-available" icon={faChartSimple} title="Report" />
+        <MenuItem to="/private/mapping" icon={faLocationDot} title="Mapping" />
         <MenuItem to="/try" icon={faQuestion} title="About" />
       </div>
     </div>
