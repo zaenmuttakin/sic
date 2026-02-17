@@ -97,11 +97,7 @@ function Topbar({ params }) {
     <div
       className={`topbar flex items-center justify-between px-0 py-2 gap-2 `}
     >
-      <div
-        className={`absolute w-full h-[3px] rounded-lg top-0 right-0  ${
-          params.isScrollingUp ? "glow-border" : ""
-        }`}
-      ></div>
+
       <div className="flex-1 flex justify-start items-center relative w-full gap-1">
         <GrayBtn
           label={<FontAwesomeIcon icon={faArrowLeft} />}
@@ -141,11 +137,10 @@ function Topbar({ params }) {
         )}
       </div>
       <button
-        className={`${
-          searchFormOpen
-            ? "bg-gray-100 order-last border-1 border-gray-50"
-            : "bg-indigo-50 order-last border-1 border-indigo-50"
-        } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer`}
+        className={`${searchFormOpen
+          ? "bg-gray-100 order-last border-1 border-gray-50"
+          : "bg-indigo-50 order-last border-1 border-indigo-50"
+          } group a-middle px-4 py-2.5 h-full font-medium rounded-2xl cursor-pointer`}
         onClick={() => {
           setSearchFormOpen(!searchFormOpen);
           params.setValueToSrcMaterial("");
