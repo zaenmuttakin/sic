@@ -39,6 +39,7 @@ export default function RootLayout({ children }) {
           content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
         />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#E8ECF7" />
       </head>
       <body className={`${poppins.variable} antialiased`}>
         <AuthProvider>
