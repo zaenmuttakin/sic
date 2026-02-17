@@ -218,10 +218,6 @@ export default function SrcMaterial({
             initial={{
               opacity: 0,
               scale: 0.2,
-              y: 60,
-              x: 120,
-              widths: "10rem",
-              height: "10rem",
               borderRadius: "5rem",
               width: "100%",
               minHeight: "30vh",
@@ -230,8 +226,6 @@ export default function SrcMaterial({
             animate={{
               opacity: 1,
               scale: 1,
-              y: 0,
-              x: 0,
               borderRadius: maximize ? "0rem" : "1.5rem",
               width: "100%",
               minHeight: maximize
@@ -245,13 +239,10 @@ export default function SrcMaterial({
             exit={{
               opacity: 0,
               scale: 0.2,
-              y: 60,
-              x: 120,
               borderRadius: "1.5rem",
               width: "100%",
               minHeight: "30vh",
             }}
-            transition={{ duration: 0.2 }}
             name="modal"
             className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
           >
