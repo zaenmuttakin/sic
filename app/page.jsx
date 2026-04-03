@@ -1,0 +1,162 @@
+"use client";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import PrimaryBtn from "../components/button/primary-btn";
+import Inputz from "../components/input/input";
+import { AuthContext } from "../lib/context/auth";
+import { ToastContext } from "../lib/context/toast";
+import GrayBtn from "@/components/button/gray-btn";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faClipboardList, faList } from "@fortawesome/free-solid-svg-icons";
+
+export default function Home() {
+  const [nik, setNik] = useState("");
+  const [pass, setPass] = useState("");
+  const [cekval, setCekval] = useState(false);
+  const [isload, setIsload] = useState(false);
+  const { login, alert } = useContext(AuthContext);
+  const { setToast, closeToast } = useContext(ToastContext);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setToast({
+      open: true,
+      text: "Verifying...",
+    });
+    setIsload(true);
+    await login(new Number(nik), pass).then((res) => {
+      console.log(res);
+      setIsload(false);
+      closeToast();
+      !res.success &&
+        setToast({
+          open: true,
+          text: res.response || "Terjadi kesalahan, coba lagi",
+          type: "error",
+          autoHide: true,
+        });
+      if (res.success) {
+        setToast({
+          open: true,
+          text: "Wait a moment",
+        });
+        window.location.reload();
+      }
+    });
+  };
+
+  const handleGuest = async (paramNik, paramPass) => {
+    setToast({
+      open: true,
+      text: "Verifying...",
+    });
+    setIsload(true);
+    await login(new Number(paramNik), paramPass).then((res) => {
+      console.log(res);
+      setIsload(false);
+      closeToast();
+      !res.success &&
+        setToast({
+          open: true,
+          text: res.response || "Terjadi kesalahan, coba lagi",
+          type: "error",
+          autoHide: true,
+        });
+      if (res.success) {
+        setToast({
+          open: true,
+          text: "Wait a moment",
+        });
+        window.location.reload();
+      }
+    });
+  };
+
+  useEffect(() => {
+    alert.open && setToast(alert);
+    const alertParam = searchParams.get("alert");
+    const alertType = searchParams.get("type");
+    localStorage.removeItem("bintoedit");
+    alertParam &&
+      setToast({
+        open: true,
+        text: JSON.parse(alertParam),
+        type: JSON.parse(alertType),
+        autoHide: true,
+      });
+
+    !alertParam &&
+      setToast({
+        open: true,
+        text: (
+          <p>
+            Login dengan NIK, <br /> Password:{" "}
+            <span className="underline font-medium text-indigo-400 underline-offset-2">
+              12345678
+            </span>
+          </p>
+        ),
+        autoHide: false,
+        type: "info",
+      });
+  }, []);
+
+  return (
+    <div className="flex h-screen items-center justify-center px-4">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          setCekval(true);
+          nik && pass
+            ? handleSubmit(e)
+            : setToast({
+              open: true,
+              type: "error",
+              text: "NIK & Password wajib diisi",
+            });
+        }}
+        className="flex flex-col gap-4 max-w-md w-full px-6 lg:px-8 py-10 pb-14 bg-white rounded-3xl"
+      >
+        <div className="w-full a-middle mb-8 pt-2">
+          <Image src={"/sic-icon.svg"} alt="Logo" width={175} height={175} />
+        </div>
+
+        <Inputz
+          type="number"
+          placeholder="NIK"
+          value={nik}
+          style={cekval && !nik && "cekval"}
+          onChange={(e) => setNik(e.target.value)}
+        />
+        <Inputz
+          type="password"
+          placeholder="Password"
+          value={pass}
+          onChange={(e) => setPass(e.target.value)}
+          style={cekval && !pass && "cekval"}
+        />
+        <PrimaryBtn
+          type="submit"
+          label="Masuk"
+          style="mt-3"
+          disabled={isload}
+        />
+        <GrayBtn
+          type="button"
+          label={
+            <span className="flex items-center gap-2">
+              <FontAwesomeIcon icon={faClipboardList} />
+              <span>Listing Stock Opname</span>
+            </span>
+          }
+          style="mt-4"
+          disabled={isload}
+          onClick={() => router.push("/public/listing-so")}
+        />
+      </form>
+    </div>
+  );
+}

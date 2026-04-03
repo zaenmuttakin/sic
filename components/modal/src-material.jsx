@@ -1,0 +1,586 @@
+"use client";
+import {
+  faArrowsUpDown,
+  faArrowUpLong,
+  faChevronRight,
+  faCircleNotch,
+  faMagnifyingGlass,
+  faMinus,
+  faPencil,
+  faPlus,
+  faQrcode,
+  faRefresh,
+  faTimes,
+} from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { AnimatePresence, motion } from "motion/react";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+import { useContext, useEffect, useRef, useState } from "react";
+import { MaterialdataContext } from "../../lib/context/material-data";
+import { ColorContext } from "../../lib/context/topbar-color";
+import filterMaterialdata from "../../lib/utils/filterMaterialdata";
+import { formatDateToDDMMMYYMMHH } from "../../lib/utils/isoString-toDateTime";
+import { timestampToTime } from "../../lib/utils/timestampToTime";
+import GrayBtn from "../button/gray-btn";
+import PrimaryBtn from "../button/primary-btn";
+import Inputz from "../input/input";
+import Table from "../table/table";
+import UpdateBinModal from "./update-bin";
+import { getBinSpBase } from "@/app/api/bin/action";
+
+export default function SrcMaterial({
+  isOpen,
+  setIsOpen,
+  valueToSrc,
+  setValueToSrc,
+  setScanQrOpen,
+  autoFocus = true,
+  loadtime = 500,
+  hiddenSrcBtn = false,
+}) {
+  const [maximize, setMaximize] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [cekvalue, setCekvalue] = useState(false);
+  const [firstOpen, setFirstOpen] = useState(true);
+  const [opnAddMap, setOpnAddMap] = useState(false);
+  const inputRef = useRef(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const [isLgScreen, setIsLgScreen] = useState(false);
+  const [selectedBin, setSelectedBin] = useState({
+    // typeAction: "add /edit"
+    // sloc: "",
+    // mid: "",
+    // uom: "",
+  });
+  const { materialData, filteredData, setFilteredData, isLoadMaterialData } =
+    useContext(MaterialdataContext);
+  const { setTopbarColor, topColors } = useContext(ColorContext);
+  const [binG002, setBinG002] = useState(null);
+  const [binG005, setBinG005] = useState(null);
+
+
+  useEffect(() => {
+    switch (pathname) {
+      case "/private":
+        maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal2);
+        maximize && isOpen && !opnAddMap && setTopbarColor(topColors.white);
+        !maximize && !isOpen && !opnAddMap && setTopbarColor(topColors.default);
+        !maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal);
+        !maximize && isOpen && !opnAddMap && setTopbarColor(topColors.onmodal);
+        break;
+      case "/private/material-data":
+        maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal2);
+        maximize && isOpen && !opnAddMap && setTopbarColor(topColors.white);
+        !maximize && !isOpen && !opnAddMap && setTopbarColor(topColors.default);
+        !maximize && isOpen && opnAddMap && setTopbarColor(topColors.onmodal);
+        !maximize && isOpen && !opnAddMap && setTopbarColor(topColors.onmodal);
+        break;
+
+      default:
+        break;
+    }
+  }, [maximize, isOpen, opnAddMap]);
+
+  // handle screen size
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const checkScreenSize = () => {
+        setIsLgScreen(window.innerWidth >= 1024);
+      };
+      checkScreenSize();
+      window.addEventListener("resize", checkScreenSize);
+      return () => window.removeEventListener("resize", checkScreenSize);
+    }
+  }, []);
+
+  // handle back button
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (window.location.hash === "#srcmaterial") {
+        // We're still in the modal's history entry, so we do nothing.
+        // This is a failsafe to prevent unexpected behavior.
+      } else {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
+
+  const handleSearch = async () => {
+    !materialData && alert("Not any data");
+    !valueToSrc && setCekvalue(true);
+    if (materialData && valueToSrc) {
+      setCekvalue(false);
+      setIsLoading(true);
+      setFirstOpen(false);
+      inputRef.current && inputRef.current.blur();
+      const term = valueToSrc;
+
+      const dataFiltered = filterMaterialdata("equal", materialData.data, term);
+      fetchBin(valueToSrc)
+      if (dataFiltered) {
+        setTimeout(() => {
+          setFilteredData(dataFiltered[0]);
+          setIsLoading(false);
+        }, loadtime);
+      } else {
+        alert("gagal");
+        setIsLoading(false);
+      }
+    }
+  };
+
+  // handle modal open and close
+  const handleOpenModal = () => {
+    window.history.pushState({ srcmaterial: true }, null, "#srcmaterial");
+  };
+
+  const handleCloseModal = (bintoedit) => {
+    setValueToSrc("");
+    setFilteredData(null);
+    setMaximize(false);
+    setCekvalue(false);
+    setFirstOpen(true);
+    setIsOpen(false);
+    setOpnAddMap(false);
+    window.history.back();
+    bintoedit &&
+      setTimeout(() => {
+        localStorage.setItem("bintoedit", JSON.stringify(bintoedit));
+        router.push("/private/mapping/update-bin");
+      }, 50);
+  };
+
+  const fetchBin = async (mid) => {
+    const bing002 = await getBinSpBase("g002", mid)
+    const bing005 = await getBinSpBase("g005", mid)
+    setBinG002(bing002)
+    setBinG005(bing005)
+  }
+
+
+
+  useEffect(() => {
+    if (isOpen) {
+      valueToSrc && handleSearch();
+      handleOpenModal();
+
+
+
+      // document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+      setValueToSrc("");
+      setFilteredData(null);
+      setMaximize(false);
+      setCekvalue(false);
+      setFirstOpen(true);
+      setOpnAddMap(false);
+    }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isOpen]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{
+            opacity: 0,
+            zIndex: 10,
+            padding: "1rem",
+          }}
+          animate={{
+            opacity: 1,
+            zIndex: maximize ? 30 : 10,
+            padding: maximize ? 0 : "1rem",
+          }}
+          exit={{ opacity: 0 }}
+          name="backdrop"
+          className="fixed justify-end items-end lg:justify-center lg:items-center w-full min-h-svh top-0 left-0 flex flex-col "
+        >
+          <div
+            onClick={() => {
+              // setIsOpen(false);
+              handleCloseModal();
+              setFilteredData(null);
+            }}
+            className="absolute h-full z-10 w-full bg-black/30 top-0 left-0"
+          ></div>
+
+          <motion.div
+            initial={{
+              opacity: 0,
+              scale: 0.2,
+              borderRadius: "5rem",
+              width: "100%",
+              minHeight: "30vh",
+              maxHeight: "80svh",
+            }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              borderRadius: maximize ? "0rem" : "1.5rem",
+              width: "100%",
+              minHeight: maximize
+                ? "100svh"
+                : isLgScreen
+                  ? "95vh"
+                  : filteredData
+                    ? "80vh"
+                    : "15rem",
+            }}
+            exit={{
+              opacity: 0,
+              scale: 0.2,
+              borderRadius: "1.5rem",
+              width: "100%",
+              minHeight: "30vh",
+            }}
+            name="modal"
+            className="relative max-w-3xl bg-white rounded-3xl z-12 w-full flex flex-col justify-start"
+          >
+            <UpdateBinModal
+              data={selectedBin}
+              isOpen={opnAddMap}
+              setIsOpen={setOpnAddMap}
+              maximize={maximize}
+              to={() => {
+                handleCloseModal(selectedBin);
+              }}
+            />
+            {/* ---------------------------------------------------- */}
+            <div className="flex items-center justify-between pt-6 px-6">
+              <p className="font-semibold">
+                {hiddenSrcBtn ? "Material Details" : "Search Material"}
+              </p>
+              <div className="flex-1 flex flex-nowrap items-center">
+                <div className="text-xs w-fit ml-2 p-1 text-indigo-400 rounded-full bg-indigo-50">
+                  {!isLoadMaterialData ? (
+                    <span className="px-1">
+                      {timestampToTime(materialData?.timestamp)}
+                    </span>
+                  ) : (
+                    <FontAwesomeIcon
+                      icon={faRefresh}
+                      className="text-xs animate-spin"
+                    />
+                  )}
+                </div>
+              </div>
+              <div className="lg:hidden">
+                <GrayBtn
+                  type="submit"
+                  onClick={() => setMaximize(!maximize)}
+                  style="bg-white w-10 mr-2"
+                  label={
+                    maximize ? (
+                      <FontAwesomeIcon
+                        icon={faMinus}
+                        className=" text-gray-500 "
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        icon={faArrowsUpDown}
+                        className="rotate-45 text-gray-500 "
+                      />
+                    )
+                  }
+                />
+              </div>
+              <GrayBtn
+                type="submit"
+                style="bg-white w-10"
+                onClick={() => {
+                  // setIsOpen(false);
+                  handleCloseModal();
+                  setFilteredData(null);
+                }}
+                label={
+                  <FontAwesomeIcon
+                    icon={faTimes}
+                    className="text-lg text-gray-500"
+                  />
+                }
+              />
+            </div>
+            <form
+              className={`items-center gap-2 px-6 mt-4 mb-2 ${hiddenSrcBtn ? "hidden" : "flex"
+                }`}
+            >
+              <div className="relative flex-1" disabled={isLoading}>
+                <Inputz
+                  type="number"
+                  ref={inputRef}
+                  placeholder="Cari dengan MID"
+                  value={valueToSrc}
+                  style={cekvalue && "cekval"}
+                  onChange={(e) => setValueToSrc(e.target.value)}
+                  autoFocus={!valueToSrc && !isLoading}
+                  disabled={isLoading}
+                />
+                {valueToSrc && !isLoading && (
+                  <FontAwesomeIcon
+                    icon={faTimes}
+                    onClick={() => {
+                      setValueToSrc("");
+                    }}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 text-sm cursor-pointer bg-white p-2 hover:text-gray-400"
+                  />
+                )}
+              </div>
+              <PrimaryBtn
+                type="submit"
+                name="maximize"
+                label={
+                  isLoading ? (
+                    <FontAwesomeIcon
+                      icon={faCircleNotch}
+                      className="animate-spin"
+                    />
+                  ) : (
+                    <FontAwesomeIcon icon={faMagnifyingGlass} />
+                  )
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSearch();
+                }}
+                disabled={isLoading}
+              />
+              <GrayBtn
+                type="submit"
+                name="maximize"
+                style="bg-indigo-50"
+                label={
+                  <FontAwesomeIcon
+                    icon={faQrcode}
+                    className="text-indigo-500"
+                  />
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsOpen(false);
+                  setScanQrOpen(true);
+                }}
+                disabled={isLoading}
+              />
+            </form>
+
+            {isLoading && (
+              <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
+                Loading...
+              </p>
+            )}
+            {!firstOpen && !filteredData && !isLoading && (
+              <p className="lg:min-h-svh w-full text-center py-6  lg:py-16 text-sm text-gray-400">
+                Data tidak ditemukan
+              </p>
+            )}
+            {firstOpen && !filteredData && !isLoading && (
+              <p className="lg:min-h-svh w-full text-center py-6 lg:py-16 text-sm text-gray-400">
+                Masukan mid untuk melihat data stock
+              </p>
+            )}
+            {filteredData && !isLoading && (
+              <AnimatePresence>
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{
+                    opacity: 1,
+                    y: 0,
+                  }}
+                  exit={{ opacity: 0, y: 20 }}
+                  className="flex-1 flex flex-col gap-4 min-h-24 overflow-y-auto rounded-3xl py-4 lg:pb-6 c-scrollbar px-6"
+                >
+                  <div className="p-6 bg-[#7A6DFF] text-white shadow-lg rounded-2xl relative">
+                    <Image
+                      src="/logo-icon-white.svg"
+                      alt="Logo"
+                      width={35}
+                      height={35}
+                      className="mb-4 absolute top-6 right-6 text-white/20 cursor-none opacity-[0.1]"
+                    />
+                    <p className="font-semibold">{filteredData.mid}</p>
+                    <p>{filteredData.desc}</p>
+                    <p>{filteredData.uom}</p>
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <p className="font-medium text-gray-400">Draft</p>
+                    <Table
+                      header={["Ewo", "Espar/WO", "Reservasi"]}
+                      data={[
+                        [
+                          filteredData.drf.ewo,
+                          filteredData.drf.espar,
+                          filteredData.drf.res,
+                        ],
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <p className="font-medium text-gray-400">Actual Stock</p>
+                    <Table
+                      header={["G002", "G005"]}
+                      data={[
+                        [
+                          filteredData.actualStock.g002,
+                          filteredData.actualStock.g005,
+                        ],
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <p className="font-medium text-gray-400">
+                      SAP Stock
+                      <span className="text-xs px-2 py-0.5 bg-indigo-50 text-[#7A6DFF] rounded-full ml-2 font-normal">
+                        {formatDateToDDMMMYYMMHH(materialData.stockUpdated)}
+                      </span>
+                    </p>
+                    <Table
+                      header={["G002", "G003", "G004", "G005", "Total"]}
+                      data={[
+                        [
+                          filteredData.sapStock.g002,
+                          filteredData.sapStock.g003,
+                          filteredData.sapStock.g004,
+                          filteredData.sapStock.g005,
+                          filteredData.sapStock.total,
+                        ],
+                      ]}
+                    />
+                  </div>
+                  <div className="flex flex-col gap-3">
+                    <p className="font-medium text-gray-400 w-full">Bin</p>
+                    <Table
+                      header={["G002"]}
+                      data={[
+                        [
+                          <div className="flex flex-wrap gap-2">
+                            {binG002?.data.map((bin, i) => (
+                              <button
+                                key={bin.id}
+                                className="px-2 py-1 bg-indigo-50 text-[#7A6DFF] rounded-lg"
+                              >
+                                {bin.bin}
+                              </button>
+                            ))}
+                            {!binG002 &&
+                              <button
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
+                              >
+                                <FontAwesomeIcon icon={faCircleNotch} spin />
+                              </button>
+                            }
+
+                            <button
+                              onClick={() => {
+                                setSelectedBin({
+                                  sloc: "G002",
+                                  mid: filteredData.mid,
+                                });
+                                setOpnAddMap(true);
+                              }}
+                              className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
+                            >
+                              {binG002?.totalCount === 0 ? (
+                                <FontAwesomeIcon icon={faPlus} />
+                              ) : (
+                                <FontAwesomeIcon icon={faPencil} />
+                              )}
+                            </button>
+                          </div>,
+                        ],
+                      ]}
+                    />
+                    <Table
+                      header={["G005"]}
+                      data={[
+                        [
+                          <div className="flex flex-wrap gap-2">
+
+                            {binG005?.data.map((bin, i) => (
+                              <button
+                                key={bin.id}
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
+                              >
+                                {bin.bin}
+                              </button>
+                            ))}
+
+                            {!binG005 &&
+                              <button
+                                className="px-2 py-1 bg-indigo-50 hover:bg-indigo-200 text-[#7A6DFF] rounded-lg cursor-pointer"
+                              >
+                                <FontAwesomeIcon icon={faCircleNotch} spin />
+                              </button>
+                            }
+                            <button
+                              onClick={() => {
+                                setSelectedBin({
+                                  sloc: "G005",
+                                  mid: filteredData.mid,
+                                });
+                                setOpnAddMap(true);
+                              }}
+                              className="p-2 py-1 bg-gray-100 hover:bg-gray-300 text-gray-400 rounded-lg cursor-pointer duration-200"
+                            >
+                              {binG005?.totalCount === 0 ? (
+                                <FontAwesomeIcon icon={faPlus} />
+                              ) : (
+                                <FontAwesomeIcon icon={faPencil} />
+                              )}
+                            </button>
+                          </div>,
+                        ],
+                      ]}
+                    />
+                  </div>
+                  <hr className="border-gray-200" />
+                  <div className="py-2 flex flex-col gap-2 w-full items-end justify-end text-sm lg:text-md">
+                    <p
+                      onClick={() => router.push("/not-available")}
+                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
+                    >
+                      Material Movement
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-xs ml-2"
+                      />
+                    </p>
+                    <p
+                      onClick={() => router.push("/not-available")}
+                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
+                    >
+                      Outbound History
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-xs ml-2"
+                      />
+                    </p>
+                    <p
+                      onClick={() => router.push("/not-available")}
+                      className="text-gray-400 hover:text-[#7A6DFF] cursor-pointer"
+                    >
+                      Inbound History
+                      <FontAwesomeIcon
+                        icon={faChevronRight}
+                        className="text-xs ml-2"
+                      />
+                    </p>
+                  </div>
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
