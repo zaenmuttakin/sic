@@ -12,7 +12,7 @@ export default function Eccmid() {
   const pathname = usePathname()
   const { replace } = useRouter()
 
-  // 1. Ambil nilai pencarian dari URL awal (jika ada)
+  // 1. Ambil nilai pencarian dari URL awal (jika ada)ss
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '')
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm)
 
