@@ -8,6 +8,11 @@ import Link from "next/link";
 import { ArrowDown, ArrowDownUp, ArrowUp, LoaderCircle, ChevronDown, ExternalLink, Ban, ArrowLeftToLine, ArrowRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
+const calculateTotalStock = (item) => {
+  const fields = ["draft", "project", "actual", "gt01", "g001", "g002", "g003"];
+  return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
+};
+
 export default function DataList() {
   const { ref, inView } = useInView();
   const searchParams = useSearchParams();
@@ -182,6 +187,9 @@ export default function DataList() {
                             <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
                               {item.uom}
                             </span>
+                            <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                              {calculateTotalStock(item)}
+                            </span>
                           </div>
                           <p className={`font-semibold leading-tight text-slate-800 text-sm transition-all ${isExpanded ? "mb-1" : "line-clamp-1"}`}>
                             {item.desc}
@@ -218,7 +226,7 @@ export default function DataList() {
                                       {[
                                         { label: "Draft", value: item.draft },
                                         { label: "Project", value: item.project },
-                                        { label: "Actual", value: item.actual },
+                                        { label: "Unrest", value: item.actual },
                                       ].map((sub, idx, arr) => (
                                         <div key={sub.label} className="relative flex items-center justify-between text-sm py-1.5 pl-6">
                                           {/* Horizontal Branch */}
@@ -254,18 +262,39 @@ export default function DataList() {
                                       {item.g003}
                                     </span>
                                   </div>
+
+                                   {/* G004 Row */}
+                                  <div className="flex items-center gap-4">
+                                    <span className="rounded-full bg-indigo-50/80 px-3 py-1 text-xs font-bold text-indigo-500">
+                                      G004
+                                    </span>
+                                    <div className="flex-1 max-w-[120px] h-px bg-indigo-100" />
+                                    <span className="text-sm text-gray-500">
+                                      {item.g004}
+                                    </span>
+                                  </div>
+
+                                  {/* Gt01 Row */}
+                                  <div className="flex items-center gap-4">
+                                    <span className="rounded-full bg-indigo-50/80 px-3 py-1 text-xs font-bold text-indigo-500">
+                                      GT01
+                                    </span>
+                                    <div className="flex-1 max-w-[120px] h-px bg-indigo-100" />
+                                    <span className="text-sm text-gray-500">
+                                      {item.gt01}
+                                    </span>
+                                  </div>
                                 </div>
 
                                 {/* Right Side: Storage Bins & Action */}
                                 <div className="flex flex-col justify-between items-start sm:items-end sm:w-64">
-                                  <div className="w-full text-left sm:text-right">
+                                  <div className="w-full h-full text-left sm:text-right">
                                     <span className="inline-block rounded-full bg-indigo-50/80 px-3 py-1 text-xs font-bold text-indigo-500 mb-5">
                                       Stor. Bin
                                     </span>
-                                    <ul className="space-y-3 bg-indigo-50/50 h-full p-4 rounded-xl">
+                                    <ul className="space-y-3 bg-indigo-50/50 h-[85%] p-4 rounded-xl">
                                       {(item.bin_sap || "ZONE-B1").split(",").map((bin, i) => (
                                         <li key={i} className="flex items-center justify-start sm:justify-end gap-3 text-[12px] text-slate-500 font-medium">
-                                          {/* <span className="h-1.5 w-1.5 rounded-full bg-slate-300" /> */}
                                           <span className="truncate">{bin.trim()}</span>
                                         </li>
                                       ))}
