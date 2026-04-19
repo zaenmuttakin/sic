@@ -5,7 +5,15 @@ import { supabase } from "@/lib/supabase";
 import { useInView } from "react-intersection-observer";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { ArrowDown, ArrowDownUp, ArrowUp, LoaderCircle, ChevronDown, ExternalLink, Ban, ArrowLeftToLine, ArrowRight } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowDownUp,
+  ArrowUp,
+  LoaderCircle,
+  ChevronDown,
+  Ban,
+  ArrowRight,
+} from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 const calculateTotalStock = (item) => {
@@ -74,24 +82,23 @@ export default function DataList() {
   }, [inView, hasNextPage, fetchNextPage]);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">    
+    <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
       {/* Top Vignette/Gradient */}
-      <div className="fixed inset-x-0 top-0 z-40 h-20 pointer-events-none bg-indigo-100" />
-      <div className="fixed inset-x-0 top-8 z-40 h-20 pointer-events-none bg-gradient-to-b from-indigo-100 via-indigo-100 to-transparent" />
+      <div className="fixed inset-x-0 top-0 z-40 h-10 pointer-events-none bg-indigo-100" />
+      <div className="fixed inset-x-0 top-4 z-40 h-20 pointer-events-none bg-gradient-to-b from-indigo-100 via-indigo-100 to-transparent" />
 
-
-      <div className="fixed inset-x-0 top-2 z-50 px-2">
-        <div className="mx-auto flex max-w-2xl items-center gap-2 px-3 py-3 bg-white rounded-2xl ">
+      <div id="search-bar" className="fixed inset-x-0 top-0 z-50 ">
+        <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3 bg-white rounded-b ">
           <input
             type="text"
             placeholder="Cari MID atau Deskripsi..."
-            className="flex-1 w-full h-12 rounded-xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
+            className="flex-1 w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <button
             onClick={() => setSortControl((prev) => !prev)}
-            className={`inline-flex items-center gap-2 rounded-xl border px-4 py-3 text-sm font-medium transition ${
+            className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
               sortControl
                 ? "border-indigo-300 bg-indigo-50 text-indigo-600"
                 : "border-indigo-50 bg-slate-50 text-gray-500"
@@ -103,7 +110,7 @@ export default function DataList() {
         </div>
 
         <div
-          className={`mx-auto max-w-2xl w-full rounded-2xl mt-1 shadow overflow-hidden transition-all duration-200 ease-out ${
+          className={`mx-auto max-w-2xl w-full rounded shadow overflow-hidden transition-all duration-200 ease-out ${
             sortControl ? "max-h-72 opacity-100" : "max-h-0 opacity-0"
           }`}
         >
@@ -153,7 +160,7 @@ export default function DataList() {
         </div>
       </div>
 
-      <div className="space-y-1">
+      <div id="data-list" className="space-y-1">
         {status === "loading" ? (
           <div className="w-full flex items-center justify-center py-10">
             <LoaderCircle className="animate-spin text-indigo-400" />
@@ -163,158 +170,187 @@ export default function DataList() {
         ) : (
           data?.pages.map((group, i) => (
             <div key={i} className="flex flex-col gap-1">
-              {group.map((item) => {
+              {group.map((item, j) => {
                 const isExpanded = expandedId === item.mid;
+                const globalIdx = i * 20 + j;
                 return (
-                  <div
+                  <motion.div
                     key={item.mid}
-                    onClick={() => setExpandedId(isExpanded ? null : item.mid)}
-                    className={`cursor-pointer overflow-hidden rounded-xl border transition-all duration-300 ${
-                      isExpanded
-                        ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/40"
-                        : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-sm"
-                    }`}
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: Math.min(globalIdx * 0.05, 0.5) }}
                   >
-                    <div className="p-4 px-5">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="mb-2 flex flex-wrap gap-1">
-                            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-500">
-                              MID {item.mid}
-                            </span>
-                            <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                              {item.uom}
-                            </span>
-                            <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                              {calculateTotalStock(item)}
-                            </span>
+                    <div
+                      onClick={() =>
+                        setExpandedId(isExpanded ? null : item.mid)
+                      }
+                      className={`cursor-pointer overflow-hidden rounded-xl border transition-all duration-300 ${
+                        isExpanded
+                          ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/40"
+                          : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-sm"
+                      }`}
+                    >
+                      <div className="p-4 px-5">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="mb-2 flex flex-wrap gap-1">
+                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-500">
+                                MID {item.mid}
+                              </span>
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                {item.uom}
+                              </span>
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                                {calculateTotalStock(item)}
+                              </span>
+                            </div>
+                            <p
+                              className={`font-semibold leading-tight text-slate-800 text-sm transition-all ${isExpanded ? "mb-1" : "line-clamp-1"}`}
+                            >
+                              {item.desc}
+                            </p>
                           </div>
-                          <p className={`font-semibold leading-tight text-slate-800 text-sm transition-all ${isExpanded ? "mb-1" : "line-clamp-1"}`}>
-                            {item.desc}
-                          </p>
-                        </div>
-                        <motion.div
-                          animate={{ rotate: isExpanded ? 180 : 0 }}
-                          className="ml-2 mt-1 text-slate-400"
-                        >
-                          <ChevronDown size={20} />
-                        </motion.div>
-                      </div>
-
-                      <AnimatePresence>
-                        {isExpanded && (
                           <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: "auto", opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.2, ease: "easeOut" }}
-                            className="overflow-hidden"
+                            animate={{ rotate: isExpanded ? 180 : 0 }}
+                            className="ml-2 mt-1 text-slate-400"
                           >
-                            <hr className="my-5 border-slate-100/80" />
-                            <div id="more-detail" className="pb-2">
-                              <div className="grid grid-cols-2 gap-6 sm:flex sm:flex-row sm:gap-8">
-                                {/* Left Side: Locations */}
-                                <div className="flex-1 space-y-2">
-                                  <div className="relative">
-                                    <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-3">
-                                      G001
-                                    </span>
-                                    <div className="ml-3 relative">
-                                      <div className="absolute left-0 top-0 bottom-[14px] w-px bg-slate-200" />
-                                      {[
-                                        { label: "Draft", value: item.draft },
-                                        { label: "Project", value: item.project },
-                                        { label: "Unrest", value: item.actual },
-                                      ].map((sub, idx, arr) => (
-                                        <div key={sub.label} className="relative flex items-center justify-between text-sm py-1.5 pl-6">
-                                          {/* Horizontal Branch */}
-                                          <div className="absolute left-0 top-1/2 w-4 h-px bg-slate-200" />
-                                          <span className="text-slate-500 font-medium">{sub.label}</span>
-                                          <div className="mx-3 flex-1 h-px bg-slate-100" />
-                                          <span className="text-gray-500 font-medium">
-                                            {sub.value}
-                                          </span>
-                                        </div>
-                                      ))}
+                            <ChevronDown size={20} />
+                          </motion.div>
+                        </div>
+
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.2, ease: "easeOut" }}
+                              className="overflow-hidden"
+                            >
+                              <hr className="my-5 border-slate-100/80" />
+                              <div id="more-detail" className="pb-2">
+                                <div className="grid grid-cols-2 gap-6 sm:flex sm:flex-row sm:gap-8">
+                                  {/* Left Side: Locations */}
+                                  <div className="flex-1 space-y-2">
+                                    <div className="relative">
+                                      <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-3">
+                                        G001
+                                      </span>
+                                      <div className="ml-3 relative">
+                                        <div className="absolute left-0 top-0 bottom-[14px] w-px bg-slate-200" />
+                                        {[
+                                          { label: "Draft", value: item.draft },
+                                          {
+                                            label: "Project",
+                                            value: item.project,
+                                          },
+                                          {
+                                            label: "Unrest",
+                                            value: item.actual,
+                                          },
+                                        ].map((sub, idx, arr) => (
+                                          <div
+                                            key={sub.label}
+                                            className="relative flex items-center justify-between text-sm py-1.5 pl-6"
+                                          >
+                                            {/* Horizontal Branch */}
+                                            <div className="absolute left-0 top-1/2 w-4 h-px bg-slate-200" />
+                                            <span className="text-slate-500 font-medium">
+                                              {sub.label}
+                                            </span>
+                                            <div className="mx-3 flex-1 h-px bg-slate-100" />
+                                            <span className="text-gray-500 font-medium">
+                                              {sub.value}
+                                            </span>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+
+                                    {/* G002 Row */}
+                                    <div className="flex items-center gap-4">
+                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
+                                        G002
+                                      </span>
+                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
+                                      <span className="text-sm text-gray-500">
+                                        {item.g002}
+                                      </span>
+                                    </div>
+
+                                    {/* G003 Row */}
+                                    <div className="flex items-center gap-4">
+                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
+                                        G003
+                                      </span>
+                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
+                                      <span className="text-sm text-gray-500">
+                                        {item.g003}
+                                      </span>
+                                    </div>
+
+                                    {/* G004 Row */}
+                                    <div className="flex items-center gap-4">
+                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
+                                        G004
+                                      </span>
+                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
+                                      <span className="text-sm text-gray-500">
+                                        {item.g004}
+                                      </span>
+                                    </div>
+
+                                    {/* Gt01 Row */}
+                                    <div className="flex items-center gap-4">
+                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
+                                        GT01
+                                      </span>
+                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
+                                      <span className="text-sm text-gray-500">
+                                        {item.gt01}
+                                      </span>
                                     </div>
                                   </div>
 
-                                  {/* G002 Row */}
-                                  <div className="flex items-center gap-4">
-                                    <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                      G002
-                                    </span>
-                                    <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                    <span className="text-sm text-gray-500">
-                                      {item.g002}
-                                    </span>
-                                  </div>
+                                  {/* Right Side: Storage Bins & Action */}
+                                  <div className="flex flex-col justify-between items-start sm:items-end sm:w-64">
+                                    <div className="w-full h-full text-left sm:text-right">
+                                      <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-5">
+                                        Stor. Bin
+                                      </span>
+                                      <ul className="space-y-3 bg-slate-50 h-[85%] p-4 rounded-xl">
+                                        {(item.bin_sap || "ZONE-B1")
+                                          .split(",")
+                                          .map((bin, i) => (
+                                            <li
+                                              key={i}
+                                              className="flex items-center justify-start sm:justify-end gap-3 text-[12px] text-slate-500 font-medium"
+                                            >
+                                              <span className="truncate">
+                                                {bin.trim()}
+                                              </span>
+                                            </li>
+                                          ))}
+                                      </ul>
+                                    </div>
 
-                                  {/* G003 Row */}
-                                  <div className="flex items-center gap-4">
-                                    <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                      G003
-                                    </span>
-                                    <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                    <span className="text-sm text-gray-500">
-                                      {item.g003}
-                                    </span>
+                                    <Link
+                                      href={`/private/data/detail/${item.mid}`}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="mt-10 inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-500 transition-all hover:bg-slate-50 active:scale-[0.98] w-full sm:w-auto"
+                                    >
+                                      Full details
+                                      <ArrowRight size={14} />
+                                    </Link>
                                   </div>
-
-                                   {/* G004 Row */}
-                                  <div className="flex items-center gap-4">
-                                    <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                      G004
-                                    </span>
-                                    <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                    <span className="text-sm text-gray-500">
-                                      {item.g004}
-                                    </span>
-                                  </div>
-
-                                  {/* Gt01 Row */}
-                                  <div className="flex items-center gap-4">
-                                    <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                      GT01
-                                    </span>
-                                    <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                    <span className="text-sm text-gray-500">
-                                      {item.gt01}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {/* Right Side: Storage Bins & Action */}
-                                <div className="flex flex-col justify-between items-start sm:items-end sm:w-64">
-                                  <div className="w-full h-full text-left sm:text-right">
-                                    <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-5">
-                                      Stor. Bin
-                                    </span>
-                                    <ul className="space-y-3 bg-slate-50 h-[85%] p-4 rounded-xl">
-                                      {(item.bin_sap || "ZONE-B1").split(",").map((bin, i) => (
-                                        <li key={i} className="flex items-center justify-start sm:justify-end gap-3 text-[12px] text-slate-500 font-medium">
-                                          <span className="truncate">{bin.trim()}</span>
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </div>
-
-                                  <Link 
-                                    href={`/private/data/detail/${item.mid}`}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="mt-10 inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-500 transition-all hover:bg-slate-50 active:scale-[0.98] w-full sm:w-auto"
-                                  >
-                                    Full details
-                                   <ArrowRight size={14} />
-                                  </Link>
                                 </div>
                               </div>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -330,10 +366,10 @@ export default function DataList() {
             Scroll untuk muat lebih banyak
           </p>
         ) : (
-        <div className="flex items-center gap-2 text-indigo-400 text-sm">
-          <Ban size={18} />
-          No more data
-        </div>
+          <div className="flex items-center gap-2 text-indigo-400 text-sm">
+            <Ban size={18} />
+            No more data
+          </div>
         )}
       </div>
     </div>
