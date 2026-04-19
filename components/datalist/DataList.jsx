@@ -17,7 +17,7 @@ import {
 import { motion, AnimatePresence } from "motion/react";
 
 const calculateTotalStock = (item) => {
-  const fields = ["draft", "project", "actual", "gt01", "g001", "g002", "g003"];
+  const fields = ["draft", "project", "actual", "gt01", "g002", "g003", "g004"];
   return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
 };
 
@@ -45,37 +45,43 @@ export default function DataList() {
     return () => clearTimeout(timer);
   }, [searchTerm, pathname, replace, searchParams]);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, isLoading } =
-    useInfiniteQuery({
-      queryKey: ["from_sheets", debouncedSearch, sortBy, sortOrder],
-      queryFn: async ({ pageParam = 0 }) => {
-        let query = supabase.from("from_sheets").select("*");
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["from_sheets", debouncedSearch, sortBy, sortOrder],
+    queryFn: async ({ pageParam = 0 }) => {
+      let query = supabase.from("from_sheets").select("*");
 
-        if (debouncedSearch) {
-          const isNumber = /^\d+$/.test(debouncedSearch);
-          if (isNumber) {
-            query = query.or(
-              `mid.eq.${debouncedSearch},"desc".ilike.%${debouncedSearch}%`
-            );
-          } else {
-            query = query.ilike("desc", `%${debouncedSearch}%`);
-          }
+      if (debouncedSearch) {
+        const isNumber = /^\d+$/.test(debouncedSearch);
+        if (isNumber) {
+          query = query.or(
+            `mid.eq.${debouncedSearch},"desc".ilike.%${debouncedSearch}%`
+          );
+        } else {
+          query = query.ilike("desc", `%${debouncedSearch}%`);
         }
+      }
 
-        const { data, error } = await query
-          .range(pageParam, pageParam + 19)
-          .order(sortBy, { ascending: sortOrder === "asc" });
+      const { data, error } = await query
+        .range(pageParam, pageParam + 19)
+        .order(sortBy, { ascending: sortOrder === "asc" });
 
-        if (error) throw error;
-        return data;
-      },
-      getNextPageParam: (lastPage, allPages) => {
-        if (lastPage.length < 20) return undefined;
-        return allPages.length * 20;
-      },
-      initialPageParam: 0,
-      staleTime: 1000 * 60 * 5,
-    });
+      if (error) throw error;
+      return data;
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < 20) return undefined;
+      return allPages.length * 20;
+    },
+    initialPageParam: 0,
+    staleTime: 1000 * 60 * 5,
+  });
 
   useEffect(() => {
     if (inView && hasNextPage) fetchNextPage();
@@ -163,7 +169,11 @@ export default function DataList() {
       <div id="data-list" className="space-y-1">
         {isLoading ? (
           <div className="w-full flex items-center justify-center py-20">
-            <LoaderCircle className="animate-spin text-indigo-500" size={32} strokeWidth={2.5} />
+            <LoaderCircle
+              className="animate-spin text-indigo-500"
+              size={32}
+              strokeWidth={2.5}
+            />
           </div>
         ) : data?.pages[0].length === 0 ? (
           <p className="text-center text-gray-500">Data tidak ditemukan.</p>
@@ -187,7 +197,7 @@ export default function DataList() {
                       }
                       className={`cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 ${
                         isExpanded
-                          ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/30 scale-[1.01]"
+                          ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/30 "
                           : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-md hover:bg-slate-50/50"
                       }`}
                     >
@@ -195,13 +205,13 @@ export default function DataList() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="mb-2 flex flex-wrap gap-1">
-                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-500">
+                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-indigo-500">
                                 MID {item.mid}
                               </span>
-                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
                                 {item.uom}
                               </span>
-                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
                                 {calculateTotalStock(item)}
                               </span>
                             </div>
@@ -234,7 +244,7 @@ export default function DataList() {
                                   {/* Left Side: Locations */}
                                   <div className="flex-1 space-y-2">
                                     <div className="relative">
-                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 mb-2">
+                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-xs font-bold text-slate-500 mb-2">
                                         G001
                                       </span>
                                       <div className="ml-3 relative">
@@ -314,9 +324,9 @@ export default function DataList() {
                                   </div>
 
                                   {/* Right Side: Storage Bins & Action */}
-                                  <div className="flex flex-col justify-between items-start sm:items-end sm:w-64 mt-4 sm:mt-0">
+                                  <div className="flex flex-col justify-start items-start gap-2 ">
                                     <div className="w-full h-full text-left sm:text-right">
-                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 mb-2">
+                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-xs font-bold text-slate-500 mb-2">
                                         Stor. Bin
                                       </span>
                                       <ul className="space-y-1.5 bg-slate-50/50 h-[85%] p-3 border border-slate-100 rounded-xl">

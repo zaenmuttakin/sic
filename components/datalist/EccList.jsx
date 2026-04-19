@@ -150,7 +150,7 @@ export default function EccList() {
             >
               <div className="p-4">
                 <div className="mb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                     Sort By
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -176,7 +176,7 @@ export default function EccList() {
                 </div>
 
                 <div className="mb-4">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                     Filter
                   </p>
                   <button
@@ -192,7 +192,7 @@ export default function EccList() {
                 </div>
 
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
                     Order
                   </p>
                   <div className="flex gap-2">
@@ -262,10 +262,10 @@ export default function EccList() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="mb-2 flex flex-wrap gap-1">
-                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-500">
+                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-blue-500">
                             MID {group.old_mat}
                           </span>
-                          <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+                          <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
                             {group.newCount} MID Baru
                           </span>
                         </div>
@@ -295,7 +295,7 @@ export default function EccList() {
                           <hr className="my-4 border-slate-100/80" />
                           <div id="more-detail" className="pb-1">
                             <div className="space-y-2">
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
+                              <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
                                 Mapping mid baru
                               </p>
                               <div className="grid grid-cols-1 gap-1.5">

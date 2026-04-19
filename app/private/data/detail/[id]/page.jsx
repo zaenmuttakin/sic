@@ -141,7 +141,7 @@ export default function PostDetail() {
               <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-3">
                 <LucideImage size={40} />
               </div>
-              <p className="text-[10px] font-bold uppercase tracking-widest">
+              <p className="text-xs font-bold uppercase tracking-widest">
                 No Image Available
               </p>
             </div>
@@ -173,7 +173,7 @@ export default function PostDetail() {
           {/* Image Tag */}
           {images.length > 0 && (
             <div className="absolute top-4 right-4 z-10">
-              <div className="rounded-full bg-black/20 backdrop-blur-md px-3 py-1 text-[10px] font-bold text-white uppercase tracking-widest border border-white/20">
+              <div className="rounded-full bg-black/20 backdrop-blur-md px-3 py-1 text-xs font-bold text-white uppercase tracking-widest border border-white/20">
                 {currentImg + 1} / {images.length}
               </div>
             </div>
@@ -189,10 +189,10 @@ export default function PostDetail() {
 
         <div className="p-6">
           <div className="mb-2 flex flex-wrap gap-1.5">
-            <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
+            <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
               MID {post.mid}
             </span>
-            <span className="rounded-full bg-slate-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+            <span className="rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-slate-500">
               {post.uom}
             </span>
           </div>
@@ -204,7 +204,7 @@ export default function PostDetail() {
             {/* Left Side: Locations */}
             <div className="space-y-3">
               <div className="relative">
-                <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-[10px] font-bold text-slate-500 mb-2">
+                <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-2">
                   G001
                 </span>
                 <div className="ml-3 relative">
@@ -240,7 +240,7 @@ export default function PostDetail() {
                 { label: "GT01", value: post.gt01 },
               ].map((loc) => (
                 <div key={loc.label} className="flex items-center gap-3">
-                  <span className="rounded-full bg-slate-100/80 px-3 py-1 text-[10px] font-bold text-slate-500">
+                  <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
                     {loc.label}
                   </span>
                   <div className="flex-1 h-px bg-slate-100" />
@@ -253,8 +253,8 @@ export default function PostDetail() {
 
             {/* Right Side: Storage Bins */}
             <div className="flex flex-col">
-              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-[10px] font-bold text-slate-500 mb-2 w-fit">
-                Storage Bins
+              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-sm font-semibold text-slate-500 mb-2 w-fit">
+                Storage Bin
               </span>
               <div className="flex-1 bg-slate-50/40 rounded-2xl p-4 border border-slate-100">
                 <ul className="space-y-2">
@@ -307,11 +307,11 @@ export default function PostDetail() {
             </div>
           )}
 
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+          {/* <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
             <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
               Last Update
             </div>
-            <div className="text-[10px] font-bold text-slate-500">
+            <div className="text-xs font-bold text-slate-500">
               {new Date(post.update_at).toLocaleString("id-ID", {
                 day: "numeric",
                 month: "short",
@@ -320,7 +320,7 @@ export default function PostDetail() {
                 minute: "2-digit",
               })}
             </div>
-          </div>
+          </div> */}
         </div>
         {/* Modal Overview */}
         <AnimatePresence>
