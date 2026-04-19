@@ -13,6 +13,10 @@ export const metadata = {
   description: "Sparepart Inventory Control System",
 };
 
+export const viewport = {
+  themeColor: "#e0e7ff",
+};
+
 export default function RootLayout({ children }) {
   return (
     <html
