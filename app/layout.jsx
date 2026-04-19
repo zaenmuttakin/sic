@@ -12,10 +12,18 @@ export const metadata = {
   title: "SIC - S4",
   description: "Sparepart Inventory Control System",
   manifest: "/site.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SIC",
+  },
 };
 
 export const viewport = {
   themeColor: "#e0e7ff",
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }) {

@@ -75,9 +75,11 @@ export default function DataList() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
-      {/* Top Vignette/Blur Overlay */}
-      <div className="fixed inset-x-0 top-0 z-40 h-10 pointer-events-none bg-indigo-100 border-none"/>
-      <div className="fixed inset-x-0 top-6 z-40 h-20 pointer-events-none bg-gradient-to-b from-indigo-100 via-indigo-100 to-transparent " />
+      {/* Top Status Bar Filler (Solid) */}
+      <div className="fixed inset-x-0 top-0 z-40 h-(--status-bar-height) bg-indigo-100" style={{ '--status-bar-height': 'max(24px, env(safe-area-inset-top))' }} />
+      
+      {/* Top Vignette/Gradient */}
+      <div className="fixed inset-x-0 top-(--status-bar-height) z-40 h-20 pointer-events-none bg-gradient-to-b from-indigo-100 via-indigo-100 to-transparent" style={{ '--status-bar-height': 'max(24px, env(safe-area-inset-top))' }} />
 
       {/* Bottom Vignette/Blur Overlay */}
       <div className="fixed inset-x-0 bottom-0 z-40 h-10 pointer-events-none bg-gradient-to-t from-indigo-100 via-indigo-50/60 to-transparent " />
