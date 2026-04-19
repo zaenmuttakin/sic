@@ -11,7 +11,7 @@ const navItems = [
   { href: "/private/data", icon: Search },
 ];
 
-export default function Navbar() {
+export default function Navbar({ showVignette = true }) {
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
   const pathname = usePathname();
@@ -35,30 +35,39 @@ export default function Navbar() {
   }, []);
 
   return (
-    <nav
-      className={`fixed inset-x-0 bottom-4 z-50 flex justify-center transition-transform duration-300 ease-in-out ${
-        isVisible ? "translate-y-0" : "translate-y-24"
-      }`}
-    >
-      <div className="mx-4 flex items-center justify-center gap-4 rounded-full border border-white/80 bg-white/85 px-4 py-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = activePath === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`inline-flex h-12 w-12 items-center justify-center rounded-full transition ${
-                active
-                  ? "bg-indigo-100 text-indigo-500"
-                  : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
-              }`}
-            >
-              <Icon size={24} />
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      {showVignette && (
+        <div 
+          className={`fixed inset-x-0 bottom-0 z-40 h-20 pointer-events-none bg-gradient-to-t from-indigo-100 via-indigo-100/60 to-transparent transition-transform duration-300 ease-in-out ${
+            isVisible ? "translate-y-0" : "translate-y-full"
+          }`} 
+        />
+      )}
+      <nav
+        className={`fixed inset-x-0 bottom-4 z-50 flex justify-center transition-transform duration-300 ease-in-out ${
+          isVisible ? "translate-y-0" : "translate-y-24"
+        }`}
+      >
+        <div className="mx-4 flex items-center justify-center gap-4 rounded-full border border-white/80 bg-white/85 px-4 py-3 shadow-xl shadow-slate-900/5 backdrop-blur-xl">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = activePath === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`inline-flex h-12 w-12 items-center justify-center rounded-full transition ${
+                  active
+                    ? "bg-indigo-100 text-indigo-500"
+                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <Icon size={24} />
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+    </>
   );
 }

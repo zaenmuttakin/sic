@@ -21,8 +21,8 @@ export default function DataList() {
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-  const [sortBy, setSortBy] = useState("update_at");
-  const [sortOrder, setSortOrder] = useState("desc");
+  const [sortBy, setSortBy] = useState("desc");
+  const [sortOrder, setSortOrder] = useState("asc");
   const [sortControl, setSortControl] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
 
@@ -74,11 +74,11 @@ export default function DataList() {
   }, [inView, hasNextPage, fetchNextPage]);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
-      {/* Top Vignette is now handled by global background and fixed search bar */}
+    <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">    
+      {/* Top Vignette/Gradient */}
+      <div className="fixed inset-x-0 top-0 z-40 h-20 pointer-events-none bg-indigo-100" />
+      <div className="fixed inset-x-0 top-8 z-40 h-20 pointer-events-none bg-gradient-to-b from-indigo-100 via-indigo-100 to-transparent" />
 
-      {/* Bottom Vignette/Blur Overlay */}
-      <div className="fixed inset-x-0 bottom-0 z-40 h-10 pointer-events-none bg-gradient-to-t from-indigo-100 via-indigo-50/60 to-transparent " />
 
       <div className="fixed inset-x-0 top-2 z-50 px-2">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-3 py-3 bg-white rounded-2xl ">
