@@ -185,13 +185,13 @@ export default function DataList() {
                       onClick={() =>
                         setExpandedId(isExpanded ? null : item.mid)
                       }
-                      className={`cursor-pointer overflow-hidden rounded-xl border transition-all duration-300 ${
+                      className={`cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 ${
                         isExpanded
-                          ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/40"
-                          : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-sm"
+                          ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/30 scale-[1.01]"
+                          : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-md hover:bg-slate-50/50"
                       }`}
                     >
-                      <div className="p-4 px-5">
+                      <div className="p-4 sm:p-5">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="mb-2 flex flex-wrap gap-1">
@@ -228,13 +228,13 @@ export default function DataList() {
                               transition={{ duration: 0.2, ease: "easeOut" }}
                               className="overflow-hidden"
                             >
-                              <hr className="my-5 border-slate-100/80" />
-                              <div id="more-detail" className="pb-2">
-                                <div className="grid grid-cols-2 gap-6 sm:flex sm:flex-row sm:gap-8">
+                              <hr className="my-4 border-slate-100/80" />
+                              <div id="more-detail" className="pb-1">
+                                <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-row sm:gap-6">
                                   {/* Left Side: Locations */}
                                   <div className="flex-1 space-y-2">
                                     <div className="relative">
-                                      <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-3">
+                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 mb-2">
                                         G001
                                       </span>
                                       <div className="ml-3 relative">
@@ -314,12 +314,12 @@ export default function DataList() {
                                   </div>
 
                                   {/* Right Side: Storage Bins & Action */}
-                                  <div className="flex flex-col justify-between items-start sm:items-end sm:w-64">
+                                  <div className="flex flex-col justify-between items-start sm:items-end sm:w-64 mt-4 sm:mt-0">
                                     <div className="w-full h-full text-left sm:text-right">
-                                      <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-5">
+                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-[10px] font-bold text-slate-500 mb-2">
                                         Stor. Bin
                                       </span>
-                                      <ul className="space-y-3 bg-slate-50 h-[85%] p-4 rounded-xl">
+                                      <ul className="space-y-1.5 bg-slate-50/50 h-[85%] p-3 border border-slate-100 rounded-xl">
                                         {(item.bin_sap || "ZONE-B1")
                                           .split(",")
                                           .map((bin, i) => (

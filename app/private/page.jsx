@@ -10,6 +10,8 @@ import {
   LogOut,
 } from "lucide-react";
 import { motion } from "motion/react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const MenuItem = ({ item, idx }) => (
   <motion.div
@@ -66,6 +68,28 @@ const MenuItem = ({ item, idx }) => (
 );
 
 export default function Home() {
+  const router = useRouter();
+  const [userData, setUserData] = useState({
+    nik: "...",
+    fullname: "Loading...",
+    nickname: "...",
+    bio: "Tetap fokus! akurasi adalah tujuan utama.",
+    photo: "/def-profile.jpg",
+  });
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("sic_user");
+    if (savedUser) {
+      setUserData(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleLogout = (e) => {
+    if (e) e.preventDefault();
+    localStorage.removeItem("sic_user");
+    router.push("/");
+  };
+
   const menuItems = [
     {
       title: "ECC MID",
@@ -94,9 +118,9 @@ export default function Home() {
     {
       title: "Account",
       icon: User,
-      href: "/private",
+      href: "/private/account",
       progress: 100,
-      text: "ZAEN M",
+      text: userData.nickname.toUpperCase(),
       color: "text-indigo-500",
     },
   ];
@@ -128,7 +152,9 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
             >
-              <p className="text-slate-500 font-medium mb-1">Hello Team,</p>
+              <p className="text-slate-500 font-medium mb-1">
+                Hello {userData.nickname}
+              </p>
               <h1 className="text-3xl font-extrabold text-indigo-500 tracking-tight leading-tight">
                 Manage Your <br />
                 <span className="text-indigo-500">Inventory!</span>
@@ -140,15 +166,15 @@ export default function Home() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.3 }}
             >
-              <Link
-                href="/"
+              <button
+                onClick={handleLogout}
                 className="group flex items-center gap-2 rounded-[20px] bg-white/30 backdrop-blur-xl px-4 py-2 text-xs text-slate-500 border border-white/40 hover:bg-red-500/10 hover:text-red-500 hover:border-red-200/50 transition-all duration-300 shadow-sm hover:shadow-md active:scale-95"
               >
                 <div className="p-1 rounded-lg bg-white/50 group-hover:bg-red-500 group-hover:text-white transition-colors duration-300">
                   <LogOut size={14} />
                 </div>
                 Logout
-              </Link>
+              </button>
             </motion.div>
           </div>
 

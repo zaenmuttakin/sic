@@ -1,22 +1,50 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { User, Lock, Eye, EyeOff, Zap, LogIn } from "lucide-react";
+import { supabase } from "../lib/supabase";
 
 export default function Home() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ nik: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    const savedUser = localStorage.getItem("sic_user");
+    if (savedUser) {
+      router.push("/private");
+    }
+  }, [router]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    // Simulate login
-    setTimeout(() => {
+    setError("");
+
+    try {
+      const { data, error: sbError } = await supabase
+        .from("users")
+        .select("*")
+        .eq("nik", formData.nik)
+        .eq("password", formData.password)
+        .single();
+
+      if (sbError || !data) {
+        throw new Error("Invalid NIK or Password");
+      }
+
+      // Store user data in localStorage
+      localStorage.setItem("sic_user", JSON.stringify(data));
+
       router.push("/private");
-    }, 1500);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -43,48 +71,57 @@ export default function Home() {
         transition={{ duration: 0.4, ease: "easeOut" }}
         className="relative z-10 w-full max-w-sm"
       >
-        {/* Floating Card Animation removed */}
+        {/* Floating Carapi keyd Animation removed */}
         <motion.div className="bg-white/60 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_24px_48px_-12px_rgba(79,70,229,0.12)] border border-white">
           <div className="text-center mb-8">
             <motion.div
               initial={{ scale: 0, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{
-                type: "spring",
-                damping: 15,
-                stiffness: 300,
+                duration: 0.3,
+                ease: "easeOut",
                 delay: 0.1,
               }}
               className="inline-flex items-center justify-center w-14 h-14 rounded-[20px] bg-gradient-to-br from-indigo-400 to-indigo-500 text-white mb-6 shadow-xl shadow-indigo-200/40 relative group"
             >
-              <div className="absolute inset-0 rounded-[20px] bg-indigo-400 blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-500" />
+              <div className="absolute inset-0 rounded-[20px] bg-indigo-400 blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
               <Zap size={24} fill="white" className="relative z-10" />
             </motion.div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight mb-1.5">
+            <h1 className="text-2xl font-black text-slate-800 tracking-tight mb-1.5">
               SIC Central
             </h1>
-            <p className="text-[11px] text-slate-400 uppercase">
+            <p className="text-sm text-slate-500 ">
               Sparepart Inventory Control
             </p>
           </div>
+
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              className="mb-6 p-3 rounded-xl bg-red-50 border border-red-100 text-[11px] font-bold text-red-500 text-center"
+            >
+              {error}
+            </motion.div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* NIK Field */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
+              transition={{ duration: 0.2, ease: "easeOut", delay: 0.1 }}
               className="space-y-2"
             >
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-500 transition-colors duration-300">
-                  <User size={16} strokeWidth={2.5} />
+                  <User size={18} strokeWidth={2.5} />
                 </div>
                 <input
                   type="text"
                   required
                   placeholder="NIK Number"
-                  className="w-full bg-white/40 border border-gray-300 rounded-2xl py-3.5 pl-12 pr-4 text-xs text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all duration-300 "
+                  className="w-full bg-white/40 border border-gray-300 rounded-2xl py-3.5 pl-12 pr-4 text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all duration-300 "
                   value={formData.nik}
                   onChange={(e) =>
                     setFormData({ ...formData, nik: e.target.value })
@@ -97,18 +134,18 @@ export default function Home() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
+              transition={{ duration: 0.2, ease: "easeOut", delay: 0.2 }}
               className="space-y-2"
             >
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-300 group-focus-within:text-indigo-500 transition-colors duration-300">
-                  <Lock size={16} strokeWidth={2.5} />
+                  <Lock size={18} strokeWidth={2.5} />
                 </div>
                 <input
                   type={showPassword ? "text" : "password"}
                   required
                   placeholder="••••••••"
-                  className="w-full bg-white/40 border border-gray-300 rounded-2xl py-3.5 pl-12 pr-12 text-xs text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all duration-300"
+                  className="w-full bg-white/40 border border-gray-300 rounded-2xl py-3.5 pl-12 pr-12 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 focus:bg-white transition-all duration-300"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
@@ -132,6 +169,7 @@ export default function Home() {
             <motion.button
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, ease: "easeOut", delay: 0.3 }}
               disabled={isLoading}
               type="submit"
               className="w-full group relative flex items-center justify-center bg-indigo-400 hover:bg-indigo-500 text-white rounded-2xl py-4 text-xs font-black tracking-widest uppercase shadow-xl shadow-indigo-100 transition-all duration-300 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden mt-2"
@@ -153,7 +191,7 @@ export default function Home() {
             transition={{ delay: 0.4 }}
             className="text-center mt-10"
           >
-            <p className="text-[12px] text-slate-300 ">
+            <p className="text-xs text-slate-300 ">
               Login dengan NIK dan password "1234"
             </p>
           </motion.div>

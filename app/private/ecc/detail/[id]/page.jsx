@@ -50,6 +50,7 @@ export default function EccDetail() {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
           className="bg-white/80 backdrop-blur-2xl border border-white rounded-[32px] p-10 shadow-2xl shadow-slate-200/50 max-w-sm w-full"
         >
           <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -88,6 +89,7 @@ export default function EccDetail() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: "easeOut" }}
         className="overflow-hidden rounded-3xl border border-blue-100 bg-white shadow-xl shadow-blue-200/20"
       >
         {/* Header Section */}
