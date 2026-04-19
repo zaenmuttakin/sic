@@ -11,6 +11,7 @@ const inter = Inter({
 export const metadata = {
   title: "SIC - S4",
   description: "Sparepart Inventory Control System",
+  manifest: "/site.webmanifest",
 };
 
 export const viewport = {
