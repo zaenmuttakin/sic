@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import DataList from "../../../components/datalist/DataList";
 import EccList from "../../../../components/datalist/EccList";
 
 export default function Page() {
