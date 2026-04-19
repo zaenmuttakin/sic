@@ -20,7 +20,7 @@ export const metadata = {
 };
 
 export const viewport = {
-  themeColor: "#e0e7ff",
+  themeColor: "#ffffffs",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -28,14 +28,12 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html
-      lang="en"
-      className={`${inter.variable} h-full antialiased`}
-    >
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <Providers>
           <Navbar />
-          {children}</Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

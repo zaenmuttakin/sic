@@ -38,22 +38,22 @@ export default function Home() {
       </div>
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
         className="relative z-10 w-full max-w-sm"
       >
         {/* Floating Card Animation removed */}
         <motion.div className="bg-white/60 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_24px_48px_-12px_rgba(79,70,229,0.12)] border border-white">
           <div className="text-center mb-8">
             <motion.div
-              initial={{ scale: 0, rotate: -20 }}
+              initial={{ scale: 0, rotate: -10 }}
               animate={{ scale: 1, rotate: 0 }}
               transition={{
                 type: "spring",
-                damping: 12,
-                stiffness: 200,
-                delay: 0.2,
+                damping: 15,
+                stiffness: 300,
+                delay: 0.1,
               }}
               className="inline-flex items-center justify-center w-14 h-14 rounded-[20px] bg-gradient-to-br from-indigo-400 to-indigo-500 text-white mb-6 shadow-xl shadow-indigo-200/40 relative group"
             >
@@ -71,8 +71,9 @@ export default function Home() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* NIK Field */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
               className="space-y-2"
             >
               <div className="relative group">
@@ -94,8 +95,9 @@ export default function Home() {
 
             {/* Password Field */}
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
               className="space-y-2"
             >
               <div className="relative group">
@@ -128,7 +130,7 @@ export default function Home() {
 
             {/* Submit Button */}
             <motion.button
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               disabled={isLoading}
               type="submit"
@@ -148,7 +150,7 @@ export default function Home() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
+            transition={{ delay: 0.4 }}
             className="text-center mt-10"
           >
             <p className="text-[12px] text-slate-300 ">

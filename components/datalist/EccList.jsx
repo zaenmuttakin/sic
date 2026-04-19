@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import { useInView } from "react-intersection-observer";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -11,10 +12,14 @@ import {
   ArrowUp,
   ChevronDown,
   ExternalLink,
+  Ban,
+  ArrowUpLeft,
+  ArrowUpRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 export default function EccList() {
+  const { ref, inView } = useInView();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
@@ -25,6 +30,7 @@ export default function EccList() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [sortControl, setSortControl] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [onlyMapped, setOnlyMapped] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -38,13 +44,24 @@ export default function EccList() {
     return () => clearTimeout(timer);
   }, [searchTerm, pathname, replace, searchParams]);
 
-  const { data, status } = useQuery({
-    queryKey: ["old_mid", debouncedSearch, sortBy, sortOrder],
-    queryFn: async () => {
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    status,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["old_mid", debouncedSearch, sortBy, sortOrder, onlyMapped],
+    queryFn: async ({ pageParam = 0 }) => {
       let query = supabase
         .from("old_mid")
         .select("*")
         .order(sortBy, { ascending: sortOrder === "asc" });
+
+      if (onlyMapped) {
+        query = query.not("new_mat", "is", null).neq("new_mat", "");
+      }
 
       if (debouncedSearch) {
         const isNumber = /^\d+$/.test(debouncedSearch);
@@ -55,28 +72,46 @@ export default function EccList() {
         query = query.or(filter);
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query.range(pageParam, pageParam + 19);
       if (error) throw error;
       return data;
     },
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.length < 20) return undefined;
+      return allPages.length * 20;
+    },
+    initialPageParam: 0,
     staleTime: 1000 * 60 * 5,
   });
 
-  const groupedData = data
-    ? data.reduce((acc, item) => {
-        const key = item.old_mat;
-        if (!acc[key]) {
-          acc[key] = { old_mat: item.old_mat, items: [], newMats: new Set() };
-        }
-        acc[key].items.push(item);
-        acc[key].newMats.add(item.new_mat);
-        return acc;
-      }, {})
-    : {};
+  useEffect(() => {
+    if (inView && hasNextPage) fetchNextPage();
+  }, [inView, hasNextPage, fetchNextPage]);
+
+  // Flatten all pages and group by old_mat
+  const allItems = data?.pages.flat() || [];
+
+  const groupedData = allItems.reduce((acc, item) => {
+    const key = item.old_mat;
+    if (!acc[key]) {
+      acc[key] = {
+        old_mat: item.old_mat,
+        old_desc: item.old_desc,
+        items: [],
+        newMats: new Set(),
+      };
+    }
+    acc[key].items.push(item);
+    if (item.new_mat && item.new_mat.trim() !== "") {
+      acc[key].newMats.add(item.new_mat);
+    }
+    return acc;
+  }, {});
 
   const groupedArray = Object.values(groupedData).map((group) => ({
     old_mat: group.old_mat,
-    items: group.items,
+    old_desc: group.old_desc,
+    items: group.items.filter((i) => i.new_mat && i.new_mat.trim() !== ""),
     newCount: group.newMats.size,
   }));
 
@@ -139,6 +174,22 @@ export default function EccList() {
                   </div>
                 </div>
 
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
+                    Filter
+                  </p>
+                  <button
+                    onClick={() => setOnlyMapped(!onlyMapped)}
+                    className={`flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition ${
+                      onlyMapped
+                        ? "border-blue-300 bg-blue-50 text-blue-600"
+                        : "border-slate-200 bg-white text-gray-500 hover:bg-slate-100"
+                    }`}
+                  >
+                    Mapped
+                  </button>
+                </div>
+
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2">
                     Order
@@ -173,9 +224,13 @@ export default function EccList() {
       </div>
 
       <div id="data-list" className="space-y-1">
-        {status === "loading" ? (
-          <div className="w-full flex items-center justify-center py-10">
-            <LoaderCircle className="animate-spin text-blue-400" />
+        {isLoading ? (
+          <div className="w-full flex items-center justify-center py-20">
+            <LoaderCircle
+              className="animate-spin text-blue-500"
+              size={32}
+              strokeWidth={2.5}
+            />
           </div>
         ) : groupedArray.length === 0 ? (
           <p className="text-center text-gray-500 py-10 text-sm font-medium">
@@ -187,9 +242,10 @@ export default function EccList() {
             return (
               <motion.div
                 key={group.old_mat}
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(idx * 0.05, 0.5) }}
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-10px" }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
               >
                 <div
                   onClick={() =>
@@ -206,17 +262,16 @@ export default function EccList() {
                       <div className="flex-1">
                         <div className="mb-2 flex flex-wrap gap-1">
                           <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue-500">
-                            OLD MID {group.old_mat}
+                            MID {group.old_mat}
                           </span>
                           <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">
-                            {group.newCount} Mapping
+                            {group.newCount} MID Baru
                           </span>
                         </div>
                         <p
                           className={`font-semibold leading-tight text-slate-800 text-sm transition-all ${isExpanded ? "mb-1" : "line-clamp-1"}`}
                         >
-                          {group.items[0]?.old_desc ||
-                            "No Description Available"}
+                          {group.old_desc}
                         </p>
                       </div>
                       <motion.div
@@ -236,45 +291,53 @@ export default function EccList() {
                           transition={{ duration: 0.2, ease: "easeOut" }}
                           className="overflow-hidden"
                         >
-                          <hr className="my-5 border-slate-100/80" />
-                          <div id="more-detail" className="pb-2">
-                            <div className="space-y-3">
-                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">
-                                Mapped to New MID
+                          <hr className="my-4 border-slate-100/80" />
+                          <div id="more-detail" className="pb-1">
+                            <div className="space-y-2">
+                              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-1 px-1">
+                                Mapping mid baru
                               </p>
-                              <div className="grid grid-cols-1 gap-2">
-                                {group.items.map((item, idx) => (
-                                  <div
-                                    key={idx}
-                                    className="group relative flex flex-col gap-1.5 p-4 rounded-2xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-white hover:shadow-sm hover:border-blue-100/50"
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <span className="rounded-full bg-blue-100/40 px-2.5 py-1 text-[11px] font-bold text-blue-600">
-                                        {item.new_mat}
-                                      </span>
-                                      <Link
-                                        href={`/private/data?q=${item.new_mat}`}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="p-2 rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
-                                        title="Search in Inventory"
-                                      >
-                                        <ExternalLink size={14} />
-                                      </Link>
-                                    </div>
-                                    <p className="text-[13px] text-slate-600 font-semibold leading-snug">
-                                      {item.new_desc}
+                              <div className="grid grid-cols-1 gap-1.5">
+                                {group.items.length === 0 ? (
+                                  <div className="p-4 text-center rounded-xl bg-slate-50 border border-dashed border-slate-200">
+                                    <p className="text-[11px] font-medium text-slate-400">
+                                      Belum ada mapping untuk MID ini.
                                     </p>
                                   </div>
-                                ))}
+                                ) : (
+                                  group.items.map((item, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="group relative flex flex-col gap-1 p-3 rounded-xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-white hover:shadow-sm hover:border-blue-100/50"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span className="rounded-full bg-blue-100/40 px-2.5 py-0.5 text-[11px] font-bold text-blue-500">
+                                          {item.new_mat}
+                                        </span>
+                                        <Link
+                                          href={`/private/data/detail/${item.new_mat}`}
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="p-1.5 bg-slate-100 h-full rounded-full text-slate-400 hover:text-blue-500 hover:bg-blue-50 transition-colors"
+                                          title="Search in Inventory"
+                                        >
+                                          <ArrowUpRight size={16} />
+                                        </Link>
+                                      </div>
+                                      <p className="text-[12px] text-slate-600 font-semibold leading-tight">
+                                        {item.new_desc}
+                                      </p>
+                                    </div>
+                                  ))
+                                )}
                               </div>
 
-                              <div className="mt-6 flex justify-end">
+                              <div className="mt-4 flex justify-end">
                                 <Link
-                                  href={`/detailsecc/${group.old_mat}`}
+                                  href={`/private/ecc/detail/${group.old_mat}`}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-5 py-2.5 text-xs font-bold text-slate-500 transition-all hover:bg-slate-50 active:scale-[0.98]"
+                                  className="inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-5 py-2 text-xs font-bold text-slate-500 transition-all hover:bg-slate-50 active:scale-[0.98]"
                                 >
-                                  View Mapping History
+                                  Overview
                                   <ChevronDown
                                     size={14}
                                     className="-rotate-90"
@@ -291,6 +354,23 @@ export default function EccList() {
               </motion.div>
             );
           })
+        )}
+      </div>
+
+      <div ref={ref} className="h-24 flex items-center justify-center mt-4">
+        {isFetchingNextPage ? (
+          <LoaderCircle className="animate-spin text-blue-400" />
+        ) : hasNextPage ? (
+          <p className="text-gray-400 text-sm">
+            Scroll untuk muat lebih banyak
+          </p>
+        ) : (
+          groupedArray.length > 0 && (
+            <div className="flex items-center gap-2 text-blue-400 text-sm">
+              <Ban size={18} />
+              No more data
+            </div>
+          )
         )}
       </div>
     </div>

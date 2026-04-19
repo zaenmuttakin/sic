@@ -45,7 +45,7 @@ export default function DataList() {
     return () => clearTimeout(timer);
   }, [searchTerm, pathname, replace, searchParams]);
 
-  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status, isLoading } =
     useInfiniteQuery({
       queryKey: ["from_sheets", debouncedSearch, sortBy, sortOrder],
       queryFn: async ({ pageParam = 0 }) => {
@@ -161,9 +161,9 @@ export default function DataList() {
       </div>
 
       <div id="data-list" className="space-y-1">
-        {status === "loading" ? (
-          <div className="w-full flex items-center justify-center py-10">
-            <LoaderCircle className="animate-spin text-indigo-400" />
+        {isLoading ? (
+          <div className="w-full flex items-center justify-center py-20">
+            <LoaderCircle className="animate-spin text-indigo-500" size={32} strokeWidth={2.5} />
           </div>
         ) : data?.pages[0].length === 0 ? (
           <p className="text-center text-gray-500">Data tidak ditemukan.</p>
@@ -176,9 +176,10 @@ export default function DataList() {
                 return (
                   <motion.div
                     key={item.mid}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(globalIdx * 0.05, 0.5) }}
+                    initial={{ opacity: 0, y: 10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-10px" }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                   >
                     <div
                       onClick={() =>

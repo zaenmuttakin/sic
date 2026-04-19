@@ -57,8 +57,31 @@ export default function PostDetail() {
     );
   if (error || !post)
     return (
-      <div className="p-10 text-center bg-indigo-50 min-h-screen ">
-        Data tidak ditemukan.
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white/80 backdrop-blur-2xl border border-white rounded-[32px] p-10 shadow-2xl shadow-slate-200/50 max-w-sm w-full"
+        >
+          <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <X size={40} className="text-red-400" />
+          </div>
+          <h2 className="text-xl font-black text-slate-800 mb-2 tracking-tight">
+            Data Tidak Ditemukan
+          </h2>
+          <p className="text-sm text-slate-500 mb-8 leading-relaxed px-2">
+            Maaf, kami tidak dapat menemukan data untuk MID{" "}
+            <span className="font-bold text-indigo-600">#{id}</span>. Pastikan
+            nomor MID sudah benar.
+          </p>
+          <button
+            onClick={() => router.back()}
+            className="w-full inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-500 px-6 py-4 text-sm font-bold text-white shadow-xl shadow-indigo-100 transition-all hover:bg-indigo-600 active:scale-[0.98]"
+          >
+            <ArrowLeft size={18} strokeWidth={2.5} />
+            Back
+          </button>
+        </motion.div>
       </div>
     );
 
