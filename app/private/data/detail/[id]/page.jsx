@@ -13,6 +13,8 @@ import {
   X,
   ZoomIn,
   ZoomOut,
+  History,
+  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -32,11 +34,25 @@ export default function PostDetail() {
         .from("from_sheets")
         .select("*")
         .eq("mid", id)
-        .single(); // Mengambil 1 data saja
+        .single();
 
       if (error) throw error;
       return data;
     },
+  });
+
+  const { data: oldMidData } = useQuery({
+    queryKey: ["old_mid_lookup", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("old_mid")
+        .select("*")
+        .eq("new_mat", id);
+
+      if (error) return null;
+      return data;
+    },
+    enabled: !!post,
   });
 
   const [showModal, setShowModal] = useState(false);
@@ -87,10 +103,10 @@ export default function PostDetail() {
     );
 
   return (
-    <div className="max-w-2xl w-full mx-auto px-4 py-8 bg-white min-h-screen">
+    <div className="max-w-2xl w-full mx-auto px-4 py-6 bg-white min-h-screen">
       <button
         onClick={() => router.back()}
-        className="mb-6 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+        className="mb-4 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
       >
         <ArrowLeft size={16} />
         Back
@@ -171,8 +187,8 @@ export default function PostDetail() {
           </div>
         </div>
 
-        <div className="p-5 sm:p-8">
-          <div className="mb-3 flex flex-wrap gap-1.5">
+        <div className="p-6">
+          <div className="mb-2 flex flex-wrap gap-1.5">
             <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-indigo-600">
               MID {post.mid}
             </span>
@@ -180,7 +196,7 @@ export default function PostDetail() {
               {post.uom}
             </span>
           </div>
-          <h1 className="mb-6 text-lg font-bold leading-tight text-slate-900">
+          <h1 className="mb-4 text-lg font-bold leading-tight text-slate-900">
             {post.desc}
           </h1>
 
@@ -237,7 +253,7 @@ export default function PostDetail() {
 
             {/* Right Side: Storage Bins */}
             <div className="flex flex-col">
-              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-[10px] font-bold text-slate-500 mb-4 w-fit">
+              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-[10px] font-bold text-slate-500 mb-2 w-fit">
                 Storage Bins
               </span>
               <div className="flex-1 bg-slate-50/40 rounded-2xl p-4 border border-slate-100">
@@ -256,7 +272,42 @@ export default function PostDetail() {
             </div>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-between">
+          {/* Old MID Mapping Section */}
+          {oldMidData && oldMidData.length > 0 && (
+            <div className="mt-6 pt-6 border-t border-slate-100">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="p-2 rounded-xl bg-indigo-50 text-indigo-500">
+                  <History size={18} />
+                </div>
+                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                  ECC Data
+                </h2>
+              </div>
+
+              <div className="space-y-3">
+                {oldMidData.map((mapping, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-slate-50/50 border border-slate-100 rounded-2xl p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold  text-indigo-500 uppercase ">
+                        {mapping.old_mat}
+                      </span>
+                      <span className="rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-xs font-semibold text-gray-500">
+                        Old MID
+                      </span>
+                    </div>
+                    <p className="text-sm font-semibold text-slate-600 leading-relaxed">
+                      {mapping.old_desc}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
             <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
               Last Update
             </div>
