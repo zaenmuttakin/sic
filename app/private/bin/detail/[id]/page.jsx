@@ -9,9 +9,11 @@ import {
   ArrowRight,
   Info,
   Archive,
+  Search,
 } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
+import { useState, useMemo } from "react";
 
 const calculateTotalStock = (item) => {
   const fields = ["draft", "project", "actual", "gt01", "g002", "g003", "g004"];
@@ -32,7 +34,7 @@ export default function BinDetail() {
     queryKey: ["bin_detail", id],
     queryFn: async () => {
       let query = supabase.from("from_sheets").select("*");
-      
+
       if (id === "NOBIN") {
         query = query.or("bin_sap.ilike.NO BIN,bin_sap.ilike.NOBIN");
       } else if (id === "EMPTY") {
@@ -48,6 +50,20 @@ export default function BinDetail() {
       return data;
     },
   });
+
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    if (!searchTerm.trim()) return items;
+
+    const lowerSearch = searchTerm.toLowerCase();
+    return items.filter(
+      (item) =>
+        item.mid?.toLowerCase().includes(lowerSearch) ||
+        item.desc?.toLowerCase().includes(lowerSearch)
+    );
+  }, [items, searchTerm]);
 
   if (isLoading)
     return (
@@ -89,16 +105,15 @@ export default function BinDetail() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3, ease: "easeOut" }}
-        className="overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-xl shadow-indigo-200/20"
+        className="rounded-3xl border border-indigo-100 bg-white shadow-xl shadow-indigo-200/20"
       >
-        <div className="bg-gradient-to-br from-indigo-500 to-indigo-600 p-8 text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <Archive size={120} />
-          </div>
+        <div className="bg-gradient-to-br from-indigo-400 to-indigo-500 p-8 text-white relative overflow-hidden rounded-t-3xl">
           <div className="relative z-10">
-            <span className="rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-[10px] font-bold uppercase tracking-widest border border-white/20">
-              Bin Location Details
-            </span>
+            <div className="mb-4 flex items-center gap-2">
+              <span className="rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-xs font-semibold uppercase">
+                Bin Details
+              </span>
+            </div>
             <h1 className="text-3xl font-black tracking-tight mt-3 mb-1 uppercase">
               {binName}
             </h1>
@@ -109,48 +124,100 @@ export default function BinDetail() {
         </div>
 
         <div className="p-6 sm:p-8">
-          <div className="flex items-center gap-2 mb-6">
+          {/* Material List Title (scrolls away) */}
+          <div className="flex items-center gap-2 mb-2">
             <div className="p-2 rounded-xl bg-indigo-50 text-indigo-500">
               <Package size={18} />
             </div>
-            <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+            <h2 className="text-sm font-bold text-slate-800 uppercase">
               Material List
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 gap-3">
-            {items.map((item, idx) => (
-              <motion.div
-                key={item.mid}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: idx * 0.05 }}
-              >
-                <Link
-                  href={`/private/data/detail/${item.mid}`}
-                  className="group flex flex-col gap-2 p-4 rounded-2xl bg-slate-50 border border-slate-100 transition-all hover:bg-white hover:shadow-lg hover:border-indigo-200/50"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-indigo-500 px-3 py-1 text-[11px] font-bold text-white shadow-sm">
-                      MID {item.mid}
-                    </span>
-                    <ArrowRight size={16} className="text-slate-300 group-hover:text-indigo-500 group-hover:translate-x-1 transition-all" />
-                  </div>
-                  <p className="text-[13px] text-slate-700 font-bold leading-tight line-clamp-2">
-                    {item.desc}
-                  </p>
-                  <div className="mt-2 flex items-center gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                    <span className="bg-white px-2 py-0.5 rounded-md border border-slate-100">
-                      UOM: {item.uom}
-                    </span>
-                    <span className="bg-white px-2 py-0.5 rounded-md border border-slate-100">
-                      Stock: {calculateTotalStock(item)}
-                    </span>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
+          {/* Sticky Search Input */}
+          <div className="sticky top-0 left-0 z-20 -mx-6 sm:-mx-8 px-6 sm:px-8 py-3 mb-6 bg-white/95 border-b border-slate-100 border-r border-indigo-100 border-l-1 border-indigo-200">
+            <div className="relative w-full">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                size={16}
+              />
+              <input
+                type="text"
+                placeholder="Search material in this bin..."
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-100 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
+
+          <div className="grid grid-cols-1 gap-3">
+            {filteredItems.length === 0 ? (
+              <div className="py-12 text-center text-slate-400">
+                <p className="text-sm font-medium">
+                  Tidak ada material yang sesuai.
+                </p>
+              </div>
+            ) : (
+              filteredItems.map((item, idx) => (
+                <motion.div
+                  key={item.mid}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: idx * 0.05 }}
+                >
+                  <Link
+                    href={`/private/data/detail/${item.mid}`}
+                    className="group relative flex flex-col gap-3 p-5 rounded-2xl bg-slate-50 border border-slate-100 transition-all hover:bg-white hover:shadow-lg hover:border-indigo-200/50"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-7 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-500 font-bold text-xs">
+                          {idx + 1}
+                        </div>
+                        <span className="rounded-full bg-indigo-500 px-3 py-1 text-xs font-bold text-white shadow-sm">
+                          {item.mid}
+                        </span>
+                      </div>
+                      <div className="p-2 rounded-full bg-white border border-slate-200 text-slate-400">
+                        <ArrowRight size={18} />
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-slate-700 font-bold  mb-3">
+                        {item.desc}
+                      </p>
+                      <div className="flex items-center gap-4 text-xs text-slate-400 uppercase">
+                        <span className="font-semibold text-slate-500">
+                          Stock: {calculateTotalStock(item)}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))
+            )}
+          </div>
+
+          {/* Info Section */}
+          <section className="mt-10 pt-6 border-t border-slate-100">
+            <div className="rounded-2xl bg-slate-50 p-5 flex gap-4">
+              <div className="mt-0.5 text-indigo-500">
+                <Info size={18} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-slate-800 mb-1">
+                  Information
+                </p>
+                <p className="text-xs text-slate-500 leading-relaxed font-medium">
+                  Halaman ini menampilkan daftar material yang tersimpan dalam
+                  lokasi Bin ini. Pastikan untuk melakukan verifikasi fisik
+                  secara berkala untuk menjaga akurasi stok pada sistem Spare
+                  Part Inventory Control.
+                </p>
+              </div>
+            </div>
+          </section>
         </div>
       </motion.div>
     </div>

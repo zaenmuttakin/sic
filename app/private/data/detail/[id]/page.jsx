@@ -15,6 +15,11 @@ import {
   ZoomOut,
   History,
   Zap,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardCheck,
+  Copy,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -59,21 +64,90 @@ export default function PostDetail() {
   const [zoomScale, setZoomScale] = useState(1);
 
   const images = post?.images || [
-    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800",
-    "https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800",
+    "https://i.pinimg.com/736x/23/f6/22/23f622658e552266a5b309e5a299d758.jpg",
+    "https://i.pinimg.com/736x/7a/8a/73/7a8a73c6226cb6d12eac447f1e540c85.jpg",
   ];
 
   const [currentImg, setCurrentImg] = useState(0);
 
+  const nextImg = () => {
+    if (images.length > 1) {
+      setCurrentImg((prev) => (prev + 1) % images.length);
+    }
+  };
+
+  const prevImg = () => {
+    if (images.length > 1) {
+      setCurrentImg((prev) => (prev - 1 + images.length) % images.length);
+    }
+  };
+
+  const [copiedState, setCopiedState] = useState(null);
+
+  const calculateTotalStock = (p) => {
+    return (
+      (p.draft || 0) +
+      (p.project || 0) +
+      (p.actual || 0) +
+      (p.g002 || 0) +
+      (p.g003 || 0) +
+      (p.g004 || 0) +
+      (p.gt01 || 0)
+    );
+  };
+
+  const handleCopy = (type) => {
+    let text = "";
+    if (type === "basic") {
+      text = `${post.mid}\n${post.desc}\n${post.uom}`;
+    } else if (type === "all") {
+      const total = calculateTotalStock(post);
+      const bins = (post.bin_sap || "")
+        .split(",")
+        .filter((b) => b.trim())
+        .map((b) => `- ${b.trim()}`)
+        .join("\n");
+      const oldMids = (oldMidData || [])
+        .map((m) => `- ${m.old_mat} ${m.old_desc}`)
+        .join("\n");
+
+      text = `${post.mid}
+${post.desc}
+${post.uom}
+
+Stock :
+Total [ ${total} ]
+- G001
+   |- Draft [ ${post.draft || 0} ]
+   |- Unrest [ ${post.actual || 0} ]
+   |- Project [ ${post.project || 0} ]
+
+- G002 [ ${post.g002 || 0} ]
+- G003 [ ${post.g003 || 0} ]
+- G004 [ ${post.g004 || 0} ]
+- GT01 [ ${post.gt01 || 0} ]
+
+Bin :
+${bins || "- (No Bin Location)"}
+
+Old MID :
+${oldMids || "- (No Old MID Mapping)"}`;
+    }
+
+    navigator.clipboard.writeText(text);
+    setCopiedState(type);
+    setTimeout(() => setCopiedState(null), 2000);
+  };
+
   if (isLoading)
     return (
-      <div className="w-full min-h-screen flex items-center justify-center py-10">
-        <LoaderCircle className="animate-spin text-indigo-400" />
+      <div className="w-full bg-white min-h-screen flex items-center justify-center py-10">
+        <LoaderCircle size={40} className="animate-spin text-indigo-400" />
       </div>
     );
   if (error || !post)
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+      <div className="w-full min-h-screen bg-white flex items-center justify-center p-6 text-center">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
@@ -120,22 +194,41 @@ export default function PostDetail() {
         className="overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-xl shadow-indigo-200/20"
       >
         {/* Image Slider Section */}
-        <div
-          onClick={() => setShowModal(true)}
-          className="relative aspect-video bg-slate-50 overflow-hidden group cursor-zoom-in"
-        >
+        <div className="relative aspect-video bg-slate-50 overflow-hidden group">
           {images.length > 0 ? (
-            <AnimatePresence mode="wait">
-              <motion.img
-                key={currentImg}
-                src={images[currentImg]}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.4 }}
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            </AnimatePresence>
+            <div className="absolute inset-0 cursor-grab active:cursor-grabbing">
+              <motion.div
+                className="flex h-full"
+                style={{ width: `${images.length * 100}%` }}
+                animate={{ x: `-${(currentImg * 100) / images.length}%` }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.6}
+                onDragEnd={(e, { offset }) => {
+                  const swipe = offset.x;
+                  if (swipe < -50) {
+                    nextImg();
+                  } else if (swipe > 50) {
+                    prevImg();
+                  }
+                }}
+              >
+                {images.map((src, i) => (
+                  <motion.div
+                    key={i}
+                    className="relative h-full flex-1 cursor-zoom-in"
+                    onTap={() => setShowModal(true)}
+                  >
+                    <img
+                      src={src}
+                      alt={`Slide ${i}`}
+                      className="w-full h-full object-cover touch-none"
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
           ) : (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300">
               <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-3">
@@ -148,7 +241,31 @@ export default function PostDetail() {
           )}
 
           {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+
+          {/* Navigation Buttons */}
+          {images.length > 1 && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  prevImg();
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/40"
+              >
+                <ChevronLeft size={20} />
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  nextImg();
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/40"
+              >
+                <ChevronRight size={20} />
+              </button>
+            </>
+          )}
 
           {/* Dots Pagination */}
           {images.length > 1 && (
@@ -179,24 +296,63 @@ export default function PostDetail() {
             </div>
           )}
 
-          {/* Click Hint */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white">
+          {/* Click Hint / Maximize Button */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+            <button
+              onClick={() => setShowModal(true)}
+              className="pointer-events-auto bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white hover:bg-white/40 transition-colors"
+            >
               <Maximize2 size={20} />
-            </div>
+            </button>
           </div>
         </div>
 
         <div className="p-6">
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            <span className="rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-indigo-600">
-              MID {post.mid}
-            </span>
-            <span className="rounded-full bg-slate-50 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wider text-slate-500">
-              {post.uom}
-            </span>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-1.5">
+              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase text-indigo-500">
+                MID {post.mid}
+              </span>
+              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-500">
+                {post.uom}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => handleCopy("all")}
+                title="Copy All Details"
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all border text-xs font-bold ${
+                  copiedState === "all"
+                    ? "bg-indigo-50 text-indigo-600 border-indigo-200"
+                    : "bg-white text-slate-500 border-slate-200 "
+                }`}
+              >
+                {copiedState === "all" ? (
+                  <ClipboardCheck size={14} />
+                ) : (
+                  <FileText size={14} />
+                )}
+                <span>{copiedState === "all" ? "Copied!" : "All"}</span>
+              </button>
+              <button
+                onClick={() => handleCopy("basic")}
+                title="Copy Info"
+                className={`p-2 rounded-full transition-all border ${
+                  copiedState === "basic"
+                    ? "bg-green-50 text-green-600 border-green-200"
+                    : "bg-white text-slate-500 border-slate-200 "
+                }`}
+              >
+                {copiedState === "basic" ? (
+                  <ClipboardCheck size={14} />
+                ) : (
+                  <Copy size={14} />
+                )}
+              </button>
+            </div>
           </div>
-          <h1 className="mb-4 text-lg font-bold leading-tight text-slate-900">
+          <h1 className="mb-6 text-lg font-bold leading-tight text-slate-900">
             {post.desc}
           </h1>
 
@@ -252,8 +408,8 @@ export default function PostDetail() {
             </div>
 
             {/* Right Side: Storage Bins */}
-            <div className="flex flex-col">
-              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-sm font-semibold text-slate-500 mb-2 w-fit">
+            <div className="flex flex-col ">
+              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-3 w-fit">
                 Storage Bin
               </span>
               <div className="flex-1 bg-slate-50/40 rounded-2xl p-4 border border-slate-100">
@@ -275,11 +431,11 @@ export default function PostDetail() {
           {/* Old MID Mapping Section */}
           {oldMidData && oldMidData.length > 0 && (
             <div className="mt-6 pt-6 border-t border-slate-100">
-              <div className="flex items-center gap-2 mb-3">
+              <div className="flex items-center gap-2 mb-4">
                 <div className="p-2 rounded-xl bg-indigo-50 text-indigo-500">
-                  <History size={18} />
+                  <History size={16} />
                 </div>
-                <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
+                <h2 className="text-xs font-bold text-slate-800 uppercase ">
                   ECC Data
                 </h2>
               </div>
@@ -294,11 +450,11 @@ export default function PostDetail() {
                       <span className="text-xs font-semibold  text-indigo-500 uppercase ">
                         {mapping.old_mat}
                       </span>
-                      <span className="rounded-full bg-white border border-slate-200 px-2.5 py-0.5 text-xs font-semibold text-gray-500">
+                      <span className="rounded-full bg-white border border-slate-200 px-2 py-0.5 text-xs text-gray-500">
                         Old MID
                       </span>
                     </div>
-                    <p className="text-sm font-semibold text-slate-600 leading-relaxed">
+                    <p className="text-xs font-semibold text-slate-600 leading-relaxed">
                       {mapping.old_desc}
                     </p>
                   </div>
@@ -329,7 +485,7 @@ export default function PostDetail() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-4 sm:p-10"
+              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-10"
             >
               {/* Close Button */}
               <button
@@ -339,53 +495,101 @@ export default function PostDetail() {
                 }}
                 className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
               >
-                <X size={24} />
+                <X size={18} />
               </button>
 
-              {/* Zoom Controls */}
-              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 p-2 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl">
+              {/* Zoom Controls (Moved to Top) */}
+              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 p-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl">
                 <button
                   onClick={() =>
                     setZoomScale((prev) => Math.max(prev - 0.5, 1))
                   }
-                  className="p-3 rounded-xl hover:bg-white/10 text-white transition-colors"
+                  className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
                 >
-                  <ZoomOut size={20} />
+                  <ZoomOut size={16} />
                 </button>
-                <div className="w-12 text-center text-xs font-bold text-white tabular-nums">
+                <div className="w-10 text-center text-[10px] font-bold text-white tabular-nums">
                   {Math.round(zoomScale * 100)}%
                 </div>
                 <button
                   onClick={() =>
                     setZoomScale((prev) => Math.min(prev + 0.5, 3))
                   }
-                  className="p-3 rounded-xl hover:bg-white/10 text-white transition-colors"
+                  className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
                 >
-                  <ZoomIn size={20} />
+                  <ZoomIn size={16} />
                 </button>
               </div>
 
               {/* Image Container */}
-              <motion.div
-                className="relative w-full h-full flex items-center justify-center overflow-hidden"
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-              >
-                <motion.img
-                  src={images[currentImg]}
-                  animate={{ scale: zoomScale }}
-                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                  className="max-w-full max-h-full object-contain"
-                  drag={zoomScale > 1}
-                  dragConstraints={{
-                    left: -500,
-                    right: 500,
-                    top: -500,
-                    bottom: 500,
+              <div className="relative w-full h-full overflow-hidden">
+                <motion.div
+                  className="flex h-full"
+                  style={{ width: `${images.length * 100}%` }}
+                  animate={{
+                    x: `-${(currentImg * 100) / images.length}%`,
                   }}
-                />
-              </motion.div>
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  drag={zoomScale > 1 ? true : "x"}
+                  dragConstraints={
+                    zoomScale > 1
+                      ? { left: -500, right: 500, top: -500, bottom: 500 }
+                      : { left: 0, right: 0 }
+                  }
+                  onDragEnd={(e, { offset }) => {
+                    if (zoomScale === 1) {
+                      const swipe = offset.x;
+                      if (swipe < -50) nextImg();
+                      else if (swipe > 50) prevImg();
+                    }
+                  }}
+                >
+                  {images.map((src, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        opacity: zoomScale > 1 && i !== currentImg ? 0 : 1,
+                      }}
+                      className="relative h-full flex-1 flex items-center justify-center transition-opacity duration-300"
+                    >
+                      <motion.img
+                        src={src}
+                        animate={{ scale: zoomScale }}
+                        className="max-w-full max-h-full object-contain touch-none"
+                      />
+                    </div>
+                  ))}
+                </motion.div>
+
+                {/* Modal Navigation Buttons (Moved to Bottom) */}
+                {images.length > 1 && zoomScale === 1 && (
+                  <div className="absolute bottom-10 left-0 right-0 z-[110] flex items-center justify-center gap-6">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        prevImg();
+                      }}
+                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+
+                    <div className="rounded-full bg-white/10 backdrop-blur-md px-4 py-1 text-xs font-bold text-white tabular-nums border border-white/10">
+                      {currentImg + 1} / {images.length}
+                    </div>
+
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        nextImg();
+                      }}
+                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

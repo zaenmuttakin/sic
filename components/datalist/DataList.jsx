@@ -21,6 +21,11 @@ const calculateTotalStock = (item) => {
   return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
 };
 
+const calculateOtherStock = (item) => {
+  const fields = ["g002", "g003", "g004", "gt01"];
+  return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
+};
+
 export default function DataList() {
   const { ref, inView } = useInView();
   const searchParams = useSearchParams();
@@ -176,7 +181,9 @@ export default function DataList() {
             />
           </div>
         ) : data?.pages[0].length === 0 ? (
-          <p className="text-center text-gray-500">Data tidak ditemukan.</p>
+          <p className="text-center text-indigo-500 py-24">
+            Data tidak ditemukan.
+          </p>
         ) : (
           data?.pages.map((group, i) => (
             <div key={i} className="flex flex-col gap-1">
@@ -205,13 +212,13 @@ export default function DataList() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="mb-2 flex flex-wrap gap-1">
-                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-indigo-500">
+                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase text-indigo-500">
                                 MID {item.mid}
                               </span>
-                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-500">
                                 {item.uom}
                               </span>
-                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+                              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-500">
                                 {calculateTotalStock(item)}
                               </span>
                             </div>
@@ -240,7 +247,7 @@ export default function DataList() {
                             >
                               <hr className="my-4 border-slate-100/80" />
                               <div id="more-detail" className="pb-1">
-                                <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-row sm:gap-6">
+                                <div className="grid grid-cols-2 gap-6 sm:flex sm:flex-row sm:gap-6">
                                   {/* Left Side: Locations */}
                                   <div className="flex-1 space-y-2">
                                     <div className="relative">
@@ -251,13 +258,14 @@ export default function DataList() {
                                         <div className="absolute left-0 top-0 bottom-[14px] w-px bg-slate-200" />
                                         {[
                                           { label: "Draft", value: item.draft },
-                                          {
-                                            label: "Project",
-                                            value: item.project,
-                                          },
+
                                           {
                                             label: "Unrest",
                                             value: item.actual,
+                                          },
+                                          {
+                                            label: "Project",
+                                            value: item.project,
                                           },
                                         ].map((sub, idx, arr) => (
                                           <div
@@ -266,11 +274,11 @@ export default function DataList() {
                                           >
                                             {/* Horizontal Branch */}
                                             <div className="absolute left-0 top-1/2 w-4 h-px bg-slate-200" />
-                                            <span className="text-slate-500 font-medium">
+                                            <span className="text-slate-500 text-xs">
                                               {sub.label}
                                             </span>
                                             <div className="mx-3 flex-1 h-px bg-slate-100" />
-                                            <span className="text-gray-500 font-medium">
+                                            <span className="text-slate-700 text-xs">
                                               {sub.value}
                                             </span>
                                           </div>
@@ -278,64 +286,30 @@ export default function DataList() {
                                       </div>
                                     </div>
 
-                                    {/* G002 Row */}
+                                    {/* Other Row */}
                                     <div className="flex items-center gap-4">
                                       <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                        G002
+                                        Other
                                       </span>
                                       <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                      <span className="text-sm text-gray-500">
-                                        {item.g002}
-                                      </span>
-                                    </div>
-
-                                    {/* G003 Row */}
-                                    <div className="flex items-center gap-4">
-                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                        G003
-                                      </span>
-                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                      <span className="text-sm text-gray-500">
-                                        {item.g003}
-                                      </span>
-                                    </div>
-
-                                    {/* G004 Row */}
-                                    <div className="flex items-center gap-4">
-                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                        G004
-                                      </span>
-                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                      <span className="text-sm text-gray-500">
-                                        {item.g004}
-                                      </span>
-                                    </div>
-
-                                    {/* Gt01 Row */}
-                                    <div className="flex items-center gap-4">
-                                      <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
-                                        GT01
-                                      </span>
-                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
-                                      <span className="text-sm text-gray-500">
-                                        {item.gt01}
+                                      <span className="text-xs text-slate-700">
+                                        {calculateOtherStock(item)}
                                       </span>
                                     </div>
                                   </div>
-
                                   {/* Right Side: Storage Bins & Action */}
-                                  <div className="flex flex-col justify-start items-start gap-2 ">
-                                    <div className="w-full h-full text-left sm:text-right">
-                                      <span className="inline-block rounded-full bg-slate-100/80 px-2.5 py-0.5 text-xs font-bold text-slate-500 mb-2">
+                                  <div className="flex flex-col justify-start items-start gap-4">
+                                    <div className="w-full flex-1 flex flex-col gap-2 h-full text-left sm:text-right">
+                                      <span className="w-fit rounded-full bg-slate-100/80 px-2.5 py-0.5 text-xs font-bold text-slate-500">
                                         Stor. Bin
                                       </span>
-                                      <ul className="space-y-1.5 bg-slate-50/50 h-[85%] p-3 border border-slate-100 rounded-xl">
+                                      <ul className="space-y-1.5 bg-slate-50/50 p-3 h-full border border-slate-100 rounded-xl">
                                         {(item.bin_sap || "ZONE-B1")
                                           .split(",")
                                           .map((bin, i) => (
                                             <li
                                               key={i}
-                                              className="flex items-center justify-start sm:justify-end gap-3 text-[12px] text-slate-500 font-medium"
+                                              className="flex items-center justify-start sm:justify-end gap-3 text-xs text-slate-700 font-medium"
                                             >
                                               <span className="truncate">
                                                 {bin.trim()}
@@ -345,14 +319,16 @@ export default function DataList() {
                                       </ul>
                                     </div>
 
-                                    <Link
-                                      href={`/private/data/detail/${item.mid}`}
-                                      onClick={(e) => e.stopPropagation()}
-                                      className="mt-10 inline-flex items-center justify-center gap-2 rounded-full border border-slate-200 px-4 py-2 text-sm text-slate-500 transition-all hover:bg-slate-50 active:scale-[0.98] w-full sm:w-auto"
-                                    >
-                                      Full details
-                                      <ArrowRight size={14} />
-                                    </Link>
+                                    <div className="w-full text-right">
+                                      <Link
+                                        href={`/private/data/detail/${item.mid}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="inline-flex items-center justify-between gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-xs text-indigo-500 transition-all hover:bg-indigo-100 w-fit sm:w-auto"
+                                      >
+                                        Details
+                                        <ArrowRight size={14} />
+                                      </Link>
+                                    </div>
                                   </div>
                                 </div>
                               </div>
@@ -376,12 +352,7 @@ export default function DataList() {
           <p className="text-gray-400 text-sm">
             Scroll untuk muat lebih banyak
           </p>
-        ) : (
-          <div className="flex items-center gap-2 text-indigo-400 text-sm">
-            <Ban size={18} />
-            No more data
-          </div>
-        )}
+        ) : null}
       </div>
     </div>
   );

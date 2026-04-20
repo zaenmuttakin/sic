@@ -27,7 +27,7 @@ export default function Navbar() {
     activePath == "/private" ? setShowVignette(false) : setShowVignette(true);
   }, [pathname]);
 
-  const themeColor = activePath === "/private/ecc" ? "blue" : "indigo";
+  const themeColor = "indigo";
 
   useEffect(() => {
     const handleScroll = () => {

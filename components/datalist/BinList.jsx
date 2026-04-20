@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   Package,
   Pin,
+  ChevronRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -38,31 +39,24 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
             : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-sm"
         }`}
       >
-        <div className="p-4 px-5">
+        <div className="py-6 px-5">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <div className="mb-2 flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 item-center">
                 <span
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${
+                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold uppercase ${
                     isPinned
-                      ? "bg-red-50 text-red-500"
+                      ? "bg-red-50 text-red-400"
                       : "bg-indigo-50 text-indigo-500"
                   }`}
                 >
-                  {isPinned && <Pin size={10} className="fill-current" />}
+                  {isPinned && <Pin size={12} className="fill-current" />}
                   {group.bin || "(EMPTY)"}
                 </span>
-                <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-500">
+                <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold uppercase text-slate-500">
                   {group.totalItems} Item
                 </span>
               </div>
-              <p className="font-semibold text-slate-800 text-sm">
-                {isPinned
-                  ? "Not Maintain In Bin"
-                  : `Location Bin: ${
-                      group.bin === "(NULL)" ? "NULL" : group.bin || "(EMPTY)"
-                    }`}
-              </p>
             </div>
             <motion.div
               animate={{ rotate: isExpanded ? 180 : 0 }}
@@ -84,8 +78,8 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
                 <hr className="my-4 border-slate-100/80" />
                 <div id="more-detail" className="pb-1">
                   <div className="flex items-center justify-between mb-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
-                      Daftar Material
+                    <p className="text-xs font-bold uppercase   text-slate-400 px-1">
+                      List Material
                     </p>
                     <Link
                       href={`/private/bin/detail/${
@@ -98,17 +92,19 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
                               : group.bin
                       }`}
                       onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center justify-center gap-2 rounded-full border border-indigo-100 bg-indigo-50/50 px-4 py-1.5 text-xs font-bold text-indigo-600 transition-all hover:bg-indigo-50 active:scale-[0.98]"
+                      className="inline-flex items-center justify-between gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-xs text-indigo-500 transition-all hover:bg-indigo-100 w-fit sm:w-auto"
                     >
                       Detail Bin
-                      <ArrowUpRight size={14} />
+                      <ChevronRight size={14} />
                     </Link>
                   </div>
 
                   <div className="space-y-2">
                     <div className="grid grid-cols-1 gap-1.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                       {group.items.map((item, idx) => (
-                        <div
+                        <Link
+                          href={`/private/data/detail/${item.mid}`}
+                          onClick={(e) => e.stopPropagation()}
                           key={idx}
                           className="group relative flex flex-col gap-1 p-3 rounded-xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-white hover:shadow-sm hover:border-indigo-100/50"
                         >
@@ -119,15 +115,11 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
                                 {item.mid}
                               </span>
                             </div>
-                            <Link
-                              href={`/private/data/detail/${item.mid}`}
-                              onClick={(e) => e.stopPropagation()}
-                              className="p-1.5 bg-slate-100 rounded-full text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors"
-                            >
+                            <div className="p-1.5 bg-slate-100 rounded-full text-slate-400">
                               <ArrowUpRight size={16} />
-                            </Link>
+                            </div>
                           </div>
-                          <p className="text-sm text-slate-600 font-semibold leading-tight line-clamp-1">
+                          <p className="text-sm text-slate-600 font-semibold line-clamp-1">
                             {item.desc}
                           </p>
                           <div className="flex items-center gap-2 mt-0.5">
@@ -135,7 +127,7 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
                               Stock: {calculateTotalStock(item)}
                             </span>
                           </div>
-                        </div>
+                        </Link>
                       ))}
                     </div>
                   </div>
@@ -355,7 +347,7 @@ export default function BinList() {
             >
               <div className="p-4">
                 <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-bold uppercase   text-slate-400 mb-2">
                     Sort By
                   </p>
                   <div className="flex flex-wrap gap-2">
@@ -380,7 +372,7 @@ export default function BinList() {
                 </div>
 
                 <div className="mb-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-bold uppercase text-slate-400 mb-2">
                     Filter
                   </p>
                   <button
@@ -396,7 +388,7 @@ export default function BinList() {
                 </div>
 
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                  <p className="text-xs font-bold uppercase   text-slate-400 mb-2">
                     Order
                   </p>
                   <div className="flex gap-2">
@@ -445,7 +437,7 @@ export default function BinList() {
           <div className="space-y-6">
             {noBinGroup && (
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+                <p className="text-xs font-bold uppercase   text-slate-400 px-1">
                   Pinned
                 </p>
                 <BinCard
@@ -460,7 +452,7 @@ export default function BinList() {
 
             {otherBins.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase tracking-wider text-slate-400 px-1">
+                <p className="text-xs font-bold uppercase   text-slate-400 px-1">
                   Bin List
                 </p>
                 <div className="space-y-1">
