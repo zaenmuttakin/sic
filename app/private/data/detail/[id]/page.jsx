@@ -20,6 +20,9 @@ import {
   ClipboardCheck,
   Copy,
   FileText,
+  Edit,
+  Box,
+  Archive,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -180,7 +183,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
     <div className="max-w-2xl w-full mx-auto px-4 py-6 bg-white min-h-screen">
       <button
         onClick={() => router.back()}
-        className="mb-4 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+        className="mb-6 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
       >
         <ArrowLeft size={16} />
         Back
@@ -307,6 +310,60 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           </div>
         </div>
 
+        {/* Tools Toolbar */}
+        <div className="border-b border-slate-100 bg-white px-4 py-2.5 flex items-center justify-end gap-1.5">
+          {/* Nav tools */}
+          <Link
+            href={`/private/data/image/${id}`}
+            title="Edit Image"
+            className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
+          >
+            <LucideImage size={16} />
+          </Link>
+          <Link
+            href={`/private/bin/detail/${(post.bin_sap || "NOBIN").split(",")[0].trim()}?from=${id}`}
+            title="View Bin"
+            className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
+          >
+            <Archive size={16} />
+          </Link>
+
+          {/* Divider */}
+          <div className="mx-1 h-4 w-px bg-slate-200" />
+
+          {/* Copy tools */}
+          <button
+            onClick={() => handleCopy("all")}
+            title="Copy Full Details"
+            className={`p-2 rounded-xl transition-colors active:scale-95 ${
+              copiedState === "all"
+                ? "text-indigo-600 bg-indigo-50"
+                : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+            }`}
+          >
+            {copiedState === "all" ? (
+              <ClipboardCheck size={16} />
+            ) : (
+              <FileText size={16} />
+            )}
+          </button>
+          <button
+            onClick={() => handleCopy("basic")}
+            title="Copy Basic"
+            className={`p-2 rounded-xl transition-colors active:scale-95 ${
+              copiedState === "basic"
+                ? "text-green-600 bg-green-50"
+                : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+            }`}
+          >
+            {copiedState === "basic" ? (
+              <ClipboardCheck size={16} />
+            ) : (
+              <Copy size={16} />
+            )}
+          </button>
+        </div>
+
         <div className="p-6">
           <div className="mb-3 flex items-center justify-between gap-2">
             <div className="flex flex-wrap gap-1.5">
@@ -316,40 +373,6 @@ ${oldMids || "- (No Old MID Mapping)"}`;
               <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-500">
                 {post.uom}
               </span>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleCopy("all")}
-                title="Copy All Details"
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full transition-all border text-xs font-bold ${
-                  copiedState === "all"
-                    ? "bg-indigo-50 text-indigo-600 border-indigo-200"
-                    : "bg-white text-slate-500 border-slate-200 "
-                }`}
-              >
-                {copiedState === "all" ? (
-                  <ClipboardCheck size={14} />
-                ) : (
-                  <FileText size={14} />
-                )}
-                <span>{copiedState === "all" ? "Copied!" : "All"}</span>
-              </button>
-              <button
-                onClick={() => handleCopy("basic")}
-                title="Copy Info"
-                className={`p-2 rounded-full transition-all border ${
-                  copiedState === "basic"
-                    ? "bg-green-50 text-green-600 border-green-200"
-                    : "bg-white text-slate-500 border-slate-200 "
-                }`}
-              >
-                {copiedState === "basic" ? (
-                  <ClipboardCheck size={14} />
-                ) : (
-                  <Copy size={14} />
-                )}
-              </button>
             </div>
           </div>
           <h1 className="mb-6 text-lg font-bold leading-tight text-slate-900">
@@ -367,8 +390,8 @@ ${oldMids || "- (No Old MID Mapping)"}`;
                   <div className="absolute left-0 top-0 bottom-[12px] w-px bg-slate-200" />
                   {[
                     { label: "Draft", value: post.draft },
-                    { label: "Project", value: post.project },
                     { label: "Unrest", value: post.actual },
+                    { label: "Project", value: post.project },
                   ].map((sub) => (
                     <div
                       key={sub.label}

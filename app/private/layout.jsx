@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { UndoProvider } from "@/context/UndoContext";
 
 export default function PrivateLayout({ children }) {
   const router = useRouter();
@@ -29,5 +30,5 @@ export default function PrivateLayout({ children }) {
     );
   }
 
-  return <>{children}</>;
+  return <UndoProvider>{children}</UndoProvider>;
 }
