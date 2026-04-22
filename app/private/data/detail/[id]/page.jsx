@@ -67,8 +67,7 @@ export default function PostDetail() {
   const [zoomScale, setZoomScale] = useState(1);
 
   const images = post?.images || [
-    "https://i.pinimg.com/736x/23/f6/22/23f622658e552266a5b309e5a299d758.jpg",
-    "https://i.pinimg.com/736x/7a/8a/73/7a8a73c6226cb6d12eac447f1e540c85.jpg",
+    "https://i.pinimg.com/1200x/81/63/16/816316a875a57be6770da52f507dfbf1.jpg",
   ];
 
   const [currentImg, setCurrentImg] = useState(0);
@@ -486,8 +485,8 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             </div>
           )}
 
-          {/* <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
-            <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
+            <div className="text-[9px] font-bold text-slate-400 uppercase">
               Last Update
             </div>
             <div className="text-xs font-bold text-slate-500">
@@ -499,7 +498,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
                 minute: "2-digit",
               })}
             </div>
-          </div> */}
+          </div>
         </div>
         {/* Modal Overview */}
         <AnimatePresence>
