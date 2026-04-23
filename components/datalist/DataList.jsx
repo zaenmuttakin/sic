@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Ban,
   ArrowRight,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -38,6 +39,8 @@ export default function DataList() {
   const [sortOrder, setSortOrder] = useState("asc");
   const [sortControl, setSortControl] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
+  const [binCache, setBinCache] = useState({}); // { [mid]: { loading, items } }
+  const { push } = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -92,6 +95,40 @@ export default function DataList() {
     if (inView && hasNextPage) fetchNextPage();
   }, [inView, hasNextPage, fetchNextPage]);
 
+  const fetchBinData = async (mid) => {
+    if (binCache[mid]) return;
+    setBinCache((prev) => ({ ...prev, [mid]: { loading: true, items: [] } }));
+    try {
+      const { data, error } = await supabase
+        .from("bins")
+        .select("bin, detail, type")
+        .eq("mid", mid);
+      if (error) throw error;
+      setBinCache((prev) => ({ ...prev, [mid]: { loading: false, items: data || [] } }));
+    } catch {
+      setBinCache((prev) => ({ ...prev, [mid]: { loading: false, items: [] } }));
+    }
+  };
+
+  const handleBinClick = async (binName, mid, desc) => {
+    const trimmedBin = binName.trim();
+    const isPlaceholder = !trimmedBin || trimmedBin === "-" || trimmedBin.toLowerCase() === "n/a" || trimmedBin.toLowerCase() === "none";
+    if (isPlaceholder) {
+      push(`/private/bin/adding/${mid}?desc=${encodeURIComponent(desc)}`);
+      return;
+    }
+    try {
+      const { data } = await supabase.from("bins").select("bin").ilike("bin", trimmedBin).limit(1);
+      if (data && data.length > 0) {
+        push(`/private/bin/detail/${encodeURIComponent(data[0].bin)}`);
+      } else {
+        push(`/private/bin/adding/${mid}?desc=${encodeURIComponent(desc)}&targetBin=${encodeURIComponent(trimmedBin.toUpperCase())}`);
+      }
+    } catch {
+      push(`/private/bin/adding/${mid}?desc=${encodeURIComponent(desc)}&targetBin=${encodeURIComponent(trimmedBin.toUpperCase())}`);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
       {/* Top Vignette/Gradient */}
@@ -100,13 +137,23 @@ export default function DataList() {
 
       <div id="search-bar" className="fixed inset-x-0 top-0 z-50 ">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3 bg-white rounded-b ">
-          <input
-            type="text"
-            placeholder="Cari MID atau Deskripsi..."
-            className="flex-1 w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="flex-1 relative group">
+            <input
+              type="text"
+              placeholder="Cari MID atau Deskripsi..."
+              className="w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => setSortControl((prev) => !prev)}
             className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
@@ -199,9 +246,11 @@ export default function DataList() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   >
                     <div
-                      onClick={() =>
-                        setExpandedId(isExpanded ? null : item.mid)
-                      }
+                      onClick={() => {
+                          const newId = isExpanded ? null : item.mid;
+                          setExpandedId(newId);
+                          if (!isExpanded) fetchBinData(item.mid);
+                        }}
                       className={`cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 ${
                         isExpanded
                           ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/30 "
@@ -297,26 +346,49 @@ export default function DataList() {
                                       </span>
                                     </div>
                                   </div>
-                                  {/* Right Side: Storage Bins & Action */}
+                                  {/* Right Side: Storage Bins from bins table */}
                                   <div className="flex flex-col justify-start items-start gap-4">
-                                    <div className="w-full flex-1 flex flex-col gap-2 h-full text-left sm:text-right">
+                                    <div className="w-full flex-1 flex flex-col gap-2 h-full">
                                       <span className="w-fit rounded-full bg-slate-100/80 px-2.5 py-0.5 text-xs font-bold text-slate-500">
                                         Stor. Bin
                                       </span>
-                                      <ul className="space-y-1.5 bg-slate-50/50 p-3 h-full border border-slate-100 rounded-xl">
-                                        {(item.bin_sap || "ZONE-B1")
-                                          .split(",")
-                                          .map((bin, i) => (
-                                            <li
-                                              key={i}
-                                              className="flex items-center justify-start sm:justify-end gap-3 text-xs text-slate-700 font-medium"
+                                      <div className="bg-slate-50/50 p-3 h-full border border-slate-100 rounded-xl space-y-2">
+                                        {binCache[item.mid]?.loading ? (
+                                          <div className="flex items-center gap-2 text-xs text-slate-400">
+                                            <LoaderCircle size={12} className="animate-spin" />
+                                            <span>Loading...</span>
+                                          </div>
+                                        ) : binCache[item.mid]?.items?.length > 0 ? (
+                                          binCache[item.mid].items.map((b, i) => (
+                                            <div key={i}
+                                              onClick={(e) => { e.stopPropagation(); handleBinClick(b.bin, item.mid, item.desc); }}
+                                              className="cursor-pointer group"
                                             >
-                                              <span className="truncate">
-                                                {bin.trim()}
-                                              </span>
-                                            </li>
-                                          ))}
-                                      </ul>
+                                              <div className="flex items-center gap-2">
+                                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                                  b.type === "R" ? "bg-amber-400" : "bg-emerald-400"
+                                                }`} />
+                                                <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 group-hover:underline transition-colors truncate">
+                                                  {b.bin}
+                                                </span>
+                                              </div>
+                                              {b.detail && (
+                                                <p className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded mt-1 ml-3.5 uppercase tracking-tight">
+                                                  {b.detail}
+                                                </p>
+                                              )}
+                                            </div>
+                                          ))
+                                        ) : (
+                                          <div
+                                            onClick={(e) => { e.stopPropagation(); push(`/private/bin/adding/${item.mid}?desc=${encodeURIComponent(item.desc)}`); }}
+                                            className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer hover:text-indigo-500 transition-colors"
+                                          >
+                                            <span className="text-slate-300">—</span>
+                                            <span className="hover:underline">No bin · Assign one</span>
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
 
                                     <div className="w-full text-right">

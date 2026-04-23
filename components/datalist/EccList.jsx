@@ -17,6 +17,7 @@ import {
   ArrowUpRight,
   ArrowRight,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -125,13 +126,23 @@ export default function EccList() {
 
       <div id="search-bar" className="fixed inset-x-0 top-0 z-50 ">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3 bg-white rounded-b ">
-          <input
-            type="text"
-            placeholder="Cari old MID atau Deskripsi..."
-            className="flex-1 w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="flex-1 relative group">
+            <input
+              type="text"
+              placeholder="Cari old MID atau Deskripsi..."
+              className="w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => setSortControl((prev) => !prev)}
             className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
@@ -268,10 +279,10 @@ export default function EccList() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="mb-2 flex flex-wrap gap-1">
-                          <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase  text-indigo-500">
+                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold uppercase  text-blue-600">
                             MID {group.old_mat}
                           </span>
-                          <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase  text-slate-500">
+                          <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold uppercase  text-slate-500">
                             {group.newCount} MID Baru
                           </span>
                         </div>

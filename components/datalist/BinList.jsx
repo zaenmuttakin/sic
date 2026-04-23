@@ -14,15 +14,13 @@ import {
   Ban,
   ArrowUpRight,
   Package,
-  Pin,
   ChevronRight,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
+function BinCard({ group, expandedId, setExpandedId }) {
   const isExpanded = expandedId === group.bin;
-  const isPinned =
-    group.bin.toUpperCase() === "NO BIN" || group.bin.toUpperCase() === "NOBIN";
 
   return (
     <motion.div
@@ -43,18 +41,17 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex flex-wrap gap-1 item-center">
-                <span
-                  className={`flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold uppercase ${
-                    isPinned
-                      ? "bg-red-50 text-red-400"
-                      : "bg-indigo-50 text-indigo-500"
-                  }`}
-                >
-                  {isPinned && <Pin size={12} className="fill-current" />}
+                <span className="flex items-center gap-1 rounded-full px-2.5 py-1 text-sm font-bold uppercase bg-indigo-50 text-indigo-500">
                   {group.bin || "(EMPTY)"}
                 </span>
-                <span className="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold uppercase text-slate-500">
-                  {group.totalItems} Item
+                <span
+                  className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
+                    group.totalItems > 0
+                      ? "bg-slate-50 text-slate-500"
+                      : "bg-red-50 text-red-500"
+                  }`}
+                >
+                  {group.totalItems > 0 ? `${group.totalItems} Item` : "EMPTY"}
                 </span>
               </div>
             </div>
@@ -83,13 +80,11 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
                     </p>
                     <Link
                       href={`/private/bin/detail/${
-                        group.bin === "NO BIN"
-                          ? "NOBIN"
-                          : group.bin === ""
-                            ? "EMPTY"
-                            : group.bin === "(NULL)"
-                              ? "NULL"
-                              : group.bin
+                        group.bin === ""
+                          ? "EMPTY"
+                          : group.bin === "(NULL)"
+                            ? "NULL"
+                            : group.bin
                       }`}
                       onClick={(e) => e.stopPropagation()}
                       className="inline-flex items-center justify-between gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-xs text-indigo-500 transition-all hover:bg-indigo-100 w-fit sm:w-auto"
@@ -101,34 +96,41 @@ function BinCard({ group, expandedId, setExpandedId, calculateTotalStock }) {
 
                   <div className="space-y-2">
                     <div className="grid grid-cols-1 gap-1.5 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
-                      {group.items.map((item, idx) => (
-                        <Link
-                          href={`/private/data/detail/${item.mid}`}
-                          onClick={(e) => e.stopPropagation()}
-                          key={idx}
-                          className="group relative flex flex-col gap-1 p-3 rounded-xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-white hover:shadow-sm hover:border-indigo-100/50"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <Package size={16} className="text-indigo-400" />
-                              <span className="text-xs font-bold text-indigo-500">
-                                {item.mid}
-                              </span>
+                      {group.items.length > 0 ? (
+                        group.items.map((item, idx) => (
+                          <Link
+                            href={`/private/data/detail/${item.mid}`}
+                            onClick={(e) => e.stopPropagation()}
+                            key={idx}
+                            className="group relative flex flex-col gap-1 p-3 rounded-xl bg-slate-50/50 border border-slate-100 transition-all hover:bg-white hover:shadow-sm hover:border-indigo-100/50"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <Package
+                                  size={16}
+                                  className="text-indigo-400"
+                                />
+                                <span className="text-xs font-bold text-indigo-500">
+                                  {item.mid}
+                                </span>
+                              </div>
+                              <div className="p-1.5 bg-slate-100 rounded-full text-slate-400">
+                                <ArrowUpRight size={16} />
+                              </div>
                             </div>
-                            <div className="p-1.5 bg-slate-100 rounded-full text-slate-400">
-                              <ArrowUpRight size={16} />
-                            </div>
-                          </div>
-                          <p className="text-sm text-slate-600 font-semibold line-clamp-1">
-                            {item.desc}
+                            <p className="text-sm text-slate-600 font-semibold line-clamp-1">
+                              {item.desc}
+                            </p>
+                          </Link>
+                        ))
+                      ) : (
+                        <div className="py-10 text-center flex flex-col items-center justify-center bg-slate-50/30 rounded-2xl border border-dashed border-slate-200">
+                          <Ban size={24} className="text-slate-200 mb-2" />
+                          <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                            No Material in this bin
                           </p>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className="text-xs font-bold text-slate-400">
-                              Stock: {calculateTotalStock(item)}
-                            </span>
-                          </div>
-                        </Link>
-                      ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -149,26 +151,10 @@ export default function BinList() {
 
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-  const [sortBy, setSortBy] = useState("bin_sap");
+  const [sortBy, setSortBy] = useState("bin");
   const [sortOrder, setSortOrder] = useState("asc");
   const [sortControl, setSortControl] = useState(false);
   const [expandedId, setExpandedId] = useState(null);
-  const [onlyInStock, setOnlyInStock] = useState(true);
-
-  const calculateTotalStock = (item) => {
-    const fields = [
-      "draft",
-      "project",
-      "actual",
-      "gt01",
-      "g002",
-      "g003",
-      "g004",
-    ];
-    return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
-  };
-
-  const stockFilter = "actual.gt.0,draft.gt.0,project.gt.0,gt01.gt.0,g004.gt.0";
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -182,33 +168,6 @@ export default function BinList() {
     return () => clearTimeout(timer);
   }, [searchTerm, pathname, replace, searchParams]);
 
-  const { data: noBinResult, isLoading: isLoadingNoBin } = useQuery({
-    queryKey: ["no_bin_items", onlyInStock, debouncedSearch],
-    queryFn: async () => {
-      let query = supabase
-        .from("from_sheets")
-        .select("*", { count: "exact" })
-        .or("bin_sap.ilike.NO BIN,bin_sap.ilike.NOBIN");
-
-      if (onlyInStock) {
-        query = query.or(stockFilter);
-      }
-
-      if (debouncedSearch) {
-        query = query.or(
-          `mid.ilike.%${debouncedSearch}%,desc.ilike.%${debouncedSearch}%`
-        );
-      }
-
-      const { data, count, error } = await query.limit(100);
-      if (error) throw error;
-      return { data, count };
-    },
-  });
-
-  const noBinItems = noBinResult?.data || [];
-  const noBinCount = noBinResult?.count || 0;
-
   const {
     data,
     fetchNextPage,
@@ -217,20 +176,16 @@ export default function BinList() {
     status,
     isLoading,
   } = useInfiniteQuery({
-    queryKey: ["bins", debouncedSearch, sortBy, sortOrder, onlyInStock],
+    queryKey: ["bins", debouncedSearch, sortBy, sortOrder],
     queryFn: async ({ pageParam = 0 }) => {
       let query = supabase
-        .from("from_sheets")
+        .from("bins")
         .select("*")
-        .order("bin_sap", { ascending: true, nullsFirst: true });
-
-      if (onlyInStock) {
-        query = query.or(stockFilter);
-      }
+        .order("bin", { ascending: true, nullsFirst: true });
 
       if (debouncedSearch) {
         query = query.or(
-          `bin_sap.ilike.%${debouncedSearch}%,mid.ilike.%${debouncedSearch}%,desc.ilike.%${debouncedSearch}%`
+          `bin.ilike.%${debouncedSearch}%,mid.ilike.%${debouncedSearch}%,desc.ilike.%${debouncedSearch}%`
         );
       }
 
@@ -250,49 +205,28 @@ export default function BinList() {
     if (inView && hasNextPage) fetchNextPage();
   }, [inView, hasNextPage, fetchNextPage]);
 
-  // Group NO BIN items
-  const noBinGroup =
-    noBinItems.length > 0
-      ? {
-          bin: "NO BIN",
-          items: noBinItems,
-          totalItems: noBinCount,
-          isPinned: true,
-        }
-      : null;
+  // Flatten and group bins
 
   // Flatten and group other bins
   const allOtherItems = data?.pages.flat() || [];
   const groupedOtherData = allOtherItems.reduce((acc, item) => {
-    // Handle multiple bins separated by comma
-    let bins = [];
-    if (item.bin_sap === null) {
-      bins = ["(NULL)"];
-    } else if (item.bin_sap === "") {
-      bins = [""];
-    } else {
-      bins = item.bin_sap.split(",").map((b) => b.trim());
+    let bin = item.bin;
+    if (bin === null) bin = "(NULL)";
+    else if (bin === "") bin = "";
+
+    if (!acc[bin]) {
+      acc[bin] = {
+        bin: bin,
+        items: [],
+        totalItems: 0,
+      };
     }
 
-    bins.forEach((bin) => {
-      // Skip literal "NO BIN" strings as they are handled in the pinned section
-      if (bin.toUpperCase() === "NO BIN" || bin.toUpperCase() === "NOBIN")
-        return;
-
-      if (!acc[bin]) {
-        acc[bin] = {
-          bin: bin,
-          items: [],
-          totalItems: 0,
-        };
-      }
-      // Avoid adding the same item multiple times to the same bin
-      // (though it shouldn't happen with the current query)
-      if (!acc[bin].items.find((i) => i.mid === item.mid)) {
-        acc[bin].items.push(item);
-        acc[bin].totalItems += 1;
-      }
-    });
+    // Avoid adding the same item multiple times to the same bin
+    if (item.mid && !acc[bin].items.find((i) => i.mid === item.mid)) {
+      acc[bin].items.push(item);
+      acc[bin].totalItems += 1;
+    }
     return acc;
   }, {});
 
@@ -310,19 +244,29 @@ export default function BinList() {
     });
   });
 
-  const finalBins = noBinGroup ? [noBinGroup, ...otherBins] : otherBins;
+  const finalBins = otherBins;
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
       <div id="search-bar" className="fixed inset-x-0 top-0 z-50 ">
         <div className="mx-auto flex max-w-2xl items-center gap-2 px-4 py-3 bg-white rounded-b ">
-          <input
-            type="text"
-            placeholder="Cari Bin atau Material..."
-            className="flex-1 w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="flex-1 relative group">
+            <input
+              type="text"
+              placeholder="Cari Bin atau Material..."
+              className="w-full h-12 rounded-2xl border border-indigo-200 bg-white px-4 text-sm text-slate-900 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-200/60"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-slate-100 text-slate-400 hover:bg-slate-200 transition-colors"
+              >
+                <X size={14} />
+              </button>
+            )}
+          </div>
           <button
             onClick={() => setSortControl((prev) => !prev)}
             className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-sm font-medium transition ${
@@ -352,7 +296,7 @@ export default function BinList() {
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { label: "Bin Name", value: "bin_sap" },
+                      { label: "Bin Name", value: "bin" },
                       { label: "Material ID", value: "mid" },
                       { label: "Description", value: "desc" },
                     ].map((option) => (
@@ -369,22 +313,6 @@ export default function BinList() {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                <div className="mb-4">
-                  <p className="text-xs font-bold uppercase text-slate-400 mb-2">
-                    Filter
-                  </p>
-                  <button
-                    onClick={() => setOnlyInStock(!onlyInStock)}
-                    className={`flex items-center gap-2 rounded-2xl border px-4 py-2 text-sm font-medium transition ${
-                      onlyInStock
-                        ? "border-indigo-300 bg-indigo-50 text-indigo-600"
-                        : "border-slate-200 bg-white text-gray-500 hover:bg-slate-100"
-                    }`}
-                  >
-                    In Stock Only
-                  </button>
                 </div>
 
                 <div>
@@ -421,7 +349,7 @@ export default function BinList() {
       </div>
 
       <div id="data-list" className="space-y-1">
-        {isLoading || isLoadingNoBin ? (
+        {isLoading ? (
           <div className="w-full flex items-center justify-center py-20">
             <LoaderCircle
               className="animate-spin text-indigo-500"
@@ -435,21 +363,6 @@ export default function BinList() {
           </p>
         ) : (
           <div className="space-y-6">
-            {noBinGroup && (
-              <div className="space-y-2">
-                <p className="text-xs font-bold uppercase   text-slate-400 px-1">
-                  Pinned
-                </p>
-                <BinCard
-                  key={noBinGroup.bin}
-                  group={noBinGroup}
-                  expandedId={expandedId}
-                  setExpandedId={setExpandedId}
-                  calculateTotalStock={calculateTotalStock}
-                />
-              </div>
-            )}
-
             {otherBins.length > 0 && (
               <div className="space-y-2">
                 <p className="text-xs font-bold uppercase   text-slate-400 px-1">
@@ -462,7 +375,6 @@ export default function BinList() {
                       group={group}
                       expandedId={expandedId}
                       setExpandedId={setExpandedId}
-                      calculateTotalStock={calculateTotalStock}
                     />
                   ))}
                 </div>

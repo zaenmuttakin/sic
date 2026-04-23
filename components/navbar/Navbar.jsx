@@ -21,7 +21,8 @@ export default function Navbar() {
   const isHidden =
     pathname === "/" ||
     pathname === "/private/account" ||
-    pathname.includes("/detail/");
+    pathname.includes("/detail/") ||
+    pathname.includes("/adding/");
   
   useEffect(() => {
     activePath == "/private" ? setShowVignette(false) : setShowVignette(true);

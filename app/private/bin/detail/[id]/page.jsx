@@ -16,7 +16,9 @@ import {
   X,
   Edit2,
   RotateCcw,
+  RefreshCw,
   Zap,
+  FileText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
@@ -34,16 +36,17 @@ export default function BinDetail() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showUndo, showLoading, showError } = useUndo();
-  
+
   const id = params.id;
   const fromMid = searchParams.get("from");
   const binName = id === "NOBIN" ? "NO BIN" : decodeURIComponent(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [detailModalItem, setDetailModalItem] = useState(null);
   const [materials, setMaterials] = useState([]);
   const [originalMaterials, setOriginalMaterials] = useState([]);
-  
+
   // Modal states
   const [searchMid, setSearchMid] = useState("");
   const [searchResult, setSearchResult] = useState(null);
@@ -58,30 +61,68 @@ export default function BinDetail() {
   } = useQuery({
     queryKey: ["bin_detail", id],
     queryFn: async () => {
-      let query = supabase.from("from_sheets").select("*");
+      let binQuery = supabase.from("bins").select("*");
 
       if (id === "NOBIN") {
-        query = query.or("bin_sap.ilike.NO BIN,bin_sap.ilike.NOBIN");
+        binQuery = binQuery.or("bin.ilike.NO BIN,bin.ilike.NOBIN");
       } else if (id === "EMPTY") {
-        query = query.eq("bin_sap", "");
+        binQuery = binQuery.eq("bin", "");
       } else if (id === "NULL") {
-        query = query.is("bin_sap", null);
+        binQuery = binQuery.is("bin", null);
       } else {
-        query = query.eq("bin_sap", binName);
+        binQuery = binQuery.eq("bin", binName);
       }
 
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
+      const { data: binItems, error: binError } = await binQuery;
+      if (binError) throw binError;
+
+      if (binItems.length === 0) return [];
+
+      // Fetch stock data from from_sheets for all MIDs in this bin
+      const mids = binItems.map((item) => item.mid).filter((mid) => mid);
+
+      let stockData = [];
+      if (mids.length > 0) {
+        const { data, error: stockError } = await supabase
+          .from("from_sheets")
+          .select("*")
+          .in("mid", mids);
+        if (stockError) throw stockError;
+        stockData = data || [];
+      }
+
+      // Merge stock data into bin items
+      return binItems.map((binItem) => {
+        const stockInfo = binItem.mid
+          ? stockData.find((s) => s.mid === binItem.mid)
+          : null;
+        return {
+          ...binItem,
+          ...stockInfo, // This keeps the stock fields (actual, draft, etc.)
+        };
+      });
     },
   });
 
   useEffect(() => {
     if (items) {
-      setMaterials(items.map((m) => ({ ...m, isRemoved: false, isNew: false })));
+      setMaterials(
+        items.map((m) => ({ ...m, isRemoved: false, isNew: false }))
+      );
       setOriginalMaterials(items);
     }
   }, [items]);
+
+  const hasChanges = useMemo(() => {
+    // Check for additions or removals
+    if (materials.some((m) => m.isNew || m.isRemoved)) return true;
+
+    // Check for detail updates in existing items
+    return materials.some((m) => {
+      const original = originalMaterials.find((om) => om.id === m.id);
+      return original && original.detail !== m.detail;
+    });
+  }, [materials, originalMaterials]);
 
   // ── Search/Add Logic ───────────────────────────────────────────────────────
   const handleSearch = async () => {
@@ -100,7 +141,29 @@ export default function BinDetail() {
         setSearchError("Material not found");
         setSearchResult(null);
       } else {
-        setSearchResult(data);
+        // Also check if this material is already in another bin in the 'bins' table
+        const { data: existingBin } = await supabase
+          .from("bins")
+          .select("id, bin, type")
+          .eq("mid", data.mid)
+          .maybeSingle();
+
+        const isAlreadyInBin = materials.some(
+          (m) => m.mid === data.mid && !m.isRemoved
+        );
+
+        setSearchResult({
+          ...data,
+          current_bin: existingBin?.bin,
+          isAlreadyInBin,
+          oldBinData: existingBin
+            ? {
+                id: existingBin.id,
+                type: existingBin.type,
+                bin: existingBin.bin,
+              }
+            : null,
+        });
       }
     } catch (err) {
       setSearchError("Error searching material");
@@ -111,23 +174,68 @@ export default function BinDetail() {
 
   const handleAddMaterial = () => {
     if (!searchResult) return;
+
+    const activeMaterials = materials.filter((m) => !m.isRemoved && m.mid);
+    const emptySlot = materials.find((m) => !m.mid && !m.isRemoved);
+    // Determine bin type: if current items exist, use their type, else default to Z
+    const binType = materials[0]?.type || "Z";
+    const isRack = binType === "R";
+
     if (materials.find((m) => m.mid === searchResult.mid && !m.isRemoved)) {
       setSearchError("Material already in this bin");
       return;
     }
 
-    const currentBins = (searchResult.bin_sap || "").trim();
-    if (currentBins && !showConfirmAdd) {
+    // Rule: Rack (R) only allows one active material. Zone (Z) allows multi-item.
+    if (isRack && activeMaterials.length > 0) {
+      setSearchError(
+        "Rack (R) only allows one material. Please delete the existing one first."
+      );
+      return;
+    }
+
+    const currentBin = searchResult.current_bin;
+    if (currentBin && !showConfirmAdd) {
       setShowConfirmAdd(true);
       return;
     }
-    
-    if (materials.find(m => m.mid === searchResult.mid && m.isRemoved)) {
-      setMaterials(materials.map(m => m.mid === searchResult.mid ? { ...m, isRemoved: false } : m));
+
+    if (materials.find((m) => m.mid === searchResult.mid && m.isRemoved)) {
+      setMaterials(
+        materials.map((m) =>
+          m.mid === searchResult.mid ? { ...m, isRemoved: false } : m
+        )
+      );
+    } else if (isRack && (emptySlot || materials.find((m) => m.isRemoved))) {
+      // Rule: For Rack (R), fill the existing empty slot OR the slot marked for removal
+      const slotToFill = emptySlot || materials.find((m) => m.isRemoved);
+      setMaterials(
+        materials.map((m) =>
+          m.id === slotToFill.id
+            ? {
+                ...m,
+                ...searchResult,
+                isNew: true,
+                isRemoved: false,
+                isFillingSlot: true,
+              }
+            : m
+        )
+      );
     } else {
-      setMaterials([...materials, { ...searchResult, isNew: true, isRemoved: false }]);
+      // Rule: For Zone (Z) or if no Rack slot available, add a new row
+      setMaterials([
+        ...materials,
+        {
+          ...searchResult,
+          id: `new-${Date.now()}`,
+          isNew: true,
+          isRemoved: false,
+          type: binType,
+        },
+      ]);
     }
-    
+
     setSearchResult(null);
     setSearchMid("");
     setSearchError(null);
@@ -135,38 +243,130 @@ export default function BinDetail() {
     setIsModalOpen(false);
   };
 
-  const toggleRemove = (mid) => {
-    setMaterials(materials.map(m => 
-      m.mid === mid ? { ...m, isRemoved: !m.isRemoved } : m
-    ));
+  const handleUpdateDetail = (id, newDetail) => {
+    setMaterials(
+      materials.map((m) => (m.id === id ? { ...m, detail: newDetail } : m))
+    );
+  };
+
+  const toggleRemove = (id) => {
+    setMaterials(
+      materials.map((m) =>
+        m.id === id ? { ...m, isRemoved: !m.isRemoved } : m
+      )
+    );
   };
 
   // ── Save Logic ─────────────────────────────────────────────────────────────
   const saveMutation = useMutation({
     mutationFn: async (updatedMaterials) => {
-      const finalMaterials = updatedMaterials.filter(m => !m.isRemoved);
-      
+      const savedUser =
+        typeof window !== "undefined" ? localStorage.getItem("sic_user") : null;
+      const nickname = savedUser ? JSON.parse(savedUser).nickname : null;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      const userNickname =
+        nickname || user?.user_metadata?.nickname || user?.email || "system";
+      const updateAt = new Date().toISOString();
+      const binType = materials[0]?.type || "Z";
+
+      // 1. Handle Removals
       const removed = originalMaterials.filter(
-        (om) => !finalMaterials.find((um) => um.mid === om.mid)
+        (om) => !updatedMaterials.find((um) => um.id === om.id && !um.isRemoved)
       );
       for (const item of removed) {
-        const newBins = (item.bin_sap || "")
-          .split(",")
-          .map((b) => b.trim())
-          .filter((b) => b.toUpperCase() !== binName.toUpperCase())
-          .join(", ");
-        await supabase.from("from_sheets").update({ bin_sap: newBins }).eq("mid", item.mid);
+        if (item.type === "R") {
+          await supabase
+            .from("bins")
+            .update({
+              mid: null,
+              desc: null,
+              detail: null,
+              user: userNickname,
+              update_at: updateAt,
+            })
+            .eq("id", item.id);
+        } else {
+          await supabase.from("bins").delete().eq("id", item.id);
+        }
       }
 
-      const added = finalMaterials.filter(
-        (um) => !originalMaterials.find((om) => om.mid === um.mid)
+      // 2. Handle Updates for existing materials (detail changes)
+      const existingToUpdate = updatedMaterials.filter(
+        (um) => !um.isNew && !um.isRemoved
       );
-      for (const item of added) {
-        const binList = (item.bin_sap || "").split(",").map((b) => b.trim()).filter((b) => b);
-        if (!binList.map((b) => b.toUpperCase()).includes(binName.toUpperCase())) {
-          binList.push(binName);
+      for (const item of existingToUpdate) {
+        const original = originalMaterials.find((om) => om.id === item.id);
+        if (original && original.detail !== item.detail) {
+          await supabase
+            .from("bins")
+            .update({
+              detail: item.detail,
+              user: userNickname,
+              update_at: updateAt,
+            })
+            .eq("id", item.id);
         }
-        await supabase.from("from_sheets").update({ bin_sap: binList.join(", ") }).eq("mid", item.mid);
+      }
+
+      // 3. Handle Additions
+      const added = updatedMaterials.filter((um) => um.isNew && !um.isRemoved);
+      if (added.length > 0) {
+        // Handle removals from old bins for replaced items
+        for (const item of added) {
+          if (item.oldBinData) {
+            if (item.oldBinData.type === "R") {
+              await supabase
+                .from("bins")
+                .update({
+                  mid: null,
+                  desc: null,
+                  detail: null,
+                  user: userNickname,
+                  update_at: updateAt,
+                })
+                .eq("id", item.oldBinData.id);
+            } else {
+              await supabase
+                .from("bins")
+                .delete()
+                .eq("id", item.oldBinData.id);
+            }
+          }
+        }
+
+        // Perform slot filling updates (Rule: R uses update)
+        const toUpdateSlots = added.filter((m) => m.isFillingSlot);
+        for (const item of toUpdateSlots) {
+          await supabase
+            .from("bins")
+            .update({
+              mid: item.mid,
+              desc: item.desc,
+              detail: item.detail,
+              user: userNickname,
+              update_at: updateAt,
+            })
+            .eq("id", item.id);
+        }
+
+        // Perform new additions (Rule: Z or new R slot uses insert)
+        const toInsert = added
+          .filter((m) => !m.isFillingSlot)
+          .map((m) => ({
+            bin: binName,
+            mid: m.mid,
+            desc: m.desc,
+            detail: m.detail,
+            type: binType,
+            user: userNickname,
+            update_at: updateAt,
+          }));
+
+        if (toInsert.length > 0) {
+          await supabase.from("bins").insert(toInsert);
+        }
       }
     },
     onMutate: () => showLoading("Updating bin contents..."),
@@ -187,12 +387,12 @@ export default function BinDetail() {
 
   const filteredItems = useMemo(() => {
     let list = [...(materials || [])];
-    
+
     // Sorting logic: Referenced from Detail > New Items > Others
     list.sort((a, b) => {
       if (a.mid === fromMid && b.mid !== fromMid) return -1;
       if (b.mid === fromMid && a.mid !== fromMid) return 1;
-      
+
       if (isEditing) {
         if (a.isNew && !b.isNew) return -1;
         if (!a.isNew && b.isNew) return 1;
@@ -238,7 +438,9 @@ export default function BinDetail() {
               <button
                 onClick={() => {
                   setIsEditing(false);
-                  setMaterials(items.map((m) => ({ ...m, isRemoved: false, isNew: false })));
+                  setMaterials(
+                    items.map((m) => ({ ...m, isRemoved: false, isNew: false }))
+                  );
                 }}
                 title="Cancel"
                 className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
@@ -253,9 +455,13 @@ export default function BinDetail() {
                 <Plus size={18} />
               </button>
               <button
-                disabled
-                title="Function on development"
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-xs font-black text-slate-400 cursor-not-allowed transition-all"
+                onClick={() => saveMutation.mutate(materials)}
+                disabled={!hasChanges}
+                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black text-white shadow-lg transition-all active:scale-95 ${
+                  hasChanges
+                    ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200"
+                    : "bg-slate-300 shadow-none cursor-not-allowed opacity-60"
+                }`}
               >
                 <Save size={14} />
                 SAVE
@@ -277,11 +483,11 @@ export default function BinDetail() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mb-4 flex items-center gap-2 p-3 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600"
+          className="mb-4 flex items-center gap-2 p-3 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600"
         >
           <Info size={16} />
           <p className="text-[10px] font-black uppercase tracking-widest">
-            edit bin function on develop
+            Editing Bin Contents
           </p>
         </motion.div>
       )}
@@ -298,15 +504,23 @@ export default function BinDetail() {
               <span className="rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-widest">
                 Location
               </span>
-              <h1 className="text-2xl font-black tracking-tight mt-2 uppercase">
+              <h1 className="text-2xl font-black tracking-tight mt-2 uppercase flex items-center gap-3">
                 {binName}
+                <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[9px] font-black border border-white/20 shadow-2xl flex items-center gap-1.5 ring-1 ring-white/10">
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${materials[0]?.type === "R" ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"}`}
+                  />
+                  {materials[0]?.type === "R" ? "RACK SYSTEM" : "ZONE STORAGE"}
+                </span>
               </h1>
             </div>
             <div className="text-right">
               <p className="text-indigo-100 text-[10px] font-black uppercase tracking-widest opacity-80">
                 Materials
               </p>
-              <p className="text-2xl font-black leading-none">{materials.filter(m => !m.isRemoved).length}</p>
+              <p className="text-2xl font-black leading-none">
+                {materials.filter((m) => !m.isRemoved).length}
+              </p>
             </div>
           </div>
         </div>
@@ -327,7 +541,7 @@ export default function BinDetail() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
               {searchTerm && (
-                <button 
+                <button
                   onClick={() => setSearchTerm("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full bg-slate-200/50 text-slate-500 hover:bg-slate-200"
                 >
@@ -352,26 +566,47 @@ export default function BinDetail() {
                 const isNew = item.isNew;
                 const isRemoved = item.isRemoved;
                 const isFromDetail = !isEditing && item.mid === fromMid;
-                
+
                 return (
                   <motion.div
-                    key={item.mid}
+                    key={item.id}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`flex items-stretch gap-2 border transition-all duration-300 rounded-2xl overflow-hidden ${
                       isFromDetail && !isRemoved
                         ? "border-indigo-500 bg-indigo-50/30 ring-2 ring-indigo-500/10"
-                        : isRemoved 
-                          ? "bg-red-50/30 border-red-100 opacity-60 grayscale-[0.5]" 
-                          : isNew 
-                            ? "bg-green-50/30 border-green-100" 
-                            : "bg-slate-50/50 border-slate-100"
+                        : isRemoved
+                          ? "bg-red-50/30 border-red-100 opacity-60 grayscale-[0.5]"
+                          : isNew
+                            ? "bg-green-50/30 border-green-100"
+                            : item.mid
+                              ? "bg-slate-50/50 border-slate-100"
+                              : "bg-amber-50/20 border-dashed border-slate-200"
                     }`}
                   >
-                    <div className={`w-16 shrink-0 flex items-center justify-center relative ${
-                      isFromDetail ? "bg-indigo-100/50" : isRemoved ? "bg-red-100/30" : isNew ? "bg-green-100/30" : "bg-slate-100/50"
-                    }`}>
-                      <Package size={18} className={isFromDetail ? "text-indigo-500" : isRemoved ? "text-red-300" : isNew ? "text-green-300" : "text-slate-300"} />
+                    <div
+                      className={`w-16 shrink-0 flex items-center justify-center relative ${
+                        isFromDetail
+                          ? "bg-indigo-100/50"
+                          : isRemoved
+                            ? "bg-red-100/30"
+                            : isNew
+                              ? "bg-green-100/30"
+                              : "bg-slate-100/50"
+                      }`}
+                    >
+                      <Package
+                        size={18}
+                        className={
+                          isFromDetail
+                            ? "text-indigo-500"
+                            : isRemoved
+                              ? "text-red-300"
+                              : isNew
+                                ? "text-green-300"
+                                : "text-slate-300"
+                        }
+                      />
                       {isFromDetail && (
                         <div className="absolute top-1 left-1 p-1 rounded-full bg-indigo-500 text-white shadow-sm">
                           <Zap size={8} fill="currentColor" />
@@ -384,7 +619,7 @@ export default function BinDetail() {
                       )}
                       {isRemoved && (
                         <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
-                           <div className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[7px] font-black uppercase shadow-sm">
+                          <div className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[7px] font-black uppercase shadow-sm">
                             Removed
                           </div>
                         </div>
@@ -394,41 +629,73 @@ export default function BinDetail() {
                     <div className="flex-1 py-3 pr-2 flex items-center justify-between gap-3 overflow-hidden">
                       <div className="overflow-hidden">
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className={`text-[10px] font-black ${isFromDetail ? "text-indigo-600" : isRemoved ? "text-red-400" : "text-indigo-600"}`}>
-                            {item.mid}
+                          <span
+                            className={`text-[10px] font-black ${isFromDetail ? "text-indigo-600" : isRemoved ? "text-red-400" : "text-indigo-600"}`}
+                          >
+                            {item.mid || "(EMPTY SLOT)"}
                           </span>
-                          <span className="text-[10px] font-bold text-slate-400">
-                            • {calculateTotalStock(item)} Stock
-                          </span>
+                          {item.mid && (
+                            <span className="text-[10px] font-bold text-slate-400">
+                              • {calculateTotalStock(item)} Stock
+                            </span>
+                          )}
                         </div>
-                        <p className={`text-xs font-bold truncate leading-tight pr-4 ${
-                          isRemoved ? "text-red-400 line-through" : isFromDetail ? "text-indigo-900" : "text-slate-800"
-                        }`}>
-                          {item.desc}
+                        <p
+                          className={`text-xs font-bold truncate leading-tight pr-4 ${
+                            isRemoved
+                              ? "text-red-400 line-through"
+                              : isFromDetail
+                                ? "text-indigo-900"
+                                : item.mid
+                                  ? "text-slate-800"
+                                  : "text-slate-400 italic"
+                          }`}
+                        >
+                          {item.desc || "Ready for new material"}
                         </p>
+                        {item.detail && !isRemoved && (
+                          <p className="mt-1 text-[10px] font-black text-indigo-500 uppercase tracking-tight bg-indigo-50 w-fit px-1.5 py-0.5 rounded border border-indigo-100">
+                            {item.detail}
+                          </p>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-1 shrink-0">
-                        {(!isEditing && !isRemoved) && (
+                        {!isEditing && !isRemoved && item.mid && (
                           <Link
                             href={`/private/data/detail/${item.mid}`}
                             className={`p-2 rounded-xl transition-all active:scale-90 ${
-                              isFromDetail ? "text-indigo-600 bg-white" : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                              isFromDetail
+                                ? "text-indigo-600 bg-white"
+                                : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
                             }`}
                           >
                             <ArrowRight size={16} />
                           </Link>
                         )}
+                        {isEditing && !isRemoved && item.mid && (
+                          <button
+                            onClick={() => setDetailModalItem(item)}
+                            className="p-2 rounded-xl text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
+                            title="Edit Details"
+                          >
+                            <FileText size={16} />
+                          </button>
+                        )}
                         {isEditing && (
                           <button
-                            onClick={() => toggleRemove(item.mid)}
+                            onClick={() => toggleRemove(item.id)}
                             className={`p-2 rounded-xl transition-all active:scale-90 ${
-                              isRemoved 
-                                ? "text-indigo-500 bg-indigo-50 hover:bg-indigo-100" 
+                              isRemoved
+                                ? "text-indigo-500 bg-indigo-50 hover:bg-indigo-100"
                                 : "text-red-300 hover:text-red-500 hover:bg-red-50"
                             }`}
                           >
-                            {isRemoved ? <RotateCcw size={16} /> : <Trash2 size={16} />}
+                            {isRemoved ? (
+                              <RotateCcw size={16} />
+                            ) : (
+                              <Trash2 size={16} />
+                            )}
                           </button>
                         )}
                       </div>
@@ -468,7 +735,9 @@ export default function BinDetail() {
                 <div className="flex items-center justify-between mb-6">
                   <div className="flex items-center gap-2 text-indigo-600">
                     <Plus size={20} strokeWidth={3} />
-                    <h2 className="text-lg font-black tracking-tight">Add Material</h2>
+                    <h2 className="text-lg font-black tracking-tight">
+                      Add Material
+                    </h2>
                   </div>
                   <button
                     onClick={() => {
@@ -511,7 +780,10 @@ export default function BinDetail() {
                     className="w-full py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50"
                   >
                     {isSearching ? (
-                      <LoaderCircle size={18} className="animate-spin mx-auto" />
+                      <LoaderCircle
+                        size={18}
+                        className="animate-spin mx-auto"
+                      />
                     ) : (
                       "Search MID"
                     )}
@@ -519,83 +791,200 @@ export default function BinDetail() {
 
                   <div className="min-h-[60px]">
                     <AnimatePresence mode="wait">
-                    {searchError ? (
-                      <motion.div
-                        key="search-error"
-                        initial={{ opacity: 0, y: -10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-500 text-[10px] font-bold"
-                      >
-                        <AlertCircle size={14} />
-                        {searchError}
-                      </motion.div>
-                    ) : searchResult ? (
-                      <motion.div
-                        key="search-result"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col gap-4"
-                      >
-                        <div className="flex items-center justify-between gap-4">
-                          <div className="overflow-hidden">
-                            <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-0.5">
-                              Search Result
-                            </p>
-                            <p className="text-sm font-black text-slate-800 line-clamp-1">
-                              {searchResult.desc}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-[10px] font-bold text-slate-500">
-                                MID: {searchResult.mid}
-                              </span>
-                              {searchResult.bin_sap && (
-                                <span className="text-[10px] font-black text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded-lg border border-amber-100">
-                                  BIN: {searchResult.bin_sap}
-                                </span>
+                      {searchError ? (
+                        <motion.div
+                          key="search-error"
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-500 text-[10px] font-bold"
+                        >
+                          <AlertCircle size={14} />
+                          {searchError}
+                        </motion.div>
+                      ) : searchResult ? (
+                        <motion.div
+                          key="search-result"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col gap-4"
+                        >
+                          <div className="flex items-center justify-between gap-4">
+                            <div className="overflow-hidden">
+                              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-0.5">
+                                Search Result
+                              </p>
+                              <p className="text-sm font-black text-slate-800 line-clamp-1">
+                                {searchResult.desc}
+                              </p>
+                                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight bg-slate-100 px-2 py-0.5 rounded-lg">
+                                    MID: {searchResult.mid}
+                                  </span>
+                                  {searchResult.current_bin && (
+                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-100 text-amber-600">
+                                      <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
+                                      <span className="text-[10px] font-black uppercase">
+                                        Located in: {searchResult.current_bin}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              {searchResult.isAlreadyInBin && (
+                                <p className="mt-2 text-[10px] font-black text-red-500 flex items-center gap-1.5 bg-red-50 p-2 rounded-xl border border-red-100 uppercase tracking-tight">
+                                  <AlertCircle size={12} />
+                                  Material already in this bin
+                                </p>
                               )}
                             </div>
-                          </div>
-                          {!showConfirmAdd && (
-                            <button
-                              onClick={handleAddMaterial}
-                              className="shrink-0 p-3 rounded-xl bg-indigo-600 text-white shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-90"
-                            >
-                              <Plus size={20} />
-                            </button>
-                          )}
-                        </div>
-
-                        {showConfirmAdd && (
-                          <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            className="pt-3 border-t border-indigo-100/50 flex flex-col gap-3"
-                          >
-                            <p className="text-[10px] font-bold text-slate-600 leading-tight">
-                              Material ini sudah ada di bin <span className="font-black text-indigo-600">{searchResult.bin_sap}</span>. Tetap masukkan ke bin ini?
-                            </p>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => setShowConfirmAdd(false)}
-                                className="flex-1 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-white transition-colors"
-                              >
-                                BATAL
-                              </button>
+                            {!showConfirmAdd && !searchResult.isAlreadyInBin && (
                               <button
                                 onClick={handleAddMaterial}
-                                className="flex-1 py-2 rounded-xl bg-indigo-600 text-white text-[10px] font-black shadow-md hover:bg-indigo-700 transition-colors"
+                                title={
+                                  searchResult.current_bin
+                                    ? "Replace Bin"
+                                    : "Add to Bin"
+                                }
+                                className={`shrink-0 p-3 rounded-xl text-white shadow-lg transition-all active:scale-90 ${
+                                  searchResult.current_bin
+                                    ? "bg-amber-500 shadow-amber-200 hover:bg-amber-600"
+                                    : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
+                                }`}
                               >
-                                KONFIRMASI
+                                {searchResult.current_bin ? (
+                                  <RefreshCw size={20} />
+                                ) : (
+                                  <Plus size={20} />
+                                )}
                               </button>
-                            </div>
-                          </motion.div>
-                        )}
-                      </motion.div>
-                    ) : null}
+                            )}
+                          </div>
+
+                          {showConfirmAdd && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              className="pt-3 border-t border-indigo-100/50 flex flex-col gap-3"
+                            >
+                              <p className="text-[10px] font-bold text-slate-600 leading-tight">
+                                Material ini sudah ada di bin{" "}
+                                <span className="font-black text-indigo-600">
+                                  {searchResult.current_bin}
+                                </span>
+                                . Pindahkan ke bin ini? (Bin lama akan
+                                dikosongkan)
+                              </p>
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => setShowConfirmAdd(false)}
+                                  className="flex-1 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-white transition-colors"
+                                >
+                                  BATAL
+                                </button>
+                                <button
+                                  onClick={handleAddMaterial}
+                                  className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black shadow-md transition-colors ${
+                                    searchResult.current_bin
+                                      ? "bg-amber-500 hover:bg-amber-600"
+                                      : "bg-indigo-600 hover:bg-indigo-700"
+                                  }`}
+                                >
+                                  {searchResult.current_bin
+                                    ? "PINDAHKAN"
+                                    : "KONFIRMASI"}
+                                </button>
+                              </div>
+                            </motion.div>
+                          )}
+                        </motion.div>
+                      ) : null}
                     </AnimatePresence>
                   </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      {/* DETAIL EDIT MODAL */}
+      <AnimatePresence>
+        {detailModalItem && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDetailModalItem(null)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-100"
+            >
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-2xl bg-indigo-50 text-indigo-600 shadow-inner">
+                      <FileText size={20} />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">
+                        Bin Detail
+                      </h3>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        MID: {detailModalItem.mid}
+                        <span className="text-indigo-500 font-black tracking-normal">• BIN {binName}</span>
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDetailModalItem(null)}
+                    className="p-2 rounded-xl text-slate-400 hover:bg-slate-100 transition-colors"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
+                      Material Name
+                    </p>
+                    <p className="text-xs font-bold text-slate-700 leading-relaxed">
+                      {detailModalItem.desc}
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">
+                      Edit Detail Location
+                    </p>
+                    <textarea
+                      autoFocus
+                      rows={4}
+                      value={detailModalItem.detail || ""}
+                      onChange={(e) => {
+                        const newDetail = e.target.value;
+                        setDetailModalItem({
+                          ...detailModalItem,
+                          detail: newDetail,
+                        });
+                        handleUpdateDetail(detailModalItem.id, newDetail);
+                      }}
+                      placeholder="Add specific location details, notes, etc..."
+                      className="w-full px-4 py-3 text-xs font-bold bg-white border-2 border-indigo-100 rounded-2xl focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 text-slate-800 shadow-inner transition-all resize-none"
+                    />
+                  </div>
+
+                  <button
+                    onClick={() => setDetailModalItem(null)}
+                    className="w-full py-4 rounded-2xl bg-indigo-600 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] mt-2"
+                  >
+                    DONE
+                  </button>
                 </div>
               </div>
             </motion.div>

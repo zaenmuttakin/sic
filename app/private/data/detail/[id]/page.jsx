@@ -23,6 +23,8 @@ import {
   Edit,
   Box,
   Archive,
+  CheckCircle2,
+  AlertCircle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -63,6 +65,20 @@ export default function PostDetail() {
     enabled: !!post,
   });
 
+  const { data: binSicData, isLoading: isLoadingBinSic } = useQuery({
+    queryKey: ["bin_sic", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bins")
+        .select("*")
+        .eq("mid", id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!post,
+  });
+
   const [showModal, setShowModal] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
 
@@ -85,6 +101,52 @@ export default function PostDetail() {
   };
 
   const [copiedState, setCopiedState] = useState(null);
+  const [checkingBin, setCheckingBin] = useState(false);
+
+  const handleBinClick = async () => {
+    if (!post) return;
+    const firstBin = (post.bin_sap || "-").split(",")[0].trim();
+    const isPlaceholder =
+      !firstBin ||
+      firstBin === "-" ||
+      firstBin.toLowerCase() === "n/a" ||
+      firstBin.toLowerCase() === "none";
+
+    if (isPlaceholder) {
+      router.push(
+        `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(post.desc)}`
+      );
+      return;
+    }
+
+    setCheckingBin(true);
+    try {
+      const { data, error } = await supabase
+        .from("bins")
+        .select("bin")
+        .ilike("bin", firstBin)
+        .limit(1);
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        router.push(
+          `/private/bin/detail/${encodeURIComponent(data[0].bin)}?from=${post.mid}`
+        );
+      } else {
+        router.push(
+          `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(post.desc)}&targetBin=${encodeURIComponent(firstBin.toUpperCase())}`
+        );
+      }
+    } catch (err) {
+      console.error(err);
+      router.push(
+        `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(post.desc)}&targetBin=${encodeURIComponent(firstBin.toUpperCase())}`
+      );
+    } finally {
+      setCheckingBin(false);
+    }
+  };
 
   const calculateTotalStock = (p) => {
     return (
@@ -236,9 +298,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
               <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-3">
                 <LucideImage size={40} />
               </div>
-              <p className="text-xs font-bold uppercase tracking-widest">
-                No Image Available
-              </p>
+              <p className="text-xs font-bold uppercase ">No Image Available</p>
             </div>
           )}
 
@@ -292,7 +352,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           {/* Image Tag */}
           {images.length > 0 && (
             <div className="absolute top-4 right-4 z-10">
-              <div className="rounded-full bg-black/20 backdrop-blur-md px-3 py-1 text-xs font-bold text-white uppercase tracking-widest border border-white/20">
+              <div className="rounded-full bg-black/20 backdrop-blur-md px-3 py-1 text-xs font-bold text-white uppercase  border border-white/20">
                 {currentImg + 1} / {images.length}
               </div>
             </div>
@@ -319,13 +379,18 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           >
             <LucideImage size={16} />
           </Link>
-          <Link
-            href={`/private/bin/detail/${(post.bin_sap || "NOBIN").split(",")[0].trim()}?from=${id}`}
+          <button
+            onClick={handleBinClick}
             title="View Bin"
-            className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
+            disabled={checkingBin}
+            className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95 disabled:opacity-50"
           >
-            <Archive size={16} />
-          </Link>
+            {checkingBin ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              <Archive size={16} />
+            )}
+          </button>
 
           {/* Divider */}
           <div className="mx-1 h-4 w-px bg-slate-200" />
@@ -430,22 +495,97 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             </div>
 
             {/* Right Side: Storage Bins */}
-            <div className="flex flex-col ">
-              <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 mb-3 w-fit">
-                Storage Bin
-              </span>
-              <div className="flex-1 bg-slate-50/40 rounded-2xl p-4 border border-slate-100">
-                <ul className="space-y-2">
-                  {(post.bin_sap || "ZONE-B1").split(",").map((bin, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-2 text-xs text-slate-600 font-semibold"
-                    >
-                      <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                      <span className="truncate">{bin.trim()}</span>
-                    </li>
-                  ))}
-                </ul>
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="inline-block rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500 w-fit">
+                  Storage Bin
+                </span>
+                {post && binSicData && (
+                  <div className="flex items-center gap-1.5">
+                    {(() => {
+                      const sapBins = (post.bin_sap || "")
+                        .split(",")
+                        .map((b) => b.trim().toUpperCase())
+                        .filter(
+                          (b) => b && b !== "-" && b !== "NONE" && b !== "N/A"
+                        );
+                      const sicBins = (binSicData || []).map((b) =>
+                        b.bin.trim().toUpperCase()
+                      );
+
+                      const isMatch =
+                        sapBins.length === sicBins.length &&
+                        sapBins.every((b) => sicBins.includes(b)) &&
+                        sicBins.every((b) => sapBins.includes(b));
+
+                      return isMatch ? (
+                        <div className="flex items-center gap-1 text-xs text-emerald-500 uppercase tracking-tight bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                          <CheckCircle2 size={12} />
+                          <span>Match</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-xs text-amber-500 uppercase tracking-tight bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                          <AlertCircle size={12} />
+                          <span>Mismatch</span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                {/* Bin SAP */}
+                <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-400 uppercase  mb-3">
+                    Bin SAP
+                  </p>
+                  <ul className="space-y-2">
+                    {(post.bin_sap || "-").split(",").map((bin, i) => (
+                      <li
+                        key={i}
+                        className="flex items-center gap-2 text-xs text-slate-600 font-semibold"
+                      >
+                        <div className="h-1 w-1 rounded-full bg-slate-300" />
+                        <span className="truncate">{bin.trim()}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Bin SIC */}
+                <div className="order-first bg-indigo-50/30 rounded-2xl p-4 border border-indigo-100">
+                  <p className="text-xs font-semibold text-indigo-400 uppercase  mb-3">
+                    Bin SIC
+                  </p>
+                  <ul className="space-y-2">
+                    {isLoadingBinSic ? (
+                      <div className="flex items-center gap-2 text-xs text-slate-400">
+                        <LoaderCircle size={12} className="animate-spin" />
+                        <span>Loading...</span>
+                      </div>
+                    ) : binSicData && binSicData.length > 0 ? (
+                      binSicData.map((bin, i) => (
+                        <li
+                          key={i}
+                          onClick={() =>
+                            router.push(
+                              `/private/bin/detail/${encodeURIComponent(bin.bin)}`
+                            )
+                          }
+                          className="flex items-center gap-2 text-xs text-indigo-600 font-bold cursor-pointer hover:underline"
+                        >
+                          <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
+                          <span className="truncate">{bin.bin}</span>
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-xs text-slate-400 font-medium italic">
+                        No Bin in SIC
+                      </li>
+                    )}
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -500,122 +640,118 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             </div>
           </div>
         </div>
-        {/* Modal Overview */}
-        <AnimatePresence>
-          {showModal && images.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-10"
-            >
-              {/* Close Button */}
-              <button
-                onClick={() => {
-                  setShowModal(false);
-                  setZoomScale(1);
-                }}
-                className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
-              >
-                <X size={18} />
-              </button>
-
-              {/* Zoom Controls (Moved to Top) */}
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 p-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl">
-                <button
-                  onClick={() =>
-                    setZoomScale((prev) => Math.max(prev - 0.5, 1))
-                  }
-                  className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
-                >
-                  <ZoomOut size={16} />
-                </button>
-                <div className="w-10 text-center text-[10px] font-bold text-white tabular-nums">
-                  {Math.round(zoomScale * 100)}%
-                </div>
-                <button
-                  onClick={() =>
-                    setZoomScale((prev) => Math.min(prev + 0.5, 3))
-                  }
-                  className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
-                >
-                  <ZoomIn size={16} />
-                </button>
-              </div>
-
-              {/* Image Container */}
-              <div className="relative w-full h-full overflow-hidden">
-                <motion.div
-                  className="flex h-full"
-                  style={{ width: `${images.length * 100}%` }}
-                  animate={{
-                    x: `-${(currentImg * 100) / images.length}%`,
-                  }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                  drag={zoomScale > 1 ? true : "x"}
-                  dragConstraints={
-                    zoomScale > 1
-                      ? { left: -500, right: 500, top: -500, bottom: 500 }
-                      : { left: 0, right: 0 }
-                  }
-                  onDragEnd={(e, { offset }) => {
-                    if (zoomScale === 1) {
-                      const swipe = offset.x;
-                      if (swipe < -50) nextImg();
-                      else if (swipe > 50) prevImg();
-                    }
-                  }}
-                >
-                  {images.map((src, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        opacity: zoomScale > 1 && i !== currentImg ? 0 : 1,
-                      }}
-                      className="relative h-full flex-1 flex items-center justify-center transition-opacity duration-300"
-                    >
-                      <motion.img
-                        src={src}
-                        animate={{ scale: zoomScale }}
-                        className="max-w-full max-h-full object-contain touch-none"
-                      />
-                    </div>
-                  ))}
-                </motion.div>
-
-                {/* Modal Navigation Buttons (Moved to Bottom) */}
-                {images.length > 1 && zoomScale === 1 && (
-                  <div className="absolute bottom-10 left-0 right-0 z-[110] flex items-center justify-center gap-6">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        prevImg();
-                      }}
-                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
-                    >
-                      <ChevronLeft size={20} />
-                    </button>
-
-                    <div className="rounded-full bg-white/10 backdrop-blur-md px-4 py-1 text-xs font-bold text-white tabular-nums border border-white/10">
-                      {currentImg + 1} / {images.length}
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        nextImg();
-                      }}
-                      className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
-                    >
-                      <ChevronRight size={20} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </motion.div>
+      {/* Modal Overview */}
+      <AnimatePresence>
+        {showModal && images.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-10"
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setShowModal(false);
+                setZoomScale(1);
+              }}
+              className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Zoom Controls (Moved to Top) */}
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 p-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl">
+              <button
+                onClick={() => setZoomScale((prev) => Math.max(prev - 0.5, 1))}
+                className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
+              >
+                <ZoomOut size={16} />
+              </button>
+              <div className="w-10 text-center text-xs font-bold text-white tabular-nums">
+                {Math.round(zoomScale * 100)}%
+              </div>
+              <button
+                onClick={() => setZoomScale((prev) => Math.min(prev + 0.5, 3))}
+                className="p-2 rounded-full hover:bg-white/10 text-white transition-colors"
+              >
+                <ZoomIn size={16} />
+              </button>
+            </div>
+
+            {/* Image Container */}
+            <div className="relative w-full h-full overflow-hidden">
+              <motion.div
+                className="flex h-full"
+                style={{ width: `${images.length * 100}%` }}
+                animate={{
+                  x: `-${(currentImg * 100) / images.length}%`,
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                drag={zoomScale > 1 ? true : "x"}
+                dragConstraints={
+                  zoomScale > 1
+                    ? { left: -500, right: 500, top: -500, bottom: 500 }
+                    : { left: 0, right: 0 }
+                }
+                onDragEnd={(e, { offset }) => {
+                  if (zoomScale === 1) {
+                    const swipe = offset.x;
+                    if (swipe < -50) nextImg();
+                    else if (swipe > 50) prevImg();
+                  }
+                }}
+              >
+                {images.map((src, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      opacity: zoomScale > 1 && i !== currentImg ? 0 : 1,
+                    }}
+                    className="relative h-full flex-1 flex items-center justify-center transition-opacity duration-300"
+                  >
+                    <motion.img
+                      src={src}
+                      animate={{ scale: zoomScale }}
+                      className="max-w-full max-h-full object-contain touch-none"
+                    />
+                  </div>
+                ))}
+              </motion.div>
+
+              {/* Modal Navigation Buttons (Moved to Bottom) */}
+              {images.length > 1 && zoomScale === 1 && (
+                <div className="absolute bottom-10 left-0 right-0 z-[110] flex items-center justify-center gap-6">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      prevImg();
+                    }}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+
+                  <div className="rounded-full bg-white/10 backdrop-blur-md px-4 py-1 text-xs font-bold text-white tabular-nums border border-white/10">
+                    {currentImg + 1} / {images.length}
+                  </div>
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      nextImg();
+                    }}
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
