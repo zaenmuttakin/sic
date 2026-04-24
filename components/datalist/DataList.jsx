@@ -1,133 +1,48 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useInfiniteQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useInView } from "react-intersection-observer";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import Link from "next/link";
 import {
+  LoaderCircle,
+  ChevronDown,
   ArrowDown,
   ArrowDownUp,
   ArrowUp,
-  LoaderCircle,
-  ChevronDown,
-  Ban,
-  ArrowRight,
   X,
+  Copy,
+  Archive,
+  ClipboardCheck,
+  ChevronRight,
+  Package,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-
-const calculateTotalStock = (item) => {
-  const fields = ["draft", "project", "actual", "gt01", "g002", "g003", "g004"];
-  return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
-};
-
-const calculateOtherStock = (item) => {
-  const fields = ["g002", "g003", "g004", "gt01"];
-  return fields.reduce((sum, field) => sum + (Number(item[field]) || 0), 0);
-};
+import Link from "next/link";
+import {
+  useDataList,
+  calculateTotalStock,
+  calculateOtherStock,
+} from "@/lib/useDataList";
 
 export default function DataList() {
-  const { ref, inView } = useInView();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
-  const { replace } = useRouter();
-
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
-  const [sortBy, setSortBy] = useState("desc");
-  const [sortOrder, setSortOrder] = useState("asc");
-  const [sortControl, setSortControl] = useState(false);
-  const [expandedId, setExpandedId] = useState(null);
-  const [binCache, setBinCache] = useState({}); // { [mid]: { loading, items } }
-  const { push } = useRouter();
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-      const params = new URLSearchParams(searchParams);
-      if (searchTerm) params.set("q", searchTerm);
-      else params.delete("q");
-      replace(`${pathname}?${params.toString()}`);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchTerm, pathname, replace, searchParams]);
-
   const {
+    ref,
+    searchTerm,
+    setSearchTerm,
+    sortControl,
+    setSortControl,
+    sortBy,
+    setSortBy,
+    sortOrder,
+    setSortOrder,
+    expandedId,
+    binCache,
+    copiedId,
+    isLoading,
     data,
-    fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-    status,
-    isLoading,
-  } = useInfiniteQuery({
-    queryKey: ["from_sheets", debouncedSearch, sortBy, sortOrder],
-    queryFn: async ({ pageParam = 0 }) => {
-      let query = supabase.from("from_sheets").select("*");
-
-      if (debouncedSearch) {
-        const isNumber = /^\d+$/.test(debouncedSearch);
-        if (isNumber) {
-          query = query.or(
-            `mid.eq.${debouncedSearch},"desc".ilike.%${debouncedSearch}%`
-          );
-        } else {
-          query = query.ilike("desc", `%${debouncedSearch}%`);
-        }
-      }
-
-      const { data, error } = await query
-        .range(pageParam, pageParam + 19)
-        .order(sortBy, { ascending: sortOrder === "asc" });
-
-      if (error) throw error;
-      return data;
-    },
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length < 20) return undefined;
-      return allPages.length * 20;
-    },
-    initialPageParam: 0,
-    staleTime: 1000 * 60 * 5,
-  });
-
-  useEffect(() => {
-    if (inView && hasNextPage) fetchNextPage();
-  }, [inView, hasNextPage, fetchNextPage]);
-
-  const fetchBinData = async (mid) => {
-    if (binCache[mid]) return;
-    setBinCache((prev) => ({ ...prev, [mid]: { loading: true, items: [] } }));
-    try {
-      const { data, error } = await supabase
-        .from("bins")
-        .select("bin, detail, type")
-        .eq("mid", mid);
-      if (error) throw error;
-      setBinCache((prev) => ({ ...prev, [mid]: { loading: false, items: data || [] } }));
-    } catch {
-      setBinCache((prev) => ({ ...prev, [mid]: { loading: false, items: [] } }));
-    }
-  };
-
-  const handleBinClick = async (binName, mid, desc) => {
-    const trimmedBin = binName.trim();
-    const isPlaceholder = !trimmedBin || trimmedBin === "-" || trimmedBin.toLowerCase() === "n/a" || trimmedBin.toLowerCase() === "none";
-    if (isPlaceholder) {
-      push(`/private/bin/adding/${mid}?desc=${encodeURIComponent(desc)}`);
-      return;
-    }
-    try {
-      const { data } = await supabase.from("bins").select("bin").ilike("bin", trimmedBin).limit(1);
-      if (data && data.length > 0) {
-        push(`/private/bin/detail/${encodeURIComponent(data[0].bin)}`);
-      } else {
-        push(`/private/bin/adding/${mid}?desc=${encodeURIComponent(desc)}&targetBin=${encodeURIComponent(trimmedBin.toUpperCase())}`);
-      }
-    } catch {
-      push(`/private/bin/adding/${mid}?desc=${encodeURIComponent(desc)}&targetBin=${encodeURIComponent(trimmedBin.toUpperCase())}`);
-    }
-  };
+    handleBinClick,
+    handleCopy,
+    toggleExpand,
+    push,
+  } = useDataList();
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-24 pb-20">
@@ -219,6 +134,9 @@ export default function DataList() {
       </div>
 
       <div id="data-list" className="space-y-1">
+        <p className="text-xs font-bold uppercase text-slate-400 px-1">
+          Material Data
+        </p>
         {isLoading ? (
           <div className="w-full flex items-center justify-center py-20">
             <LoaderCircle
@@ -236,7 +154,6 @@ export default function DataList() {
             <div key={i} className="flex flex-col gap-1">
               {group.map((item, j) => {
                 const isExpanded = expandedId === item.mid;
-                const globalIdx = i * 20 + j;
                 return (
                   <motion.div
                     key={item.mid}
@@ -246,11 +163,7 @@ export default function DataList() {
                     transition={{ duration: 0.3, ease: "easeOut" }}
                   >
                     <div
-                      onClick={() => {
-                          const newId = isExpanded ? null : item.mid;
-                          setExpandedId(newId);
-                          if (!isExpanded) fetchBinData(item.mid);
-                        }}
+                      onClick={() => toggleExpand(item.mid)}
                       className={`cursor-pointer overflow-hidden rounded-2xl border transition-all duration-300 ${
                         isExpanded
                           ? "border-indigo-200 bg-white shadow-xl shadow-indigo-200/30 "
@@ -261,8 +174,8 @@ export default function DataList() {
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <div className="mb-2 flex flex-wrap gap-1">
-                              <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase text-indigo-500">
-                                MID {item.mid}
+                              <span className="flex items-center gap-2 rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold uppercase text-indigo-500">
+                                <Package size={14} /> {item.mid}
                               </span>
                               <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-500">
                                 {item.uom}
@@ -277,12 +190,16 @@ export default function DataList() {
                               {item.desc}
                             </p>
                           </div>
-                          <motion.div
-                            animate={{ rotate: isExpanded ? 180 : 0 }}
-                            className="ml-2 mt-1 text-slate-400"
-                          >
-                            <ChevronDown size={20} />
-                          </motion.div>
+                          <div className="flex items-center gap-1 ml-2 mt-0.5">
+                            <Link
+                              href={`/private/data/detail/${item.mid}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className="flex gap-1 py-1.5 pr-2 pl-3 text-xs bg-slate-50 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors active:scale-95"
+                            >
+                              Details
+                              <ChevronRight size={16} />
+                            </Link>
+                          </div>
                         </div>
 
                         <AnimatePresence>
@@ -307,7 +224,6 @@ export default function DataList() {
                                         <div className="absolute left-0 top-0 bottom-[14px] w-px bg-slate-200" />
                                         {[
                                           { label: "Draft", value: item.draft },
-
                                           {
                                             label: "Unrest",
                                             value: item.actual,
@@ -316,12 +232,11 @@ export default function DataList() {
                                             label: "Project",
                                             value: item.project,
                                           },
-                                        ].map((sub, idx, arr) => (
+                                        ].map((sub) => (
                                           <div
                                             key={sub.label}
                                             className="relative flex items-center justify-between text-sm py-1.5 pl-6"
                                           >
-                                            {/* Horizontal Branch */}
                                             <div className="absolute left-0 top-1/2 w-4 h-px bg-slate-200" />
                                             <span className="text-slate-500 text-xs">
                                               {sub.label}
@@ -335,19 +250,18 @@ export default function DataList() {
                                       </div>
                                     </div>
 
-                                    {/* Other Row */}
                                     <div className="flex items-center gap-4">
                                       <span className="rounded-full bg-slate-100/80 px-3 py-1 text-xs font-bold text-slate-500">
                                         Other
                                       </span>
-                                      <div className="flex-1 max-w-[120px] h-px bg-slate-100" />
+                                      <div className="flex-1 h-px bg-slate-100" />
                                       <span className="text-xs text-slate-700">
                                         {calculateOtherStock(item)}
                                       </span>
                                     </div>
                                   </div>
-                                  {/* Right Side: Storage Bins from bins table */}
-                                  <div className="flex flex-col justify-start items-start gap-4">
+                                  {/* Right Side: Storage Bins */}
+                                  <div className="flex flex-col justify-start items-start gap-4 pr-3">
                                     <div className="w-full flex-1 flex flex-col gap-2 h-full">
                                       <span className="w-fit rounded-full bg-slate-100/80 px-2.5 py-0.5 text-xs font-bold text-slate-500">
                                         Stor. Bin
@@ -355,51 +269,104 @@ export default function DataList() {
                                       <div className="bg-slate-50/50 p-3 h-full border border-slate-100 rounded-xl space-y-2">
                                         {binCache[item.mid]?.loading ? (
                                           <div className="flex items-center gap-2 text-xs text-slate-400">
-                                            <LoaderCircle size={12} className="animate-spin" />
+                                            <LoaderCircle
+                                              size={12}
+                                              className="animate-spin"
+                                            />
                                             <span>Loading...</span>
                                           </div>
-                                        ) : binCache[item.mid]?.items?.length > 0 ? (
-                                          binCache[item.mid].items.map((b, i) => (
-                                            <div key={i}
-                                              onClick={(e) => { e.stopPropagation(); handleBinClick(b.bin, item.mid, item.desc); }}
-                                              className="cursor-pointer group"
-                                            >
-                                              <div className="flex items-center gap-2">
-                                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                                                  b.type === "R" ? "bg-amber-400" : "bg-emerald-400"
-                                                }`} />
-                                                <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 group-hover:underline transition-colors truncate">
-                                                  {b.bin}
-                                                </span>
+                                        ) : binCache[item.mid]?.items?.length >
+                                          0 ? (
+                                          binCache[item.mid].items.map(
+                                            (b, idx) => (
+                                              <div
+                                                key={idx}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  handleBinClick(
+                                                    b.bin,
+                                                    item.mid,
+                                                    item.desc
+                                                  );
+                                                }}
+                                                className="cursor-pointer group"
+                                              >
+                                                <div className="flex items-center gap-2">
+                                                  <span
+                                                    className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                                                      b.type === "R"
+                                                        ? "bg-amber-400"
+                                                        : "bg-emerald-400"
+                                                    }`}
+                                                  />
+                                                  <span className="text-xs font-bold text-slate-700 group-hover:text-indigo-600 group-hover:underline transition-colors truncate">
+                                                    {b.bin}
+                                                  </span>
+                                                </div>
+                                                {b.detail && (
+                                                  <p className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded mt-1 ml-3.5 uppercase tracking-tight">
+                                                    {b.detail}
+                                                  </p>
+                                                )}
                                               </div>
-                                              {b.detail && (
-                                                <p className="text-[10px] font-bold text-indigo-500 bg-indigo-50 px-2 py-0.5 rounded mt-1 ml-3.5 uppercase tracking-tight">
-                                                  {b.detail}
-                                                </p>
-                                              )}
-                                            </div>
-                                          ))
+                                            )
+                                          )
                                         ) : (
                                           <div
-                                            onClick={(e) => { e.stopPropagation(); push(`/private/bin/adding/${item.mid}?desc=${encodeURIComponent(item.desc)}`); }}
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              push(
+                                                `/private/bin/adding/${item.mid}?desc=${encodeURIComponent(item.desc)}`
+                                              );
+                                            }}
                                             className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer hover:text-indigo-500 transition-colors"
                                           >
-                                            <span className="text-slate-300">—</span>
-                                            <span className="hover:underline">No bin · Assign one</span>
+                                            <span className="text-slate-300">
+                                              —
+                                            </span>
+                                            <span className="hover:underline">
+                                              No bin · Assign one
+                                            </span>
                                           </div>
                                         )}
                                       </div>
                                     </div>
-
-                                    <div className="w-full text-right">
-                                      <Link
-                                        href={`/private/data/detail/${item.mid}`}
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="inline-flex items-center justify-between gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-xs text-indigo-500 transition-all hover:bg-indigo-100 w-fit sm:w-auto"
+                                    <div className="flex w-full justify-end items-center gap-2 ml-2 mt-0.5">
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          const firstBin = (item.bin_sap || "")
+                                            .split(",")[0]
+                                            .trim();
+                                          handleBinClick(
+                                            firstBin,
+                                            item.mid,
+                                            item.desc
+                                          );
+                                        }}
+                                        className="flex items-center text-xs gap-2 px-3 py-1.5 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 bg-slate-50 transition-colors active:scale-95"
                                       >
-                                        Details
-                                        <ArrowRight size={14} />
-                                      </Link>
+                                        <Archive size={16} />
+                                        <span>Bin</span>
+                                      </button>
+                                      <div className="mx-1 h-4 w-px bg-slate-200" />
+                                      <button
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleCopy(item);
+                                        }}
+                                        className={`text-xs gap-2 px-2 py-1.5 rounded-full transition-colors bg-slate-50 active:scale-95 ${
+                                          copiedId === item.mid
+                                            ? "text-emerald-600 bg-emerald-50"
+                                            : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                        }`}
+                                      >
+                                        {copiedId === item.mid ? (
+                                          <ClipboardCheck size={16} />
+                                        ) : (
+                                          <Copy size={16} />
+                                        )}
+                                      </button>
                                     </div>
                                   </div>
                                 </div>

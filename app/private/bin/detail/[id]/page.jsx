@@ -19,6 +19,7 @@ import {
   RefreshCw,
   Zap,
   FileText,
+  PencilLine,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
@@ -53,6 +54,7 @@ export default function BinDetail() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [showConfirmAdd, setShowConfirmAdd] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
 
   const {
     data: items,
@@ -328,10 +330,7 @@ export default function BinDetail() {
                 })
                 .eq("id", item.oldBinData.id);
             } else {
-              await supabase
-                .from("bins")
-                .delete()
-                .eq("id", item.oldBinData.id);
+              await supabase.from("bins").delete().eq("id", item.oldBinData.id);
             }
           }
         }
@@ -432,48 +431,45 @@ export default function BinDetail() {
           Back
         </button>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-3">
           {isEditing ? (
             <>
               <button
                 onClick={() => {
                   setIsEditing(false);
-                  setMaterials(
-                    items.map((m) => ({ ...m, isRemoved: false, isNew: false }))
-                  );
+                  setMaterials(originalMaterials);
                 }}
-                title="Cancel"
-                className="p-2 rounded-xl border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors"
+                className="px-2 py-2 text-sm font-medium text-slate-400 hover:text-red-500 transition-colors"
               >
-                <X size={18} />
+                Cancel
               </button>
               <button
                 onClick={() => setIsModalOpen(true)}
-                title="Add Material"
-                className="p-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-all active:scale-95"
               >
-                <Plus size={18} />
+                <Plus size={14} strokeWidth={2.5} />
+                <span className="text-sm font-medium">Add</span>
               </button>
               <button
-                onClick={() => saveMutation.mutate(materials)}
+                onClick={() => setShowSaveConfirm(true)}
                 disabled={!hasChanges}
-                className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-black text-white shadow-lg transition-all active:scale-95 ${
+                className={`flex items-center gap-2 rounded-2xl px-5 py-2 text-sm font-medium text-white shadow-xl transition-all active:scale-95 ${
                   hasChanges
-                    ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200"
-                    : "bg-slate-300 shadow-none cursor-not-allowed opacity-60"
+                    ? "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200/50"
+                    : "bg-slate-200 text-slate-400 shadow-none cursor-not-allowed"
                 }`}
               >
                 <Save size={14} />
-                SAVE
+                Save
               </button>
             </>
           ) : (
             <button
               onClick={() => setIsEditing(true)}
-              className="inline-flex items-center gap-2 rounded-xl border border-indigo-100 bg-indigo-50/50 px-4 py-2 text-xs font-black text-indigo-600 hover:bg-indigo-100 transition-colors"
+              className="inline-flex items-center gap-2 rounded-2xl border border-indigo-100 bg-indigo-50/50 px-4 py-2 text-sm font-medium text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all active:scale-95 shadow-sm"
             >
-              <Edit2 size={14} />
-              EDIT BIN
+              <PencilLine size={14} />
+              Edit Bin
             </button>
           )}
         </div>
@@ -486,7 +482,7 @@ export default function BinDetail() {
           className="mb-4 flex items-center gap-2 p-3 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600"
         >
           <Info size={16} />
-          <p className="text-[10px] font-black uppercase tracking-widest">
+          <p className="text-xs font-bold uppercase tracking-widest">
             Editing Bin Contents
           </p>
         </motion.div>
@@ -498,27 +494,24 @@ export default function BinDetail() {
         className="rounded-3xl border border-indigo-100 bg-white shadow-xl shadow-indigo-200/20 overflow-visible"
       >
         {/* Bin Header Card */}
-        <div className="bg-indigo-600 p-6 text-white relative rounded-t-[22px] overflow-hidden">
+        <div className="bg-indigo-500 p-6 text-white relative rounded-t-3xl overflow-hidden">
           <div className="relative z-10 flex items-center justify-between">
             <div>
-              <span className="rounded-full bg-white/20 backdrop-blur-md px-3 py-1 text-[10px] font-black uppercase tracking-widest">
-                Location
+              <span className="w-fit px-3 pr-4 py-1 rounded-full bg-white/10 backdrop-blur-md text-xs font-bold border border-white/20 shadow-2xl flex items-center gap-1.5 ring-1 ring-white/10">
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${materials[0]?.type === "R" ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"}`}
+                />
+                {materials[0]?.type === "R" ? "RACK" : "ZONE"}
               </span>
               <h1 className="text-2xl font-black tracking-tight mt-2 uppercase flex items-center gap-3">
                 {binName}
-                <span className="px-3 py-1 rounded-full bg-white/10 backdrop-blur-md text-[9px] font-black border border-white/20 shadow-2xl flex items-center gap-1.5 ring-1 ring-white/10">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${materials[0]?.type === "R" ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]" : "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]"}`}
-                  />
-                  {materials[0]?.type === "R" ? "RACK SYSTEM" : "ZONE STORAGE"}
-                </span>
               </h1>
             </div>
             <div className="text-right">
-              <p className="text-indigo-100 text-[10px] font-black uppercase tracking-widest opacity-80">
+              <p className="text-indigo-100 text-xs font-bold uppercase opacity-80">
                 Materials
               </p>
-              <p className="text-2xl font-black leading-none">
+              <p className="text-2xl font-black ">
                 {materials.filter((m) => !m.isRemoved).length}
               </p>
             </div>
@@ -557,7 +550,7 @@ export default function BinDetail() {
             {filteredItems.length === 0 ? (
               <div className="py-20 text-center text-slate-300 flex flex-col items-center">
                 <Package size={48} className="opacity-10 mb-3" />
-                <p className="text-xs font-black uppercase tracking-widest text-slate-400">
+                <p className="text-xs font-bold uppercase text-slate-400">
                   No materials found
                 </p>
               </div>
@@ -613,13 +606,13 @@ export default function BinDetail() {
                         </div>
                       )}
                       {isNew && (
-                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-green-500 text-white text-[7px] font-black uppercase shadow-sm">
+                        <div className="absolute top-1 left-1 px-1.5 py-0.5 rounded-full bg-green-500 text-white text-[7px] font-bold uppercase shadow-sm">
                           New
                         </div>
                       )}
                       {isRemoved && (
                         <div className="absolute inset-0 bg-red-500/10 flex items-center justify-center">
-                          <div className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[7px] font-black uppercase shadow-sm">
+                          <div className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[7px] font-bold uppercase shadow-sm">
                             Removed
                           </div>
                         </div>
@@ -630,12 +623,12 @@ export default function BinDetail() {
                       <div className="overflow-hidden">
                         <div className="flex items-center gap-2 mb-0.5">
                           <span
-                            className={`text-[10px] font-black ${isFromDetail ? "text-indigo-600" : isRemoved ? "text-red-400" : "text-indigo-600"}`}
+                            className={`text-xs font-bold ${isFromDetail ? "text-indigo-600" : isRemoved ? "text-red-400" : "text-indigo-600"}`}
                           >
                             {item.mid || "(EMPTY SLOT)"}
                           </span>
                           {item.mid && (
-                            <span className="text-[10px] font-bold text-slate-400">
+                            <span className="text-xs font-bold text-slate-400">
                               • {calculateTotalStock(item)} Stock
                             </span>
                           )}
@@ -654,7 +647,7 @@ export default function BinDetail() {
                           {item.desc || "Ready for new material"}
                         </p>
                         {item.detail && !isRemoved && (
-                          <p className="mt-1 text-[10px] font-black text-indigo-500 uppercase tracking-tight bg-indigo-50 w-fit px-1.5 py-0.5 rounded border border-indigo-100">
+                          <p className="mt-1 text-xs font-bold text-indigo-500 uppercase tracking-tight bg-indigo-50 w-fit px-1.5 py-0.5 rounded border border-indigo-100">
                             {item.detail}
                           </p>
                         )}
@@ -667,19 +660,19 @@ export default function BinDetail() {
                             className={`p-2 rounded-xl transition-all active:scale-90 ${
                               isFromDetail
                                 ? "text-indigo-600 bg-white"
-                                : "text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                                : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
                             }`}
                           >
-                            <ArrowRight size={16} />
+                            <ArrowRight size={18} />
                           </Link>
                         )}
                         {isEditing && !isRemoved && item.mid && (
                           <button
                             onClick={() => setDetailModalItem(item)}
-                            className="p-2 rounded-xl text-slate-300 hover:text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
+                            className="p-2 rounded-xl text-slate-500 hover:text-indigo-500 hover:bg-indigo-50 transition-all active:scale-90"
                             title="Edit Details"
                           >
-                            <FileText size={16} />
+                            <FileText size={18} />
                           </button>
                         )}
                         {isEditing && (
@@ -688,13 +681,13 @@ export default function BinDetail() {
                             className={`p-2 rounded-xl transition-all active:scale-90 ${
                               isRemoved
                                 ? "text-indigo-500 bg-indigo-50 hover:bg-indigo-100"
-                                : "text-red-300 hover:text-red-500 hover:bg-red-50"
+                                : "text-red-400 hover:text-red-500 hover:bg-red-50"
                             }`}
                           >
                             {isRemoved ? (
-                              <RotateCcw size={16} />
+                              <RotateCcw size={18} />
                             ) : (
-                              <Trash2 size={16} />
+                              <Trash2 size={18} />
                             )}
                           </button>
                         )}
@@ -729,13 +722,13 @@ export default function BinDetail() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-100"
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-2 text-indigo-600">
+                  <div className="flex items-center gap-2 text-indigo-500">
                     <Plus size={20} strokeWidth={3} />
-                    <h2 className="text-lg font-black tracking-tight">
+                    <h2 className="text-lg font-bold tracking-tight">
                       Add Material
                     </h2>
                   </div>
@@ -777,7 +770,7 @@ export default function BinDetail() {
                   <button
                     onClick={handleSearch}
                     disabled={isSearching}
-                    className="w-full py-3.5 bg-indigo-600 text-white rounded-2xl font-black text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-50"
+                    className="w-full py-3.5 bg-indigo-500 text-white rounded-2xl font-bold text-sm shadow-xl shadow-indigo-100 hover:bg-indigo-600 transition-all active:scale-[0.98] disabled:opacity-50"
                   >
                     {isSearching ? (
                       <LoaderCircle
@@ -797,7 +790,7 @@ export default function BinDetail() {
                           initial={{ opacity: 0, y: -10 }}
                           animate={{ opacity: 1, y: 0 }}
                           exit={{ opacity: 0, y: -10 }}
-                          className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-500 text-[10px] font-bold"
+                          className="flex items-center gap-2 p-3 rounded-xl bg-red-50 text-red-500 text-xs font-bold"
                         >
                           <AlertCircle size={14} />
                           {searchError}
@@ -811,54 +804,55 @@ export default function BinDetail() {
                           className="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 flex flex-col gap-4"
                         >
                           <div className="flex items-center justify-between gap-4">
-                            <div className="overflow-hidden">
-                              <p className="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-0.5">
+                            <div className="overflow-hidden w-full">
+                              <p className="text-xs font-bold text-indigo-500 uppercase mb-2">
                                 Search Result
                               </p>
-                              <p className="text-sm font-black text-slate-800 line-clamp-1">
+                              <p className="text-sm font-bold text-slate-800 line-clamp-1">
                                 {searchResult.desc}
                               </p>
-                                 <div className="flex flex-wrap items-center gap-2 mt-1.5">
-                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-tight bg-slate-100 px-2 py-0.5 rounded-lg">
-                                    MID: {searchResult.mid}
-                                  </span>
-                                  {searchResult.current_bin && (
-                                    <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-100 text-amber-600">
-                                      <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
-                                      <span className="text-[10px] font-black uppercase">
-                                        Located in: {searchResult.current_bin}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
+                              <div className="flex flex-wrap items-center gap-2 mt-1">
+                                <span className="text-xs font-bold text-slate-500 uppercase py-0.5 rounded-lg">
+                                  MID: {searchResult.mid}
+                                </span>
+                                {searchResult.current_bin && (
+                                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-amber-50 border border-amber-100 text-amber-600">
+                                    <div className="w-1 h-1 rounded-full bg-amber-400 animate-pulse" />
+                                    <span className="text-xs font-medium ">
+                                      Located in: {searchResult.current_bin}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
                               {searchResult.isAlreadyInBin && (
-                                <p className="mt-2 text-[10px] font-black text-red-500 flex items-center gap-1.5 bg-red-50 p-2 rounded-xl border border-red-100 uppercase tracking-tight">
-                                  <AlertCircle size={12} />
+                                <p className="mt-4 text-xs font-bold text-red-500 flex items-center gap-1.5 bg-red-50 p-2 rounded-xl border border-red-100 justify-center">
+                                  <AlertCircle size={14} />
                                   Material already in this bin
                                 </p>
                               )}
                             </div>
-                            {!showConfirmAdd && !searchResult.isAlreadyInBin && (
-                              <button
-                                onClick={handleAddMaterial}
-                                title={
-                                  searchResult.current_bin
-                                    ? "Replace Bin"
-                                    : "Add to Bin"
-                                }
-                                className={`shrink-0 p-3 rounded-xl text-white shadow-lg transition-all active:scale-90 ${
-                                  searchResult.current_bin
-                                    ? "bg-amber-500 shadow-amber-200 hover:bg-amber-600"
-                                    : "bg-indigo-600 shadow-indigo-200 hover:bg-indigo-700"
-                                }`}
-                              >
-                                {searchResult.current_bin ? (
-                                  <RefreshCw size={20} />
-                                ) : (
-                                  <Plus size={20} />
-                                )}
-                              </button>
-                            )}
+                            {!showConfirmAdd &&
+                              !searchResult.isAlreadyInBin && (
+                                <button
+                                  onClick={handleAddMaterial}
+                                  title={
+                                    searchResult.current_bin
+                                      ? "Replace Bin"
+                                      : "Add to Bin"
+                                  }
+                                  className={`shrink-0 p-3 rounded-xl text-white transition-all active:scale-90 ${
+                                    searchResult.current_bin
+                                      ? "bg-amber-500 hover:bg-amber-600"
+                                      : "bg-indigo-500 hover:bg-indigo-600"
+                                  }`}
+                                >
+                                  {searchResult.current_bin ? (
+                                    <RefreshCw size={20} />
+                                  ) : (
+                                    <Plus size={20} />
+                                  )}
+                                </button>
+                              )}
                           </div>
 
                           {showConfirmAdd && (
@@ -867,9 +861,9 @@ export default function BinDetail() {
                               animate={{ opacity: 1, scale: 1 }}
                               className="pt-3 border-t border-indigo-100/50 flex flex-col gap-3"
                             >
-                              <p className="text-[10px] font-bold text-slate-600 leading-tight">
+                              <p className="text-xs font-bold text-slate-600 leading-tight">
                                 Material ini sudah ada di bin{" "}
-                                <span className="font-black text-indigo-600">
+                                <span className="font-bold text-indigo-600">
                                   {searchResult.current_bin}
                                 </span>
                                 . Pindahkan ke bin ini? (Bin lama akan
@@ -878,21 +872,21 @@ export default function BinDetail() {
                               <div className="flex gap-2">
                                 <button
                                   onClick={() => setShowConfirmAdd(false)}
-                                  className="flex-1 py-2 rounded-xl border border-slate-200 text-[10px] font-black text-slate-500 hover:bg-white transition-colors"
+                                  className="flex-1 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-500 hover:bg-white transition-colors"
                                 >
-                                  BATAL
+                                  CANCEL
                                 </button>
                                 <button
                                   onClick={handleAddMaterial}
-                                  className={`flex-1 py-2 rounded-xl text-white text-[10px] font-black shadow-md transition-colors ${
+                                  className={`flex-1 py-2 rounded-xl text-white text-xs font-bold shadow-md transition-colors ${
                                     searchResult.current_bin
                                       ? "bg-amber-500 hover:bg-amber-600"
                                       : "bg-indigo-600 hover:bg-indigo-700"
                                   }`}
                                 >
                                   {searchResult.current_bin
-                                    ? "PINDAHKAN"
-                                    : "KONFIRMASI"}
+                                    ? "REPLACE"
+                                    : "CONFIRM"}
                                 </button>
                               </div>
                             </motion.div>
@@ -922,7 +916,7 @@ export default function BinDetail() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-[32px] shadow-2xl overflow-hidden border border-slate-100"
+              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100"
             >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -931,12 +925,14 @@ export default function BinDetail() {
                       <FileText size={20} />
                     </div>
                     <div>
-                      <h3 className="text-sm font-black text-slate-800 uppercase tracking-tight">
+                      <h3 className="text-sm font-bold text-slate-800 uppercase tracking-tight">
                         Bin Detail
                       </h3>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <p className="text-xs font-bold text-slate-400 uppercase flex items-center gap-2">
                         MID: {detailModalItem.mid}
-                        <span className="text-indigo-500 font-black tracking-normal">• BIN {binName}</span>
+                        <span className="text-indigo-500 font-bold tracking-normal">
+                          • {binName}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -950,8 +946,8 @@ export default function BinDetail() {
 
                 <div className="space-y-4">
                   <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5">
-                      Material Name
+                    <p className="text-xs font-bold text-slate-400 uppercase mb-1.5">
+                      Description
                     </p>
                     <p className="text-xs font-bold text-slate-700 leading-relaxed">
                       {detailModalItem.desc}
@@ -959,8 +955,8 @@ export default function BinDetail() {
                   </div>
 
                   <div>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1.5 px-1">
-                      Edit Detail Location
+                    <p className="text-xs font-bold text-slate-400 uppercase mb-1.5 px-1">
+                      Edit Detail
                     </p>
                     <textarea
                       autoFocus
@@ -981,9 +977,50 @@ export default function BinDetail() {
 
                   <button
                     onClick={() => setDetailModalItem(null)}
-                    className="w-full py-4 rounded-2xl bg-indigo-600 text-white text-xs font-black uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] mt-2"
+                    className="w-full py-4 rounded-2xl bg-indigo-600 text-white text-xs font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] mt-2"
                   >
                     DONE
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+        {/* Save Confirmation Modal */}
+        {showSaveConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="w-full max-w-sm bg-white rounded-3xl overflow-hidden shadow-2xl"
+            >
+              <div className="p-6 text-center">
+                <div className="w-16 h-16 bg-indigo-50 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Save size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">
+                  Save Changes?
+                </h3>
+                <p className="text-sm text-slate-500 mb-6 leading-relaxed">
+                  Apakah yakin ingin menyimpan perubahan ini? Data bin akan
+                  diperbarui.
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setShowSaveConfirm(false)}
+                    className="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    onClick={() => {
+                      setShowSaveConfirm(false);
+                      saveMutation.mutate(materials);
+                    }}
+                    className="flex-1 py-3 rounded-2xl bg-indigo-600 text-white text-sm font-bold shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95"
+                  >
+                    Simpan
                   </button>
                 </div>
               </div>

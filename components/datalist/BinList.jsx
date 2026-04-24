@@ -37,7 +37,7 @@ function BinCard({ group, expandedId, setExpandedId }) {
             : "border-slate-200/80 bg-white hover:border-indigo-100 hover:shadow-sm"
         }`}
       >
-        <div className="py-6 px-5">
+        <div className="py-5 px-5">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex flex-wrap gap-1 item-center">
@@ -45,7 +45,7 @@ function BinCard({ group, expandedId, setExpandedId }) {
                   {group.bin || "(EMPTY)"}
                 </span>
                 <span
-                  className={`rounded-full px-3 py-1 text-xs font-bold uppercase ${
+                  className={`rounded-full px-3 py-1.5 text-xs font-semibold uppercase ${
                     group.totalItems > 0
                       ? "bg-slate-50 text-slate-500"
                       : "bg-red-50 text-red-500"
@@ -55,12 +55,22 @@ function BinCard({ group, expandedId, setExpandedId }) {
                 </span>
               </div>
             </div>
-            <motion.div
-              animate={{ rotate: isExpanded ? 180 : 0 }}
-              className="ml-2 mt-1 text-slate-400"
-            >
-              <ChevronDown size={20} />
-            </motion.div>
+            <div className="flex items-center gap-1 ml-2 mt-0.5">
+              <Link
+                href={`/private/bin/detail/${
+                  group.bin === ""
+                    ? "EMPTY"
+                    : group.bin === "(NULL)"
+                      ? "NULL"
+                      : group.bin
+                }`}
+                onClick={(e) => e.stopPropagation()}
+                className="flex gap-1 py-1.5 pr-2 pl-3 text-xs bg-slate-50 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors active:scale-95"
+              >
+                Details
+                <ChevronRight size={16} />
+              </Link>
+            </div>
           </div>
 
           <AnimatePresence>
@@ -74,24 +84,10 @@ function BinCard({ group, expandedId, setExpandedId }) {
               >
                 <hr className="my-4 border-slate-100/80" />
                 <div id="more-detail" className="pb-1">
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-between mb-2">
                     <p className="text-xs font-bold uppercase   text-slate-400 px-1">
                       List Material
                     </p>
-                    <Link
-                      href={`/private/bin/detail/${
-                        group.bin === ""
-                          ? "EMPTY"
-                          : group.bin === "(NULL)"
-                            ? "NULL"
-                            : group.bin
-                      }`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="inline-flex items-center justify-between gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-xs text-indigo-500 transition-all hover:bg-indigo-100 w-fit sm:w-auto"
-                    >
-                      Detail Bin
-                      <ChevronRight size={14} />
-                    </Link>
                   </div>
 
                   <div className="space-y-2">

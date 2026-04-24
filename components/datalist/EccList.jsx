@@ -18,6 +18,7 @@ import {
   ArrowRight,
   ChevronRight,
   X,
+  History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -242,6 +243,9 @@ export default function EccList() {
       </div>
 
       <div id="data-list" className="space-y-1">
+        <p className="text-xs font-bold uppercase   text-slate-400 px-1">
+          ECC DATA
+        </p>
         {isLoading ? (
           <div className="w-full flex items-center justify-center py-20">
             <LoaderCircle
@@ -279,8 +283,8 @@ export default function EccList() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="mb-2 flex flex-wrap gap-1">
-                          <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold uppercase  text-blue-600">
-                            MID {group.old_mat}
+                          <span className="flex items-center gap-2 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold uppercase  text-blue-600">
+                            <History size={14} /> {group.old_mat}
                           </span>
                           <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-semibold uppercase  text-slate-500">
                             {group.newCount} MID Baru
@@ -292,12 +296,16 @@ export default function EccList() {
                           {group.old_desc}
                         </p>
                       </div>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 180 : 0 }}
-                        className="ml-2 mt-1 text-slate-400"
-                      >
-                        <ChevronDown size={20} />
-                      </motion.div>
+                      <div className="flex items-center gap-1 ml-2 mt-0.5">
+                        <Link
+                          href={`/private/ecc/detail/${group.old_mat}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="flex gap-1 py-1.5 pr-2 pl-3 text-xs bg-slate-50 rounded-full text-slate-400 hover:text-indigo-600 hover:bg-indigo-100 transition-colors active:scale-95"
+                        >
+                          Details
+                          <ChevronRight size={16} />
+                        </Link>
+                      </div>
                     </div>
 
                     <AnimatePresence>
@@ -311,20 +319,11 @@ export default function EccList() {
                         >
                           <hr className="my-4 border-slate-100/80" />
                           <div id="more-detail" className="pb-1">
-                            <div className="flex flex-col gap-4">
-                              {/* Overview Button at Top */}
+                            <div className="flex flex-col">
                               <div className="flex justify-between items-center">
                                 <p className="text-xs font-semibold uppercase text-slate-400 px-2 py-2">
                                   mid baru
                                 </p>
-                                <Link
-                                  href={`/private/ecc/detail/${group.old_mat}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="inline-flex items-center justify-between gap-2 rounded-full border border-indigo-200 px-4 py-1.5 text-xs text-indigo-500 transition-all hover:bg-indigo-100 w-fit sm:w-auto"
-                                >
-                                  Overview
-                                  <ChevronRight size={14} />
-                                </Link>
                               </div>
 
                               <div className="space-y-2">

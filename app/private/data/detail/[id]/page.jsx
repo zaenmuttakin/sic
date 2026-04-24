@@ -101,50 +101,30 @@ export default function PostDetail() {
   };
 
   const [copiedState, setCopiedState] = useState(null);
-  const [checkingBin, setCheckingBin] = useState(false);
-
-  const handleBinClick = async () => {
+  const handleBinClick = () => {
     if (!post) return;
-    const firstBin = (post.bin_sap || "-").split(",")[0].trim();
-    const isPlaceholder =
-      !firstBin ||
-      firstBin === "-" ||
-      firstBin.toLowerCase() === "n/a" ||
-      firstBin.toLowerCase() === "none";
 
-    if (isPlaceholder) {
+    if (binSicData && binSicData.length > 0) {
+      // If already in SIC, go to the first bin's detail
       router.push(
-        `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(post.desc)}`
+        `/private/bin/detail/${encodeURIComponent(binSicData[0].bin)}?from=${post.mid}`
       );
-      return;
-    }
+    } else {
+      // If not in SIC, go to adding page
+      const firstBin = (post.bin_sap || "-").split(",")[0].trim();
+      const isPlaceholder =
+        !firstBin ||
+        firstBin === "-" ||
+        firstBin.toLowerCase() === "n/a" ||
+        firstBin.toLowerCase() === "none";
 
-    setCheckingBin(true);
-    try {
-      const { data, error } = await supabase
-        .from("bins")
-        .select("bin")
-        .ilike("bin", firstBin)
-        .limit(1);
-
-      if (error) throw error;
-
-      if (data && data.length > 0) {
-        router.push(
-          `/private/bin/detail/${encodeURIComponent(data[0].bin)}?from=${post.mid}`
-        );
-      } else {
-        router.push(
-          `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(post.desc)}&targetBin=${encodeURIComponent(firstBin.toUpperCase())}`
-        );
+      let url = `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(
+        post.desc
+      )}`;
+      if (!isPlaceholder) {
+        url += `&targetBin=${encodeURIComponent(firstBin.toUpperCase())}`;
       }
-    } catch (err) {
-      console.error(err);
-      router.push(
-        `/private/bin/adding/${post.mid}?desc=${encodeURIComponent(post.desc)}&targetBin=${encodeURIComponent(firstBin.toUpperCase())}`
-      );
-    } finally {
-      setCheckingBin(false);
+      router.push(url);
     }
   };
 
@@ -381,11 +361,13 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           </Link>
           <button
             onClick={handleBinClick}
-            title="View Bin"
-            disabled={checkingBin}
+            title={
+              binSicData && binSicData.length > 0 ? "View Bin" : "Add to Bin"
+            }
+            disabled={isLoadingBinSic}
             className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95 disabled:opacity-50"
           >
-            {checkingBin ? (
+            {isLoadingBinSic ? (
               <LoaderCircle size={16} className="animate-spin" />
             ) : (
               <Archive size={16} />
@@ -519,14 +501,14 @@ ${oldMids || "- (No Old MID Mapping)"}`;
                         sicBins.every((b) => sapBins.includes(b));
 
                       return isMatch ? (
-                        <div className="flex items-center gap-1 text-xs text-emerald-500 uppercase tracking-tight bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
+                        <div className="flex items-center gap-1 text-xs text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
                           <CheckCircle2 size={12} />
                           <span>Match</span>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-1 text-xs text-amber-500 uppercase tracking-tight bg-amber-50 px-2 py-0.5 rounded-full border border-amber-100">
+                        <div className="flex items-center gap-1 text-xs text-red-500 bg-red-50 px-2 py-0.5 rounded-full">
                           <AlertCircle size={12} />
-                          <span>Mismatch</span>
+                          <span>Different </span>
                         </div>
                       );
                     })()}

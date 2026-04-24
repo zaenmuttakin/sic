@@ -8,6 +8,9 @@ import {
   Zap,
   User,
   LogOut,
+  PackagePlus,
+  Package2,
+  FileSpreadsheet,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -93,7 +96,7 @@ export default function Home() {
   const menuItems = [
     {
       title: "ECC MID",
-      icon: Package,
+      icon: Package2,
       href: "/private/ecc",
       progress: 100,
       text: "SAP ECC DATA",
@@ -123,7 +126,25 @@ export default function Home() {
       text: userData.nickname.toUpperCase(),
       color: "text-indigo-500",
     },
-  ];
+    {
+      title: "Regist.",
+      icon: PackagePlus,
+      href: "/private/bin/regist",
+      progress: 100,
+      text: "FIXED BIN",
+      color: "text-indigo-500",
+      superOnly: false,
+    },
+    {
+      title: "Export",
+      icon: FileSpreadsheet,
+      href: "/private/export",
+      progress: 100,
+      text: "EXCEL DATA",
+      color: "text-indigo-500",
+      superOnly: false,
+    },
+  ].filter((item) => !item.superOnly || userData.role === "superuser");
 
   return (
     <main className="mesh-gradient-container min-h-screen bg-white">
