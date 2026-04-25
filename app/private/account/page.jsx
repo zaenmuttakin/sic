@@ -37,17 +37,22 @@ export default function Account() {
 
   return (
     <main className="mesh-gradient-container w-full min-h-screen bg-slate-100 flex flex-col items-center justify-start p-4 py-8">
-      <div className="mesh-blob top-[20%] -right-[20%] w-[110%] h-[70%] bg-indigo-200/40" />
-      <div className="mesh-blob bottom-[-10%] left-[10%] w-[70%] h-[50%] bg-blue-100/30" />
-
-      {/* Back Button - Compact */}
-      <div className="w-full max-w-2xl">
+      {/* Header Bar */}
+      <div className="w-full max-w-2xl flex items-center justify-between mb-6">
         <button
           onClick={() => router.back()}
-          className="mb-6 inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
         >
           <ArrowLeft size={16} />
           Back
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-red-100 px-4 py-2 text-sm font-medium text-red-700 transition hover:bg-red-200 hover:text-red-500 hover:border-red-300"
+        >
+          <LogOut size={16} />
+          Logout
         </button>
       </div>
 
@@ -91,19 +96,6 @@ export default function Account() {
           <p className="text-sm text-slate-500 mb-6">
             Tetap fokus! Akurasi adalah tujuan utama.
           </p>
-
-          <div className="flex items-center justify-end border-t border-slate-50 pt-5">
-            <Link
-              href="/"
-              onClick={handleLogout}
-              className="group flex items-center gap-2 rounded-[20px] bg-indigo-500 backdrop-blur-xl px-4 py-2 text-sm text-white border-white/40 hover:bg-indigo-500/10 hover:text-indigo-500 hover:border-indigo-200/50 transition-all duration-300 hover:shadow-md active:scale-95"
-            >
-              <span className="p-1 rounded-lg text-indigo-100 group-hover:bg-indigo-500 group-hover:text-white transition-colors duration-300">
-                <LogOut size={14} />
-              </span>
-              Logout
-            </Link>
-          </div>
         </div>
       </motion.div>
     </main>

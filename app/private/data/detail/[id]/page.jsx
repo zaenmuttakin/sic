@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useParams, useRouter } from "next/navigation";
@@ -25,6 +26,11 @@ import {
   Archive,
   CheckCircle2,
   AlertCircle,
+  ImageOff,
+  Plus,
+  ImagePlus,
+  Files,
+  ScanText,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -79,12 +85,34 @@ export default function PostDetail() {
     enabled: !!post,
   });
 
+  const { data: driveImages, isLoading: isLoadingImages } = useQuery({
+    queryKey: ["drive_images", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("images")
+        .select("*")
+        .eq("mid", id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!post,
+  });
+
   const [showModal, setShowModal] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
 
-  const images = post?.images || [
-    "https://i.pinimg.com/1200x/81/63/16/816316a875a57be6770da52f507dfbf1.jpg",
-  ];
+  let images = post?.images || [];
+
+  if (driveImages) {
+    const driveUrls = [driveImages.img1, driveImages.img2, driveImages.img3]
+      .filter(Boolean)
+      .map((fileId) => `https://lh3.googleusercontent.com/d/${fileId}`);
+    if (driveUrls.length > 0) {
+      images = driveUrls;
+    }
+  }
 
   const [currentImg, setCurrentImg] = useState(0);
 
@@ -264,21 +292,30 @@ ${oldMids || "- (No Old MID Mapping)"}`;
                     className="relative h-full flex-1 cursor-zoom-in"
                     onTap={() => setShowModal(true)}
                   >
-                    <img
+                    <Image
                       src={src}
                       alt={`Slide ${i}`}
-                      className="w-full h-full object-cover touch-none"
+                      fill
+                      unoptimized
+                      className="object-cover touch-none"
                     />
                   </motion.div>
                 ))}
               </motion.div>
             </div>
           ) : (
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-slate-300">
-              <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-3">
-                <LucideImage size={40} />
-              </div>
-              <p className="text-xs font-bold uppercase ">No Image Available</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/40">
+              <Link
+                href={`/private/data/image/${id}`}
+                className="group flex flex-col items-center gap-3 p-5 rounded-[40px] transition-all hover:bg-white hover:shadow-2xl hover:shadow-indigo-100 active:scale-95"
+              >
+                <div className="rounded-full flex items-center justify-center">
+                  <ImagePlus
+                    size={50}
+                    className="text-slate-300 group-hover:text-indigo-400 transition-colors"
+                  />
+                </div>
+              </Link>
             </div>
           )}
 
@@ -357,7 +394,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             title="Edit Image"
             className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
           >
-            <LucideImage size={16} />
+            <LucideImage size={18} />
           </Link>
           <button
             onClick={handleBinClick}
@@ -368,9 +405,9 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95 disabled:opacity-50"
           >
             {isLoadingBinSic ? (
-              <LoaderCircle size={16} className="animate-spin" />
+              <LoaderCircle size={18} className="animate-spin" />
             ) : (
-              <Archive size={16} />
+              <Archive size={18} />
             )}
           </button>
 
@@ -388,9 +425,9 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             }`}
           >
             {copiedState === "all" ? (
-              <ClipboardCheck size={16} />
+              <ClipboardCheck size={18} />
             ) : (
-              <FileText size={16} />
+              <FileText size={18} />
             )}
           </button>
           <button
@@ -403,9 +440,9 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             }`}
           >
             {copiedState === "basic" ? (
-              <ClipboardCheck size={16} />
+              <ClipboardCheck size={18} />
             ) : (
-              <Copy size={16} />
+              <Copy size={18} />
             )}
           </button>
         </div>
@@ -552,13 +589,24 @@ ${oldMids || "- (No Old MID Mapping)"}`;
                           key={i}
                           onClick={() =>
                             router.push(
-                              `/private/bin/detail/${encodeURIComponent(bin.bin)}`
+                              `/private/bin/detail/${encodeURIComponent(
+                                bin.bin
+                              )}`
                             )
                           }
-                          className="flex items-center gap-2 text-xs text-indigo-600 font-bold cursor-pointer hover:underline"
+                          className="flex items-start gap-2 text-xs text-indigo-600 font-bold cursor-pointer group/bin"
                         >
-                          <div className="h-1.5 w-1.5 rounded-full bg-indigo-400" />
-                          <span className="truncate">{bin.bin}</span>
+                          <div className="h-1.5 w-1.5 rounded-full bg-indigo-400 mt-1" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="group-hover:underline truncate">
+                              {bin.bin}
+                            </span>
+                            {bin.detail && (
+                              <span className="text-[10px] font-medium text-slate-400 line-clamp-1 italic leading-tight">
+                                {bin.detail}
+                              </span>
+                            )}
+                          </div>
                         </li>
                       ))
                     ) : (

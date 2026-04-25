@@ -1,17 +1,23 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
   LoaderCircle,
   Trash2,
   Image as LucideImage,
-  Save,
   Camera,
   FolderOpen,
   Plus,
+  AlertCircle,
+  CheckCircle2,
+  Save,
+  ImageUp,
+  Cloud,
+  CloudUpload,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useUndo } from "@/context/UndoContext";
@@ -23,12 +29,14 @@ export default function EditImage() {
   const queryClient = useQueryClient();
   const { showUndo, showLoading, showError } = useUndo();
 
-  // Per-slot refs for gallery and camera hidden inputs
   const galleryRefs = useRef([]);
   const cameraRefs = useRef([]);
-  const [uploading, setUploading] = useState(null); // slot index being uploaded
+  const [uploading, setUploading] = useState(null); // slot key: 'img1', 'img2', 'img3'
+  const [localPreviews, setLocalPreviews] = useState({}); // { img1: 'blob:...' }
+  const [confirmDelete, setConfirmDelete] = useState(null); // { slot, fileId }
 
-  const { data: post, isLoading } = useQuery({
+  // Fetch basic material info
+  const { data: post, isLoading: isLoadingPost } = useQuery({
     queryKey: ["post", id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -41,111 +49,193 @@ export default function EditImage() {
     },
   });
 
-  const [images, setImages] = useState([]);
-  const [originalImages, setOriginalImages] = useState([]);
+  // Fetch current images from the new system
+  const { data: driveImages, isLoading: isLoadingImages } = useQuery({
+    queryKey: ["drive_images", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("images")
+        .select("*")
+        .eq("mid", id)
+        .maybeSingle();
+      if (error) throw error;
+      return data || { img1: null, img2: null, img3: null };
+    },
+  });
+
+  const [activeSlots, setActiveSlots] = useState(["img1"]); // Show at least one slot
 
   useEffect(() => {
-    if (post) {
-      const initial = post.images || [];
-      setImages(initial);
-      setOriginalImages(initial);
+    if (driveImages) {
+      const slots = [];
+      if (driveImages.img1 || driveImages.img2 || driveImages.img3) {
+        if (driveImages.img1) slots.push("img1");
+        if (driveImages.img2) slots.push("img2");
+        if (driveImages.img3) slots.push("img3");
+      } else {
+        slots.push("img1");
+      }
+      setActiveSlots([...new Set(slots)]);
     }
-  }, [post]);
+  }, [driveImages]);
 
-  // ── Mutations ──────────────────────────────────────────────────────────────
-  const undoMutation = useMutation({
-    mutationFn: async (prev) => {
-      const { error } = await supabase
-        .from("from_sheets")
-        .update({ images: prev })
-        .eq("mid", id);
-      if (error) throw error;
-    },
-    onSuccess: () => queryClient.invalidateQueries(["post", id]),
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: async (next) => {
-      const { error } = await supabase
-        .from("from_sheets")
-        .update({ images: next })
-        .eq("mid", id);
-      if (error) throw error;
-    },
-    onMutate: () => {
-      showLoading("Saving changes...");
-    },
-    onError: (err) => {
-      showError("Failed to save images");
-      console.error(err);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries(["post", id]);
-      showUndo("Images updated successfully", () => undoMutation.mutate(originalImages));
-      router.back();
-    },
-  });
-
-  // ── Image helpers ──────────────────────────────────────────────────────────
-  const handleRemove = (index) =>
-    setImages((prev) => prev.filter((_, i) => i !== index));
-
-  const handleAdd = () => {
-    if (images.length < 3) setImages((prev) => [...prev, ""]);
+  const getUserNickname = () => {
+    const savedUser =
+      typeof window !== "undefined" ? localStorage.getItem("sic_user") : null;
+    return savedUser ? JSON.parse(savedUser).nickname : "system";
   };
 
-  const handleUrlChange = (index, value) =>
-    setImages((prev) => prev.map((img, i) => (i === index ? value : img)));
-
-  const handleSave = () => {
-    const filtered = images.filter((img) => img.trim() !== "");
-    saveMutation.mutate(filtered);
-  };
-
-  // ── File upload (gallery or camera) ───────────────────────────────────────
-  // Converts the file to a base64 data URL and stores it directly in the DB.
-  // No Supabase Storage bucket required.
-  const handleFileSelect = async (e, index) => {
+  const handleFileSelect = async (e, slot) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    e.target.value = ""; // reset so same file can be reselected
 
-    setUploading(index);
+    // Size check (10MB limit)
+    if (file.size > 10 * 1024 * 1024) {
+      showError("File too large. Max 10MB allowed.");
+      return;
+    }
+
+    e.target.value = ""; // reset
+    setUploading(slot);
+
+    // Client-side Compression
+    const compressFile = async (originalFile) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(originalFile);
+        reader.onload = (event) => {
+          const img = new window.Image();
+          img.src = event.target.result;
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const MAX_WIDTH = 1600;
+            const MAX_HEIGHT = 1600;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                resolve(
+                  new File([blob], originalFile.name, { type: "image/jpeg" })
+                );
+              },
+              "image/jpeg",
+              0.85
+            );
+          };
+        };
+      });
+    };
+
     try {
-      // Resize + compress before encoding to keep DB row size manageable
-      const dataUrl = await resizeAndEncode(file, 1200, 0.82);
-      handleUrlChange(index, dataUrl);
+      const readyFile = await compressFile(file);
+
+      // Set local preview instantly for Optimistic UI
+      const objectUrl = URL.createObjectURL(readyFile);
+      setLocalPreviews((prev) => ({ ...prev, [slot]: objectUrl }));
+
+      const formData = new FormData();
+      formData.append("file", readyFile);
+      formData.append("mid", id);
+      formData.append("slot", slot);
+      formData.append("user", getUserNickname());
+
+      const oldFileId = driveImages?.[slot];
+      if (oldFileId) {
+        formData.append("oldFileId", oldFileId);
+      }
+
+      const res = await fetch("/api/image", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Upload failed");
+
+      queryClient.invalidateQueries(["drive_images", id]);
+      queryClient.invalidateQueries(["post", id]);
+      showUndo(`Image uploaded to ${slot.toUpperCase()}`);
     } catch (err) {
-      console.error("Image processing failed:", err);
+      console.error(err);
+      showError(err.message);
+      // Remove failed preview
+      setLocalPreviews((prev) => {
+        const next = { ...prev };
+        delete next[slot];
+        return next;
+      });
     } finally {
       setUploading(null);
     }
   };
 
-  // Resize image to maxWidth and encode as JPEG base64 data URL
-  const resizeAndEncode = (file, maxWidth, quality) =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const scale = Math.min(1, maxWidth / img.width);
-          const canvas = document.createElement("canvas");
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          const ctx = canvas.getContext("2d");
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          resolve(canvas.toDataURL("image/jpeg", quality));
-        };
-        img.onerror = reject;
-        img.src = e.target.result;
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  const handleRemove = (slot, fileId) => {
+    if (!fileId) {
+      // Just removing an empty slot
+      setActiveSlots((prev) =>
+        prev.filter((s) => s !== slot || prev.length === 1)
+      );
+      return;
+    }
+    setConfirmDelete({ slot, fileId });
+  };
 
-  // ── Loading state ──────────────────────────────────────────────────────────
-  if (isLoading)
+  const executeRemove = async () => {
+    const { slot, fileId } = confirmDelete;
+    setConfirmDelete(null);
+    setUploading(slot);
+    try {
+      const res = await fetch(
+        `/api/image?fileId=${fileId}&mid=${id}&slot=${slot}&user=${getUserNickname()}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Delete failed");
+
+      // Clear local preview if any
+      setLocalPreviews((prev) => {
+        const next = { ...prev };
+        delete next[slot];
+        return next;
+      });
+
+      queryClient.invalidateQueries(["drive_images", id]);
+      queryClient.invalidateQueries(["post", id]);
+      showUndo(`Image deleted from ${slot.toUpperCase()}`);
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+    } finally {
+      setUploading(null);
+    }
+  };
+
+  const addSlot = () => {
+    const all = ["img1", "img2", "img3"];
+    const next = all.find((s) => !activeSlots.includes(s));
+    if (next) setActiveSlots([...activeSlots, next]);
+  };
+
+  if (isLoadingPost || isLoadingImages)
     return (
       <div className="w-full min-h-screen flex items-center justify-center bg-white">
         <LoaderCircle size={36} className="animate-spin text-indigo-400" />
@@ -158,180 +248,223 @@ export default function EditImage() {
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => router.back()}
-          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100"
+          className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 active:scale-95"
         >
           <ArrowLeft size={16} />
           Back
         </button>
 
-        <button
-          onClick={handleSave}
-          disabled={saveMutation.isPending}
-          className="inline-flex items-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-indigo-200 transition hover:bg-indigo-700 active:scale-95 disabled:opacity-50 disabled:pointer-events-none"
-        >
-          {saveMutation.isPending ? (
-            <LoaderCircle size={16} className="animate-spin" />
-          ) : (
-            <Save size={16} />
-          )}
-          Save
-        </button>
+        <div className="flex items-center font-bold gap-1.5 text-xs text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
+          <ImageUp size={14} />
+          Auto
+        </div>
       </div>
 
       {/* Card */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, ease: "easeOut" }}
-        className="overflow-hidden rounded-3xl border border-indigo-100 bg-white shadow-xl shadow-indigo-200/20"
+        className="overflow-hidden rounded-[32px] border border-indigo-100 bg-white shadow-xl shadow-indigo-200/20"
       >
-        {/* Material info */}
-        <div className="px-5 py-4 border-b border-slate-100">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-500 uppercase">
+        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/30">
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-black text-indigo-500 uppercase tracking-tight">
               MID {id}
             </span>
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-300">
-              Edit Images
-            </span>
+            <div className="flex gap-1 items-center">
+              <CloudUpload size={16} className="text-slate-400" />
+              <span className="text-xs font-bold  text-slate-400">Gdrive</span>
+            </div>
           </div>
           <p className="text-sm font-bold text-slate-800 leading-snug line-clamp-2">
             {post?.desc}
           </p>
         </div>
 
-        {/* Image slots */}
-        <div className="p-4 space-y-3">
-          {/* Slot count + Add */}
+        <div className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-              Images ({images.length}/3)
+            <span className="text-xs uppercase font-bold text-slate-400 px-1">
+              Image ({activeSlots.length}/3)
             </span>
-            {images.length < 3 && (
+            {activeSlots.length < 3 && (
               <button
-                onClick={handleAdd}
-                className="inline-flex items-center gap-1 text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors"
+                onClick={addSlot}
+                className="inline-flex items-center gap-1 text-xs font-bold text-indigo-500 hover:text-indigo-700 transition-colors bg-indigo-50 px-3 py-2 rounded-full"
               >
                 <Plus size={14} />
-                Add Slot
+                Add
               </button>
             )}
           </div>
 
           <AnimatePresence mode="popLayout">
-            {images.map((img, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="flex items-stretch gap-3 bg-slate-50/60 border border-slate-100 rounded-2xl overflow-hidden"
-              >
-                {/* Thumbnail */}
-                <div className="relative w-20 shrink-0 bg-slate-100 flex items-center justify-center">
-                  {uploading === index ? (
-                    <LoaderCircle
-                      size={20}
-                      className="animate-spin text-indigo-400"
-                    />
-                  ) : img ? (
-                    <img
-                      src={img}
-                      alt={`Slot ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <LucideImage size={20} className="text-slate-300" />
-                  )}
+            {activeSlots.sort().map((slot, index) => {
+              const fileId = driveImages?.[slot];
+              const isSlotUploading = uploading === slot;
 
-                  {/* Slot number badge */}
-                  <div className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center">
-                    <span className="text-[9px] font-black text-slate-500">
-                      {index + 1}
-                    </span>
+              return (
+                <motion.div
+                  key={slot}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex items-stretch gap-4 bg-slate-50/50 border border-slate-100 rounded-[24px] p-3 transition-all hover:border-indigo-100"
+                >
+                  {/* Thumbnail */}
+                  <div className="relative w-28 h-28 shrink-0 bg-white rounded-2xl border border-slate-100 overflow-hidden flex items-center justify-center shadow-sm">
+                    {localPreviews[slot] || fileId ? (
+                      <>
+                        <Image
+                          src={
+                            localPreviews[slot] ||
+                            `https://lh3.googleusercontent.com/d/${fileId}`
+                          }
+                          alt={slot}
+                          fill
+                          unoptimized
+                          className={`object-cover transition-opacity duration-500 ${isSlotUploading ? "opacity-40" : "opacity-100"}`}
+                        />
+                        {isSlotUploading && (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-50/20 backdrop-blur-[2px]">
+                            <LoaderCircle
+                              size={24}
+                              className="animate-spin text-indigo-500 mb-1"
+                            />
+                            <span className="text-xs font-bold text-indigo-500 tracking-tighter">
+                              Sync
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : isSlotUploading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <LoaderCircle
+                          size={24}
+                          className="animate-spin text-indigo-400"
+                        />
+                        <span className="text-xs font-bold text-indigo-400">
+                          Upload
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-2 opacity-30">
+                        <LucideImage size={28} className="text-slate-400" />
+                      </div>
+                    )}
+
+                    <div className="flex h-5 w-5 items-center justify-center absolute top-2 left-2 rounded-full bg-indigo-500/80 backdrop-blur-md text-[10px] text-white font-bold">
+                      {slot.slice(-1)}
+                    </div>
                   </div>
-                </div>
 
-                {/* Controls */}
-                <div className="flex-1 py-3 pr-3 flex flex-col justify-between gap-2">
-                  {/* URL input */}
-                  <input
-                    type="text"
-                    value={img}
-                    onChange={(e) => handleUrlChange(index, e.target.value)}
-                    placeholder="Paste URL or upload below…"
-                    className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all placeholder:text-slate-300"
-                  />
+                  {/* Actions */}
+                  <div className="flex-1 flex flex-col justify-center gap-3">
+                    <div className="flex items-center justify-between bg-slate-100/50 rounded-3xl p-1 border border-slate-200/40">
+                      <button
+                        onClick={() => galleryRefs.current[index]?.click()}
+                        disabled={!!uploading}
+                        className="flex-1 flex items-center justify-center py-3.5 rounded-2xl hover:bg-white hover:shadow-sm text-slate-500 hover:text-indigo-500 transition-all active:scale-90 disabled:opacity-50"
+                        title="Gallery"
+                      >
+                        <FolderOpen size={20} />
+                      </button>
+                      <input
+                        ref={(el) => (galleryRefs.current[index] = el)}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileSelect(e, slot)}
+                      />
 
-                  {/* Action buttons */}
-                  <div className="flex items-center gap-1.5">
-                    {/* Gallery picker — no capture attr, opens photo library */}
-                    <button
-                      onClick={() => galleryRefs.current[index]?.click()}
-                      disabled={uploading !== null}
-                      title="Upload from gallery"
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-40"
-                    >
-                      <FolderOpen size={13} />
-                      Gallery
-                    </button>
-                    <input
-                      ref={(el) => (galleryRefs.current[index] = el)}
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFileSelect(e, index)}
-                    />
+                      <button
+                        onClick={() => cameraRefs.current[index]?.click()}
+                        disabled={!!uploading}
+                        className="flex-1 flex items-center justify-center py-3.5 rounded-2xl hover:bg-white hover:shadow-sm text-slate-500 hover:text-indigo-500 transition-all active:scale-90 disabled:opacity-50"
+                        title="Camera"
+                      >
+                        <Camera size={20} />
+                      </button>
+                      <input
+                        ref={(el) => (cameraRefs.current[index] = el)}
+                        type="file"
+                        accept="image/*"
+                        capture="environment"
+                        className="hidden"
+                        onChange={(e) => handleFileSelect(e, slot)}
+                      />
 
-                    {/* Camera — capture="environment" opens rear camera on mobile */}
-                    <button
-                      onClick={() => cameraRefs.current[index]?.click()}
-                      disabled={uploading !== null}
-                      title="Take photo"
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 py-1.5 text-[11px] font-bold text-slate-500 hover:border-indigo-200 hover:text-indigo-600 hover:bg-indigo-50 transition-colors disabled:opacity-40"
-                    >
-                      <Camera size={13} />
-                      Camera
-                    </button>
-                    <input
-                      ref={(el) => (cameraRefs.current[index] = el)}
-                      type="file"
-                      accept="image/*"
-                      capture="environment"
-                      className="hidden"
-                      onChange={(e) => handleFileSelect(e, index)}
-                    />
+                      <div className="w-px h-6 bg-slate-200/60 mx-1" />
 
-                    {/* Delete slot */}
-                    <button
-                      onClick={() => handleRemove(index)}
-                      title="Remove"
-                      className="p-1.5 rounded-xl border border-red-100 text-red-400 hover:bg-red-50 transition-colors"
-                    >
-                      <Trash2 size={13} />
-                    </button>
+                      <button
+                        onClick={() => handleRemove(slot, fileId)}
+                        disabled={!!uploading}
+                        className="flex-1 flex items-center justify-center py-3.5 rounded-2xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all active:scale-90 disabled:opacity-50"
+                        title={fileId ? "Delete Image" : "Remove Slot"}
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              );
+            })}
           </AnimatePresence>
+        </div>
 
-          {/* Empty state */}
-          {images.length === 0 && (
-            <button
-              onClick={handleAdd}
-              className="w-full py-10 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center text-slate-400 hover:border-indigo-300 hover:text-indigo-400 transition-colors gap-2"
-            >
-              <LucideImage size={28} className="opacity-40" />
-              <span className="text-xs font-bold">Tap to add an image slot</span>
-            </button>
-          )}
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
+          <AlertCircle size={16} className="text-slate-400 shrink-0" />
+          <p className="text-xs text-slate-400 leading-tight">
+            Images are compressed on our server before being sent to Google
+            Drive to ensure high speed and quality. Maximum file size is 10MB.
+          </p>
         </div>
       </motion.div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {confirmDelete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white"
+            >
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle size={32} className="text-red-500" />
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-800 text-center mb-2">
+                Delete Image?
+              </h3>
+              <p className="text-sm text-slate-500 text-center mb-8">
+                This will permanently remove the image from Google Drive. This
+                action cannot be undone.
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={executeRemove}
+                  className="w-full py-4 rounded-2xl bg-red-500 text-white font-bold text-sm shadow-lg shadow-red-100 hover:bg-red-600 transition-all active:scale-[0.98]"
+                >
+                  Yes, Delete Image
+                </button>
+                <button
+                  onClick={() => setConfirmDelete(null)}
+                  className="w-full py-4 rounded-2xl bg-slate-50 text-slate-500 font-bold text-sm hover:bg-slate-100 transition-all active:scale-[0.98]"
+                >
+                  Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

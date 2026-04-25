@@ -25,6 +25,7 @@ export default function ExportPage() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [excludeZeroStock, setExcludeZeroStock] = useState(true);
   const [preview, setPreview] = useState(null); // { rowCount, columns, sampleRows, estimatedSize }
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -35,23 +36,35 @@ export default function ExportPage() {
 
     try {
       // Fetch total count using a small query with head:true
-      const { count, error: countError } = await supabase
-        .from("export_bin")
+      let countQuery = supabase
+        .from("full_inv_data")
         .select("*", { count: "exact", head: true });
+
+      if (excludeZeroStock) {
+        countQuery = countQuery.neq("total_stock", 0);
+      }
+
+      const { count, error: countError } = await countQuery;
 
       if (countError) throw countError;
 
       // Fetch a sample of rows
-      const { data: sample, error: sampleError } = await supabase
-        .from("export_bin")
-        .select("*")
+      let sampleQuery = supabase.from("full_inv_data").select("*");
+
+      if (excludeZeroStock) {
+        sampleQuery = sampleQuery.neq("total_stock", 0);
+      }
+
+      const { data: sample, error: sampleError } = await sampleQuery
+        .order("bin_sic", { ascending: true, nullsFirst: true })
+        .order("mid", { ascending: true })
         .range(0, 4);
 
       if (sampleError) throw sampleError;
 
       const columns = sample && sample.length > 0 ? Object.keys(sample[0]) : [];
-      // Rough estimate: ~150 bytes per row per column for Excel
-      const estimatedBytes = (count || 0) * columns.length * 30;
+      // Rough estimate: ~200 bytes per row per column for Excel with more columns
+      const estimatedBytes = (count || 0) * columns.length * 40;
 
       setPreview({
         rowCount: count || 0,
@@ -84,9 +97,15 @@ export default function ExportPage() {
         const from = page * PAGE_SIZE;
         const to = from + PAGE_SIZE - 1;
 
-        const { data, error } = await supabase
-          .from("export_bin")
-          .select("*")
+        let query = supabase.from("full_inv_data").select("*");
+
+        if (excludeZeroStock) {
+          query = query.neq("total_stock", 0);
+        }
+
+        const { data, error } = await query
+          .order("bin_sic", { ascending: true, nullsFirst: true })
+          .order("mid", { ascending: true })
           .range(from, to);
 
         if (error) throw error;
@@ -110,28 +129,36 @@ export default function ExportPage() {
       // Format column headers nicely
       const headerMap = {
         bin_sic: "BIN SIC",
-        bin_type: "TYPE",
-        material_id: "MATERIAL ID",
+        bin_sap: "BIN SAP",
+        mid: "MATERIAL ID",
         description: "DESCRIPTION",
         uom: "UOM",
-        bin_sap: "BIN SAP",
-        stock_actual: "ACTUAL",
-        stock_draft: "DRAFT",
-        stock_project: "PROJECT",
-        stock_gt01: "GT01",
-        stock_g002: "G002",
-        stock_g003: "G003",
-        stock_g004: "G004",
-        bin_detail: "DETAIL",
-        updated_by: "UPDATED BY",
-        updated_at: "UPDATED AT",
+        total_stock: "TOTAL STOCK",
+        central_stock: "CENTRAL STOCK",
+        bin_match: "BIN MATCH?",
+        bin_detail: "BIN DETAIL",
+        bin_type: "BIN TYPE",
+        draft: "DRAFT",
+        project: "PROJECT",
+        actual: "ACTUAL",
+        gt01: "GT01",
+        g002: "G002",
+        g003: "G003",
+        g004: "G004",
+        sheets_update_at: "SHEETS UPDATED",
+        bins_update_at: "BINS UPDATED",
+        bin_updated_by: "UPDATED BY",
+        raw_mid_sheets: "MID SHEETS",
+        raw_mid_bins: "MID BINS",
       };
 
       // Remap data with clean headers
       const exportData = allData.map((row) => {
         const mapped = {};
         for (const [key, label] of Object.entries(headerMap)) {
-          mapped[label] = row[key] ?? "";
+          let val = row[key];
+          if (key === "bin_match") val = val ? "MATCH" : "MISMATCH";
+          mapped[label] = val ?? "";
         }
         return mapped;
       });
@@ -145,17 +172,17 @@ export default function ExportPage() {
           header.length,
           ...exportData.slice(0, 100).map((r) => String(r[header] || "").length)
         );
-        return { wch: Math.min(maxLen + 2, 40) };
+        return { wch: Math.min(maxLen + 2, 50) };
       });
       ws["!cols"] = colWidths;
 
       const wb = utils.book_new();
-      utils.book_append_sheet(wb, ws, "Bin Inventory");
+      utils.book_append_sheet(wb, ws, "Inventory Report");
 
       // Generate filename with date
       const now = new Date();
       const dateStr = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}`;
-      const filename = `SIC_BinExport_${dateStr}.xlsx`;
+      const filename = `SIC_FullInventory_${dateStr}${excludeZeroStock ? "_NoZero" : "_All"}.xlsx`;
 
       writeFile(wb, filename);
 
@@ -177,7 +204,7 @@ export default function ExportPage() {
   };
 
   return (
-    <div className="max-w-2xl w-full mx-auto px-5 py-6 bg-white min-h-screen">
+    <div className="max-w-2xl w-full mx-auto px-5 py-6 bg-white min-h-screen pb-20">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <button
@@ -195,13 +222,46 @@ export default function ExportPage() {
             <FileSpreadsheet size={18} />
             <span className="text-xs font-bold uppercase ">Export</span>
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-800 ">
-            Bin Inventory
+          <h1 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+            Inventory Report
           </h1>
           <p className="text-sm text-slate-500 font-medium mt-1">
-            Export merged bin + material data to Excel.
+            Generate full report from bins and sheets data.
           </p>
         </header>
+
+        {/* Filters */}
+        <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+            Export Options
+          </p>
+          <div
+            onClick={() => {
+              setExcludeZeroStock(!excludeZeroStock);
+              setPreview(null);
+            }}
+            className="flex items-center justify-between cursor-pointer group"
+          >
+            <div className="space-y-0.5">
+              <p className="text-sm font-bold text-slate-700">
+                No-Zero Stock Items
+              </p>
+              <p className="text-xs text-slate-400 font-medium">
+                Exclude items with zero or empty total stock
+              </p>
+            </div>
+            <div
+              className={`w-12 h-6 rounded-full transition-colors relative ${
+                excludeZeroStock ? "bg-indigo-500" : "bg-slate-200"
+              }`}
+            >
+              <motion.div
+                animate={{ x: excludeZeroStock ? 26 : 2 }}
+                className="absolute top-1 left-0 w-4 h-4 bg-white rounded-full shadow-sm"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Load Preview Button */}
         {!preview && (
@@ -263,23 +323,6 @@ export default function ExportPage() {
                 </div>
               </div>
 
-              {/* Columns List */}
-              <div className="p-4 bg-white rounded-2xl border border-slate-100">
-                <p className="text-xs font-bold text-slate-400 uppercase  mb-3">
-                  Columns Included
-                </p>
-                <div className="flex flex-wrap gap-1.5">
-                  {preview.columns.map((col) => (
-                    <span
-                      key={col}
-                      className="px-2.5 py-1 bg-slate-50 rounded-lg text-[11px] font-bold text-slate-500 uppercase"
-                    >
-                      {col.replace(/_/g, " ")}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
               {/* Sample Data */}
               {preview.sampleRows.length > 0 && (
                 <div className="p-4 bg-white rounded-2xl border border-slate-100">
@@ -290,19 +333,16 @@ export default function ExportPage() {
                     <table className="w-full text-[11px]">
                       <thead>
                         <tr className="border-b border-slate-100">
-                          {[
-                            "bin_sic",
-                            "material_id",
-                            "description",
-                            "bin_type",
-                          ].map((col) => (
-                            <th
-                              key={col}
-                              className="text-left py-2 px-2 font-bold text-slate-400 uppercase whitespace-nowrap"
-                            >
-                              {col.replace(/_/g, " ")}
-                            </th>
-                          ))}
+                          {["bin_sic", "mid", "description", "total_stock"].map(
+                            (col) => (
+                              <th
+                                key={col}
+                                className="text-left py-2 px-2 font-bold text-slate-400 uppercase whitespace-nowrap"
+                              >
+                                {col.replace(/_/g, " ")}
+                              </th>
+                            )
+                          )}
                         </tr>
                       </thead>
                       <tbody>
@@ -315,21 +355,13 @@ export default function ExportPage() {
                               {row.bin_sic || "-"}
                             </td>
                             <td className="py-2 px-2 font-semibold text-slate-600 whitespace-nowrap">
-                              {row.material_id || "-"}
+                              {row.mid || "-"}
                             </td>
                             <td className="py-2 px-2 text-slate-500 max-w-[160px] truncate">
                               {row.description || "-"}
                             </td>
-                            <td className="py-2 px-2">
-                              <span
-                                className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase ${
-                                  row.bin_type === "R"
-                                    ? "bg-amber-50 text-amber-600"
-                                    : "bg-indigo-50 text-indigo-600"
-                                }`}
-                              >
-                                {row.bin_type || "-"}
-                              </span>
+                            <td className="py-2 px-2 font-black text-slate-800">
+                              {row.total_stock || 0}
                             </td>
                           </tr>
                         ))}
@@ -389,31 +421,27 @@ export default function ExportPage() {
               <h3 className="text-lg font-bold text-slate-800 mb-2">
                 Export to Excel?
               </h3>
-              <p className="text-xs text-slate-500  mb-2">
-                This will download the full bin inventory data.
+              <p className="text-xs text-slate-500  mb-2 leading-relaxed">
+                You are about to export{" "}
+                <span className="font-black text-indigo-600">
+                  {preview.rowCount.toLocaleString()}
+                </span>{" "}
+                rows of inventory data.
               </p>
-              <div className="my-5 p-4 bg-slate-50 rounded-2xl space-y-2">
+              <div className="my-5 p-4 bg-slate-50 rounded-2xl space-y-2 text-left">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-400 uppercase">
-                    Total Rows
+                    Filter
                   </span>
-                  <span className="text-sm font-bold text-slate-700">
-                    {preview.rowCount.toLocaleString()}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400 uppercase">
-                    Columns
-                  </span>
-                  <span className="text-sm font-bold text-slate-700">
-                    {preview.columns.length}
+                  <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">
+                    {excludeZeroStock ? "No-Zero Stock" : "All Stock"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between border-t border-slate-200 pt-2">
                   <span className="text-xs font-bold text-slate-400 uppercase">
                     Est. File Size
                   </span>
-                  <span className="text-sm font-bold text-indigo-600">
+                  <span className="text-sm font-black text-slate-700">
                     ~{formatBytes(preview.estimatedSize)}
                   </span>
                 </div>

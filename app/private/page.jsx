@@ -11,6 +11,7 @@ import {
   PackagePlus,
   Package2,
   FileSpreadsheet,
+  Users,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -144,14 +145,19 @@ export default function Home() {
       color: "text-indigo-500",
       superOnly: false,
     },
+    {
+      title: "Users",
+      icon: Users,
+      href: "/private/users",
+      progress: 100,
+      text: "MANAGE USERS",
+      color: "text-indigo-500",
+      superOnly: true,
+    },
   ].filter((item) => !item.superOnly || userData.role === "superuser");
 
   return (
-    <main className="mesh-gradient-container min-h-screen bg-white">
-      <div className="mesh-blob top-[20%] -right-[20%] w-[110%] h-[70%] bg-indigo-200/70" />
-      <div className="mesh-blob top-[45%] -left-[20%] w-[90%] h-[60%] bg-blue-100/60" />
-      <div className="mesh-blob bottom-[-10%] left-[10%] w-[70%] h-[50%] bg-violet-100/50" />
-
+    <main className="min-h-screen bg-gradient-to-b from-white to-indigo-200/80">
       {/* Decorative Background Icons */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div

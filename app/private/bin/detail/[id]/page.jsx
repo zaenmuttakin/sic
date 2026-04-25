@@ -482,9 +482,7 @@ export default function BinDetail() {
           className="mb-4 flex items-center gap-2 p-3 rounded-2xl bg-indigo-50 border border-indigo-100 text-indigo-600"
         >
           <Info size={16} />
-          <p className="text-xs font-bold uppercase tracking-widest">
-            Editing Bin Contents
-          </p>
+          <p className="text-xs font-bold uppercase ">Editing Bin Contents</p>
         </motion.div>
       )}
 
@@ -565,6 +563,11 @@ export default function BinDetail() {
                     key={item.id}
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
+                    onClick={() => {
+                      if (!isEditing && !isRemoved && item.mid) {
+                        setDetailModalItem(item);
+                      }
+                    }}
                     className={`flex items-stretch gap-2 border transition-all duration-300 rounded-2xl overflow-hidden ${
                       isFromDetail && !isRemoved
                         ? "border-indigo-500 bg-indigo-50/30 ring-2 ring-indigo-500/10"
@@ -575,7 +578,7 @@ export default function BinDetail() {
                             : item.mid
                               ? "bg-slate-50/50 border-slate-100"
                               : "bg-amber-50/20 border-dashed border-slate-200"
-                    }`}
+                    } ${!isEditing && !isRemoved && item.mid ? "cursor-pointer hover:shadow-lg hover:border-indigo-200 active:scale-[0.995]" : ""}`}
                   >
                     <div
                       className={`w-16 shrink-0 flex items-center justify-center relative ${
@@ -655,16 +658,28 @@ export default function BinDetail() {
 
                       <div className="flex items-center gap-1 shrink-0">
                         {!isEditing && !isRemoved && item.mid && (
-                          <Link
-                            href={`/private/data/detail/${item.mid}`}
-                            className={`p-2 rounded-xl transition-all active:scale-90 ${
-                              isFromDetail
-                                ? "text-indigo-600 bg-white"
-                                : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
-                            }`}
-                          >
-                            <ArrowRight size={18} />
-                          </Link>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDetailModalItem(item);
+                              }}
+                              className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all active:scale-90"
+                            >
+                              <Info size={18} />
+                            </button>
+                            <Link
+                              href={`/private/data/detail/${item.mid}`}
+                              onClick={(e) => e.stopPropagation()}
+                              className={`p-2 rounded-xl transition-all active:scale-90 ${
+                                isFromDetail
+                                  ? "text-indigo-600 bg-white"
+                                  : "text-slate-500 hover:text-indigo-600 hover:bg-indigo-50"
+                              }`}
+                            >
+                              <ArrowRight size={18} />
+                            </Link>
+                          </div>
                         )}
                         {isEditing && !isRemoved && item.mid && (
                           <button
@@ -954,33 +969,75 @@ export default function BinDetail() {
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-xs font-bold text-slate-400 uppercase mb-1.5 px-1">
-                      Edit Detail
-                    </p>
-                    <textarea
-                      autoFocus
-                      rows={4}
-                      value={detailModalItem.detail || ""}
-                      onChange={(e) => {
-                        const newDetail = e.target.value;
-                        setDetailModalItem({
-                          ...detailModalItem,
-                          detail: newDetail,
-                        });
-                        handleUpdateDetail(detailModalItem.id, newDetail);
-                      }}
-                      placeholder="Add specific location details, notes, etc..."
-                      className="w-full px-4 py-3 text-xs font-bold bg-white border-2 border-indigo-100 rounded-2xl focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 text-slate-800 shadow-inner transition-all resize-none"
-                    />
-                  </div>
+                  {isEditing ? (
+                    <div>
+                      <p className="text-xs font-bold text-slate-400 uppercase mb-1.5 px-1">
+                        Edit Detail
+                      </p>
+                      <textarea
+                        autoFocus
+                        rows={4}
+                        value={detailModalItem.detail || ""}
+                        onChange={(e) => {
+                          const newDetail = e.target.value;
+                          setDetailModalItem({
+                            ...detailModalItem,
+                            detail: newDetail,
+                          });
+                          handleUpdateDetail(detailModalItem.id, newDetail);
+                        }}
+                        placeholder="Add specific location details, notes, etc..."
+                        className="w-full px-4 py-3 text-xs font-bold bg-white border-2 border-indigo-100 rounded-2xl focus:outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-500/5 text-slate-800 shadow-inner transition-all resize-none"
+                      />
+                    </div>
+                  ) : (
+                    <div className="px-1 py-1">
+                      <p className="text-xs font-semibold text-slate-400 uppercase  mb-1.5">
+                        Detail
+                      </p>
+                      <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                        {detailModalItem.detail || "-"}
+                      </p>
+                    </div>
+                  )}
 
-                  <button
-                    onClick={() => setDetailModalItem(null)}
-                    className="w-full py-4 rounded-2xl bg-indigo-600 text-white text-xs font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] mt-2"
-                  >
-                    DONE
-                  </button>
+                  {isEditing ? (
+                    <button
+                      onClick={() => setDetailModalItem(null)}
+                      className="w-full py-4 rounded-2xl bg-indigo-600 text-white text-xs font-bold uppercase shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-[0.98] mt-2"
+                    >
+                      DONE
+                    </button>
+                  ) : (
+                    <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between px-1">
+                      <div className="flex flex-col">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                          Updated By
+                        </span>
+                        <span className="text-xs font-bold text-slate-600">
+                          {detailModalItem.user || "System"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col text-right">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">
+                          Last Updated
+                        </span>
+                        <span className="text-xs font-bold text-slate-600">
+                          {detailModalItem.update_at
+                            ? new Date(
+                                detailModalItem.update_at
+                              ).toLocaleString("id-ID", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })
+                            : "-"}
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>

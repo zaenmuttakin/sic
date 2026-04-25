@@ -361,7 +361,7 @@ export default function BinList() {
           <div className="space-y-6">
             {otherBins.length > 0 && (
               <div className="space-y-2">
-                <p className="text-xs font-bold uppercase   text-slate-400 px-1">
+                <p className="text-xs font-bold uppercase text-slate-500 px-1">
                   Bin List
                 </p>
                 <div className="space-y-1">

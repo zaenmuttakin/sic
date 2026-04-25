@@ -26,7 +26,7 @@ body {
 
 @layer utilities {
   .mesh-gradient-container {
-    @apply relative overflow-hidden;
+    @apply relative overflow-x-clip;
   }
   
   .mesh-blob {

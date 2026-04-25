@@ -133,8 +133,8 @@ export default function DataList() {
         </div>
       </div>
 
-      <div id="data-list" className="space-y-1">
-        <p className="text-xs font-bold uppercase text-slate-400 px-1">
+      <div id="data-list" className="space-y-2">
+        <p className="text-xs font-bold uppercase text-slate-500 px-1">
           Material Data
         </p>
         {isLoading ? (

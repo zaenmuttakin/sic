@@ -33,6 +33,7 @@ export default function Navbar() {
     pathname.includes("/bin/") ||
     pathname.includes("/regist") ||
     pathname.includes("/export") ||
+    pathname.includes("/data/image/") ||
     pathname.includes("/adding/");
 
   useEffect(() => {

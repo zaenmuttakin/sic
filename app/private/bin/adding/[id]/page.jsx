@@ -160,10 +160,12 @@ export default function BinAdding() {
               <Package size={24} />
             </div>
             <div>
-              <p className="text-xs font-semibold text-indigo-500 uppercase mb-1">
+              <p className="text-xs font-semibold text-indigo-500 uppercase mb-1.5">
                 Target Material
               </p>
-              <h1 className="text-lg font-bold text-slate-800  mb-1">{desc}</h1>
+              <h1 className=" font-bold text-slate-800 leading-tight mb-1">
+                {desc}
+              </h1>
               <p className="text-xs font-bold text-slate-400">MID: {mid}</p>
             </div>
           </div>
@@ -187,7 +189,7 @@ export default function BinAdding() {
             <button
               onClick={() => handleSearchBin()}
               disabled={isSearching || !binSearch.trim()}
-              className="absolute right-16 top-1/2 -translate-y-1/2 px-4 py-2 bg-indigo-500 text-white rounded-2xl text-xs font-black uppercase hover:bg-indigo-700 transition-all disabled:opacity-50"
+              className="absolute right-16 top-1/2 -translate-y-1/2 px-4 py-2 bg-indigo-500 text-white rounded-2xl text-xs font-black uppercase hover:bg-indigo-700 transition-all"
             >
               {isSearching ? (
                 <LoaderCircle size={18} className="animate-spin" />
