@@ -731,8 +731,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={closeModal}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-0 sm:p-10"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-0 sm:p-10 bg-black/90 backdrop-blur-md"
           >
             {/* Close Button */}
             <button
@@ -762,7 +761,7 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             </div>
 
             {/* Image Container */}
-            <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+            <div className="relative z-[100] w-full h-full overflow-hidden flex items-center justify-center">
               <motion.div
                 className="flex h-full w-full"
                 animate={{
