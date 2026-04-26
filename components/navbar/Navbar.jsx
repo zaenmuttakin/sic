@@ -29,6 +29,8 @@ export default function Navbar() {
   const isHidden =
     pathname === "/" ||
     pathname === "/private/account" ||
+    pathname === "/private/users" ||
+    pathname === "/private/bintobin" ||
     pathname.includes("/detail/") ||
     pathname.includes("/bin/") ||
     pathname.includes("/regist") ||
@@ -37,7 +39,7 @@ export default function Navbar() {
     pathname.includes("/adding/");
 
   useEffect(() => {
-    activePath == "/private" ? setShowVignette(false) : setShowVignette(true);
+    activePath == "/private" ? setShowVignette(true) : setShowVignette(true);
   }, [pathname]);
 
   const themeColor = "indigo";

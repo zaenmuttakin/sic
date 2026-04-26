@@ -34,6 +34,26 @@ export default function EditImage() {
   const [uploading, setUploading] = useState(null); // slot key: 'img1', 'img2', 'img3'
   const [localPreviews, setLocalPreviews] = useState({}); // { img1: 'blob:...' }
   const [confirmDelete, setConfirmDelete] = useState(null); // { slot, fileId }
+  const [isSaving, setIsSaving] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+
+  // Staged changes
+  const [stagedFiles, setStagedFiles] = useState({}); // { img1: File }
+  const [stagedDeletes, setStagedDeletes] = useState(new Set()); // Set { 'img1' }
+
+  const isDirty = Object.keys(stagedFiles).length > 0 || stagedDeletes.size > 0;
+
+  // Prevent accidental leave
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (isDirty) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   // Fetch basic material info
   const { data: post, isLoading: isLoadingPost } = useQuery({
@@ -145,49 +165,110 @@ export default function EditImage() {
     try {
       const readyFile = await compressFile(file);
 
-      // Set local preview instantly for Optimistic UI
+      // Set local preview instantly
       const objectUrl = URL.createObjectURL(readyFile);
       setLocalPreviews((prev) => ({ ...prev, [slot]: objectUrl }));
 
-      const formData = new FormData();
-      formData.append("file", readyFile);
-      formData.append("mid", id);
-      formData.append("slot", slot);
-      formData.append("user", getUserNickname());
-
-      const oldFileId = driveImages?.[slot];
-      if (oldFileId) {
-        formData.append("oldFileId", oldFileId);
-      }
-
-      const res = await fetch("/api/image", {
-        method: "POST",
-        body: formData,
+      // Stage for upload
+      setStagedFiles((prev) => ({ ...prev, [slot]: readyFile }));
+      setStagedDeletes((prev) => {
+        const next = new Set(prev);
+        next.delete(slot);
+        return next;
       });
-
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Upload failed");
-
-      queryClient.invalidateQueries(["drive_images", id]);
-      queryClient.invalidateQueries(["post", id]);
-      showUndo(`Image uploaded to ${slot.toUpperCase()}`);
     } catch (err) {
       console.error(err);
       showError(err.message);
-      // Remove failed preview
-      setLocalPreviews((prev) => {
-        const next = { ...prev };
-        delete next[slot];
-        return next;
-      });
     } finally {
       setUploading(null);
     }
   };
 
+  const handleSave = async () => {
+    if (!isDirty) return;
+    setIsSaving(true);
+    showLoading("Saving changes...");
+
+    try {
+      // 1. Handle Deletes
+      for (const slot of stagedDeletes) {
+        const fileId = driveImages[slot];
+        if (fileId) {
+          const res = await fetch(
+            `/api/image?fileId=${fileId}&mid=${id}&slot=${slot}&user=${getUserNickname()}`,
+            { method: "DELETE" }
+          );
+          if (!res.ok) {
+            const err = await res.json();
+            throw new Error(`Delete failed for ${slot}: ${err.error}`);
+          }
+        }
+      }
+
+      // 2. Handle Uploads
+      for (const [slot, file] of Object.entries(stagedFiles)) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("mid", id);
+        formData.append("slot", slot);
+        formData.append("user", getUserNickname());
+
+        const oldFileId = driveImages?.[slot];
+        if (oldFileId) {
+          formData.append("oldFileId", oldFileId);
+        }
+
+        const res = await fetch("/api/image", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(`Upload failed for ${slot}: ${err.error}`);
+        }
+      }
+
+      await queryClient.invalidateQueries(["drive_images", id]);
+      await queryClient.invalidateQueries(["post", id]);
+
+      setStagedFiles({});
+      setStagedDeletes(new Set());
+      setLocalPreviews({});
+
+      // Update active slots based on what's actually there now
+      const { data: newData } = await queryClient.fetchQuery({
+        queryKey: ["drive_images", id],
+      });
+      if (newData) {
+        const slots = [];
+        if (newData.img1) slots.push("img1");
+        if (newData.img2) slots.push("img2");
+        if (newData.img3) slots.push("img3");
+        if (slots.length === 0) slots.push("img1");
+        setActiveSlots([...new Set(slots)]);
+      }
+
+      showUndo("All changes saved successfully");
+    } catch (err) {
+      console.error(err);
+      showError(err.message);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleBack = () => {
+    if (isDirty) {
+      setShowLeaveConfirm(true);
+    } else {
+      router.back();
+    }
+  };
+
   const handleRemove = (slot, fileId) => {
-    if (!fileId) {
-      // Just removing an empty slot
+    // If slot is completely empty (no staged, no existing), just remove it from activeSlots
+    if (!fileId && !stagedFiles[slot]) {
       setActiveSlots((prev) =>
         prev.filter((s) => s !== slot || prev.length === 1)
       );
@@ -196,37 +277,37 @@ export default function EditImage() {
     setConfirmDelete({ slot, fileId });
   };
 
-  const executeRemove = async () => {
-    const { slot, fileId } = confirmDelete;
+  const executeRemove = () => {
+    const { slot } = confirmDelete;
     setConfirmDelete(null);
-    setUploading(slot);
-    try {
-      const res = await fetch(
-        `/api/image?fileId=${fileId}&mid=${id}&slot=${slot}&user=${getUserNickname()}`,
-        {
-          method: "DELETE",
-        }
-      );
 
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Delete failed");
+    let removedSomething = false;
 
-      // Clear local preview if any
+    // 1. If it was a staged upload, unstage it
+    if (stagedFiles[slot]) {
+      setStagedFiles((prev) => {
+        const next = { ...prev };
+        delete next[slot];
+        return next;
+      });
       setLocalPreviews((prev) => {
         const next = { ...prev };
         delete next[slot];
         return next;
       });
-
-      queryClient.invalidateQueries(["drive_images", id]);
-      queryClient.invalidateQueries(["post", id]);
-      showUndo(`Image deleted from ${slot.toUpperCase()}`);
-    } catch (err) {
-      console.error(err);
-      showError(err.message);
-    } finally {
-      setUploading(null);
+      removedSomething = true;
     }
+
+    // 2. If it is an existing image, stage for delete
+    if (driveImages[slot]) {
+      setStagedDeletes((prev) => new Set(prev).add(slot));
+      removedSomething = true;
+    }
+
+    // 3. If slot is now effectively empty and not an existing slot being deleted,
+    // we can consider removing it from activeSlots if the user wants,
+    // but usually, it's better to keep the slot visible but empty.
+    // Let's just show the undo message.
   };
 
   const addSlot = () => {
@@ -247,16 +328,30 @@ export default function EditImage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <button
-          onClick={() => router.back()}
+          onClick={handleBack}
           className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 active:scale-95"
         >
           <ArrowLeft size={16} />
           Back
         </button>
 
-        <div className="flex items-center font-bold gap-1.5 text-xs text-emerald-500 bg-emerald-50 px-2 py-1 rounded-full border border-emerald-100">
-          <ImageUp size={14} />
-          Auto
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSave}
+            disabled={!isDirty || isSaving}
+            className={`inline-flex items-center gap-2 rounded-2xl px-4 py-2 text-sm font-bold transition-all active:scale-95 shadow-lg ${
+              isDirty
+                ? "bg-indigo-500 text-white hover:bg-indigo-600 shadow-indigo-100"
+                : "bg-slate-100 text-slate-400 shadow-transparent cursor-not-allowed"
+            }`}
+          >
+            {isSaving ? (
+              <LoaderCircle size={16} className="animate-spin" />
+            ) : (
+              <Save size={16} />
+            )}
+            Save
+          </button>
         </div>
       </div>
 
@@ -312,7 +407,8 @@ export default function EditImage() {
                 >
                   {/* Thumbnail */}
                   <div className="relative w-28 h-28 shrink-0 bg-white rounded-2xl border border-slate-100 overflow-hidden flex items-center justify-center shadow-sm">
-                    {localPreviews[slot] || fileId ? (
+                    {localPreviews[slot] ||
+                    (fileId && !stagedDeletes.has(slot)) ? (
                       <>
                         <Image
                           src={
@@ -322,28 +418,42 @@ export default function EditImage() {
                           alt={slot}
                           fill
                           unoptimized
-                          className={`object-cover transition-opacity duration-500 ${isSlotUploading ? "opacity-40" : "opacity-100"}`}
+                          className={`object-cover transition-opacity duration-500 ${isSaving && (stagedFiles[slot] || stagedDeletes.has(slot)) ? "opacity-40" : "opacity-100"}`}
                         />
-                        {isSlotUploading && (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-50/20 backdrop-blur-[2px]">
-                            <LoaderCircle
-                              size={24}
-                              className="animate-spin text-indigo-500 mb-1"
-                            />
-                            <span className="text-xs font-bold text-indigo-500 tracking-tighter">
-                              Sync
+                        {isSaving &&
+                          (stagedFiles[slot] || stagedDeletes.has(slot)) && (
+                            <div className="absolute inset-0 flex flex-col items-center justify-center bg-indigo-50/20 backdrop-blur-[2px]">
+                              <LoaderCircle
+                                size={24}
+                                className="animate-spin text-indigo-500 mb-1"
+                              />
+                              <span className="text-xs font-bold text-indigo-500 tracking-tighter">
+                                Sync
+                              </span>
+                            </div>
+                          )}
+                        {stagedDeletes.has(slot) && (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50/40 backdrop-blur-[1px]">
+                            <Trash2 size={24} className="text-red-500 mb-1" />
+                            <span className="text-[10px] font-black text-red-500 uppercase">
+                              Delete
                             </span>
                           </div>
                         )}
+                        {stagedFiles[slot] && (
+                          <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-500 text-white shadow-sm border border-white">
+                            <Plus size={10} strokeWidth={4} />
+                          </div>
+                        )}
                       </>
-                    ) : isSlotUploading ? (
+                    ) : isSaving && stagedDeletes.has(slot) ? (
                       <div className="flex flex-col items-center gap-2">
                         <LoaderCircle
                           size={24}
-                          className="animate-spin text-indigo-400"
+                          className="animate-spin text-red-400"
                         />
-                        <span className="text-xs font-bold text-indigo-400">
-                          Upload
+                        <span className="text-xs font-bold text-red-400">
+                          Removing
                         </span>
                       </div>
                     ) : (
@@ -362,7 +472,7 @@ export default function EditImage() {
                     <div className="flex items-center justify-between bg-slate-100/50 rounded-3xl p-1 border border-slate-200/40">
                       <button
                         onClick={() => galleryRefs.current[index]?.click()}
-                        disabled={!!uploading}
+                        disabled={!!uploading || isSaving}
                         className="flex-1 flex items-center justify-center py-3.5 rounded-2xl hover:bg-white hover:shadow-sm text-slate-500 hover:text-indigo-500 transition-all active:scale-90 disabled:opacity-50"
                         title="Gallery"
                       >
@@ -378,7 +488,7 @@ export default function EditImage() {
 
                       <button
                         onClick={() => cameraRefs.current[index]?.click()}
-                        disabled={!!uploading}
+                        disabled={!!uploading || isSaving}
                         className="flex-1 flex items-center justify-center py-3.5 rounded-2xl hover:bg-white hover:shadow-sm text-slate-500 hover:text-indigo-500 transition-all active:scale-90 disabled:opacity-50"
                         title="Camera"
                       >
@@ -397,8 +507,12 @@ export default function EditImage() {
 
                       <button
                         onClick={() => handleRemove(slot, fileId)}
-                        disabled={!!uploading}
-                        className="flex-1 flex items-center justify-center py-3.5 rounded-2xl hover:bg-red-50 text-slate-400 hover:text-red-500 transition-all active:scale-90 disabled:opacity-50"
+                        disabled={isSaving}
+                        className={`flex-1 flex items-center justify-center py-3.5 rounded-2xl transition-all active:scale-90 disabled:opacity-50 ${
+                          stagedDeletes.has(slot)
+                            ? "bg-red-50 text-red-500"
+                            : "hover:bg-red-50 text-slate-400 hover:text-red-500"
+                        }`}
                         title={fileId ? "Delete Image" : "Remove Slot"}
                       >
                         <Trash2 size={20} />
@@ -411,13 +525,25 @@ export default function EditImage() {
           </AnimatePresence>
         </div>
 
-        <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
-          <AlertCircle size={16} className="text-slate-400 shrink-0" />
-          <p className="text-xs text-slate-400 leading-tight">
-            Images are compressed on our server before being sent to Google
-            Drive to ensure high speed and quality. Maximum file size is 10MB.
-          </p>
-        </div>
+        <AnimatePresence>
+          {isDirty && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden"
+            >
+              <div className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center gap-3">
+                <AlertCircle size={16} className="text-slate-400 shrink-0" />
+                <p className="text-xs text-slate-400 leading-tight">
+                  Images are compressed on our server before being sent to
+                  Google Drive to ensure high speed and quality. Maximum file
+                  size is 10MB.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Delete Confirmation Modal */}
@@ -459,6 +585,52 @@ export default function EditImage() {
                   className="w-full py-4 rounded-2xl bg-slate-50 text-slate-500 font-bold text-sm hover:bg-slate-100 transition-all active:scale-[0.98]"
                 >
                   Cancel
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Leave Confirmation Modal */}
+      <AnimatePresence>
+        {showLeaveConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="bg-white rounded-3xl p-8 max-w-sm w-full shadow-2xl border border-white"
+            >
+              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <AlertCircle size={32} className="text-amber-500" />
+              </div>
+
+              <h3 className="text-xl font-bold text-slate-800 text-center mb-2">
+                Unsaved Changes
+              </h3>
+              <p className="text-sm text-slate-500 text-center mb-8">
+                You have unsaved changes. Are you sure you want to leave this
+                page? All progress will be lost.
+              </p>
+
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => router.back()}
+                  className="w-full py-4 rounded-2xl bg-amber-500 text-white font-bold text-sm shadow-lg shadow-amber-100 hover:bg-amber-600 transition-all active:scale-[0.98]"
+                >
+                  Discard and Leave
+                </button>
+                <button
+                  onClick={() => setShowLeaveConfirm(false)}
+                  className="w-full py-4 rounded-2xl bg-slate-50 text-slate-500 font-bold text-sm hover:bg-slate-100 transition-all active:scale-[0.98]"
+                >
+                  Stay and Save
                 </button>
               </div>
             </motion.div>

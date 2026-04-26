@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
@@ -31,6 +31,7 @@ import {
   ImagePlus,
   Files,
   ScanText,
+  ArrowRightLeft,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -102,6 +103,33 @@ export default function PostDetail() {
 
   const [showModal, setShowModal] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
+  const [startDistance, setStartDistance] = useState(0);
+  const [startScale, setStartScale] = useState(1);
+  const lastTap = useRef(0);
+
+  const closeModal = () => {
+    setShowModal(false);
+    setZoomScale(1);
+    if (
+      typeof window !== "undefined" &&
+      window.history.state?.modal === "overview"
+    ) {
+      window.history.back();
+    }
+  };
+
+  // Handle back button to close modal
+  useEffect(() => {
+    if (showModal) {
+      window.history.pushState({ modal: "overview" }, "");
+      const handlePopState = () => {
+        setShowModal(false);
+        setZoomScale(1);
+      };
+      window.addEventListener("popstate", handlePopState);
+      return () => window.removeEventListener("popstate", handlePopState);
+    }
+  }, [showModal]);
 
   let images = post?.images || [];
 
@@ -129,6 +157,14 @@ export default function PostDetail() {
   };
 
   const [copiedState, setCopiedState] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("sic_user");
+    if (savedUser) {
+      setUserRole(JSON.parse(savedUser).role);
+    }
+  }, []);
   const handleBinClick = () => {
     if (!post) return;
 
@@ -320,7 +356,9 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           )}
 
           {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          {images.length > 1 && (
+            <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+          )}
 
           {/* Navigation Buttons */}
           {images.length > 1 && (
@@ -376,14 +414,16 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           )}
 
           {/* Click Hint / Maximize Button */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-            <button
-              onClick={() => setShowModal(true)}
-              className="pointer-events-auto bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white hover:bg-white/40 transition-colors"
-            >
-              <Maximize2 size={20} />
-            </button>
-          </div>
+          {images.length > 1 && (
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              <button
+                onClick={() => setShowModal(true)}
+                className="pointer-events-auto bg-white/20 backdrop-blur-md p-3 rounded-full border border-white/30 text-white hover:bg-white/40 transition-colors"
+              >
+                <Maximize2 size={20} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Tools Toolbar */}
@@ -396,6 +436,17 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           >
             <LucideImage size={18} />
           </Link>
+
+          {userRole === "superuser" && (
+            <Link
+              href={`/private/bintobin?mids=${id}`}
+              title="Bin Transfer"
+              className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
+            >
+              <ArrowRightLeft size={18} />
+            </Link>
+          )}
+
           <button
             onClick={handleBinClick}
             title={
@@ -455,6 +506,9 @@ ${oldMids || "- (No Old MID Mapping)"}`;
               </span>
               <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-500">
                 {post.uom}
+              </span>
+              <span className="rounded-full bg-slate-50 px-2.5 py-1 text-xs font-bold uppercase text-slate-600">
+                {calculateTotalStock(post)}
               </span>
             </div>
           </div>
@@ -671,21 +725,18 @@ ${oldMids || "- (No Old MID Mapping)"}`;
           </div>
         </div>
       </motion.div>
-      {/* Modal Overview */}
       <AnimatePresence>
         {showModal && images.length > 0 && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm p-4 sm:p-10"
+            onClick={closeModal}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md p-0 sm:p-10"
           >
             {/* Close Button */}
             <button
-              onClick={() => {
-                setShowModal(false);
-                setZoomScale(1);
-              }}
+              onClick={closeModal}
               className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
             >
               <X size={18} />
@@ -711,18 +762,17 @@ ${oldMids || "- (No Old MID Mapping)"}`;
             </div>
 
             {/* Image Container */}
-            <div className="relative w-full h-full overflow-hidden">
+            <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
               <motion.div
-                className="flex h-full"
-                style={{ width: `${images.length * 100}%` }}
+                className="flex h-full w-full"
                 animate={{
-                  x: `-${(currentImg * 100) / images.length}%`,
+                  x: zoomScale > 1 ? 0 : `-${currentImg * 100}%`,
                 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 drag={zoomScale > 1 ? true : "x"}
                 dragConstraints={
                   zoomScale > 1
-                    ? { left: -500, right: 500, top: -500, bottom: 500 }
+                    ? { left: -1000, right: 1000, top: -1000, bottom: 1000 }
                     : { left: 0, right: 0 }
                 }
                 onDragEnd={(e, { offset }) => {
@@ -737,14 +787,53 @@ ${oldMids || "- (No Old MID Mapping)"}`;
                   <div
                     key={i}
                     style={{
-                      opacity: zoomScale > 1 && i !== currentImg ? 0 : 1,
+                      display:
+                        zoomScale > 1 && i !== currentImg ? "none" : "flex",
+                      minWidth: "100%",
                     }}
-                    className="relative h-full flex-1 flex items-center justify-center transition-opacity duration-300"
+                    className="h-full flex items-center justify-center"
                   >
                     <motion.img
                       src={src}
+                      initial={false}
                       animate={{ scale: zoomScale }}
-                      className="max-w-full max-h-full object-contain touch-none"
+                      transition={{
+                        type: "spring",
+                        stiffness: 200,
+                        damping: 25,
+                      }}
+                      className="max-w-full max-h-full object-contain touch-none select-none"
+                      onTouchStart={(e) => {
+                        if (e.touches.length === 2) {
+                          const dist = Math.hypot(
+                            e.touches[0].pageX - e.touches[1].pageX,
+                            e.touches[0].pageY - e.touches[1].pageY
+                          );
+                          setStartDistance(dist);
+                          setStartScale(zoomScale);
+                        }
+                      }}
+                      onTouchMove={(e) => {
+                        if (e.touches.length === 2 && startDistance > 0) {
+                          const dist = Math.hypot(
+                            e.touches[0].pageX - e.touches[1].pageX,
+                            e.touches[0].pageY - e.touches[1].pageY
+                          );
+                          const delta = dist / startDistance;
+                          setZoomScale(
+                            Math.min(Math.max(startScale * delta, 1), 4)
+                          );
+                        }
+                      }}
+                      onTouchEnd={() => setStartDistance(0)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const now = Date.now();
+                        if (now - lastTap.current < 300) {
+                          setZoomScale(zoomScale > 1 ? 1 : 2.5);
+                        }
+                        lastTap.current = now;
+                      }}
                     />
                   </div>
                 ))}

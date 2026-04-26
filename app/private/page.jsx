@@ -12,6 +12,7 @@ import {
   Package2,
   FileSpreadsheet,
   Users,
+  ArrowRightLeft,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
@@ -154,10 +155,19 @@ export default function Home() {
       color: "text-indigo-500",
       superOnly: true,
     },
+    {
+      title: "Bin Transfer",
+      icon: ArrowRightLeft,
+      href: "/private/bintobin",
+      progress: 100,
+      text: "BIN TO BIN",
+      color: "text-indigo-500",
+      superOnly: true,
+    },
   ].filter((item) => !item.superOnly || userData.role === "superuser");
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-white to-indigo-200/80">
+    <main className="min-h-screen bg-gradient-to-b from-white to-indigo-100">
       {/* Decorative Background Icons */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <motion.div

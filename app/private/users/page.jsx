@@ -154,7 +154,7 @@ export default function UsersManagement() {
               setEditingUser(null);
               setIsModalOpen(true);
             }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-indigo-500 text-white border border-indigo-100 hover:bg-indigo-600 transition-all active:scale-95"
           >
             <UserPlus size={14} strokeWidth={2.5} />
             <span className="text-sm font-medium">Add User</span>
