@@ -429,14 +429,6 @@ ${oldMids || "- (No Old MID Mapping)"}`;
         {/* Tools Toolbar */}
         <div className="border-b border-slate-100 bg-white px-4 py-2.5 flex items-center justify-end gap-1.5">
           {/* Nav tools */}
-          <Link
-            href={`/private/data/image/${id}`}
-            title="Edit Image"
-            className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
-          >
-            <LucideImage size={18} />
-          </Link>
-
           {userRole === "superuser" && (
             <Link
               href={`/private/bintobin?mids=${id}`}
@@ -446,6 +438,14 @@ ${oldMids || "- (No Old MID Mapping)"}`;
               <ArrowRightLeft size={18} />
             </Link>
           )}
+
+          <Link
+            href={`/private/data/image/${id}`}
+            title="Edit Image"
+            className="p-2 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors active:scale-95"
+          >
+            <LucideImage size={18} />
+          </Link>
 
           <button
             onClick={handleBinClick}
