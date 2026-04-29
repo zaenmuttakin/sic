@@ -8,12 +8,14 @@ export const metadata = {
 
 export default function BinPage() {
   return (
-    <main className="min-h-screen bg-slate-50/30">
-      <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="h-8 w-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
-        </div>
-      }>
+    <main className="min-h-screen">
+      <Suspense
+        fallback={
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="h-8 w-8 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
+          </div>
+        }
+      >
         <BinList />
       </Suspense>
     </main>

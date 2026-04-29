@@ -17,6 +17,8 @@ import {
 import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { AnimatePresence } from "motion/react";
+
 
 const MenuItem = ({ item, idx }) => (
   <motion.div
@@ -166,6 +168,38 @@ export default function Home() {
     },
   ].filter((item) => !item.superOnly || userData.role === "superuser");
 
+  const [[page, direction], setPage] = useState([0, 0]);
+  const itemsPerSlide = 6;
+  const menuChunks = [];
+  for (let i = 0; i < menuItems.length; i += itemsPerSlide) {
+    menuChunks.push(menuItems.slice(i, i + itemsPerSlide));
+  }
+
+  const paginate = (newDirection) => {
+    const nextSlide = page + newDirection;
+    if (nextSlide >= 0 && nextSlide < menuChunks.length) {
+      setPage([nextSlide, newDirection]);
+    }
+  };
+
+  const slideVariants = {
+    enter: (direction) => ({
+      x: direction > 0 ? 500 : -500,
+      opacity: 0,
+    }),
+    center: {
+      zIndex: 1,
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction) => ({
+      zIndex: 0,
+      x: direction < 0 ? 500 : -500,
+      opacity: 0,
+    }),
+  };
+
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-white to-indigo-100">
       {/* Decorative Background Icons */}
@@ -221,18 +255,56 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="mt-6 flex items-center justify-between"
           >
-            <div className="flex gap-2">
-              <div className="h-2 w-2 rounded-full bg-indigo-500" />
-              <div className="h-2 w-2 rounded-full bg-indigo-200" />
+            <div className="flex gap-1.5">
+              {menuChunks.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setPage([i, i > page ? 1 : -1])}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    page === i ? "w-6 bg-indigo-500" : "w-1.5 bg-indigo-200"
+                  }`}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
             </div>
           </motion.div>
         </header>
 
-        <div className="grid grid-cols-2 gap-4">
-          {menuItems.map((item, idx) => (
-            <MenuItem key={item.title} item={item} idx={idx} />
-          ))}
+        <div className="relative overflow-hidden -mx-2 px-2 min-h-[540px]">
+
+          <AnimatePresence initial={false} custom={direction} mode="popLayout">
+            <motion.div
+              key={page}
+              custom={direction}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{
+                x: { type: "spring", stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+              }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={1}
+              onDragEnd={(e, { offset, velocity }) => {
+                const swipe = Math.abs(offset.x) > 50 || Math.abs(velocity.x) > 500;
+                if (swipe && offset.x > 0) {
+                  paginate(-1);
+                } else if (swipe && offset.x < 0) {
+                  paginate(1);
+                }
+              }}
+              className="grid grid-cols-2 grid-rows-3 gap-4 h-full"
+            >
+              {menuChunks[page]?.map((item, idx) => (
+                <MenuItem key={item.title} item={item} idx={idx} />
+              ))}
+            </motion.div>
+          </AnimatePresence>
         </div>
+
+
       </div>
     </main>
   );
