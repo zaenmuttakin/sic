@@ -279,7 +279,7 @@ export default function AIChatPage() {
           <button
             type="submit"
             disabled={!input.trim() || isLoading || !!rateLimit}
-            className="h-[44px] w-[44px] mb-1 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center transition-all active:scale-90 shadow-lg shadow-indigo-200/50 disabled:opacity-30 disabled:shadow-none"
+            className="h-[44px] w-[44px] mb-1.5 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white flex items-center justify-center transition-all active:scale-90 shadow-lg shadow-indigo-200/50 disabled:opacity-30 disabled:shadow-none"
           >
             {isLoading ? (
               <LoaderCircle size={18} className="animate-spin" />
