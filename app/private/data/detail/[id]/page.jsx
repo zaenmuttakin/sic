@@ -620,6 +620,105 @@ function OldMidSection({ data }) {
 
 function ImageModal({ show, images, currentImg, onClose, onNext, onPrev }) {
   const [zoom, setZoom] = useState(1);
+  const [touchStartDist, setTouchStartDist] = useState(null);
+  const lastTap = useRef(0);
+
+  const handleDoubleClick = () => {
+    setZoom((z) => (z > 1 ? 1 : 2.5));
+  };
+
+  const handleTap = () => {
+    const now = Date.now();
+    if (now - lastTap.current < 300) {
+      handleDoubleClick();
+    }
+    lastTap.current = now;
+  };
+
+  const handleTouchStart = (e) => {
+    if (e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      setTouchStartDist(dist);
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (e.touches.length === 2 && touchStartDist) {
+      const dist = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      );
+      const delta = dist / touchStartDist;
+      setZoom((z) => {
+        const newZoom = z * delta;
+        return Math.min(Math.max(newZoom, 1), 4);
+      });
+      setTouchStartDist(dist);
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStartDist(null);
+  };
+
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  useEffect(() => {
+    if (show) {
+      setZoom(1);
+      // Push state to history to capture back button
+      window.history.pushState({ modal: "open" }, "");
+
+      const handlePopState = () => {
+        onCloseRef.current();
+      };
+
+      window.addEventListener("popstate", handlePopState);
+
+      return () => {
+        window.removeEventListener("popstate", handlePopState);
+        // If the modal was closed via X button (not back button),
+        // we need to remove the extra history entry we added
+        if (window.history.state?.modal === "open") {
+          window.history.back();
+        }
+      };
+    } else {
+      setZoom(1);
+    }
+  }, [show]);
+
+  const [showControls, setShowControls] = useState(true);
+  const controlsTimeout = useRef(null);
+
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
+    controlsTimeout.current = setTimeout(() => {
+      setShowControls(false);
+    }, 3000);
+  };
+
+  useEffect(() => {
+    if (show) {
+      resetControlsTimeout();
+    }
+    return () => {
+      if (controlsTimeout.current) clearTimeout(controlsTimeout.current);
+    };
+  }, [show]);
+
+  useEffect(() => {
+    setZoom(1);
+    resetControlsTimeout();
+  }, [currentImg]);
+
   return (
     <AnimatePresence>
       {show && (
@@ -627,18 +726,26 @@ function ImageModal({ show, images, currentImg, onClose, onNext, onPrev }) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl"
+          onPointerDown={resetControlsTimeout}
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-xl touch-none"
         >
-          <button
+          <motion.button
             onClick={onClose}
-            className="absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10"
+            animate={{ opacity: showControls ? 1 : 0 }}
+            className={`absolute top-6 right-6 z-[110] p-3 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md transition-colors border border-white/10 ${!showControls ? "pointer-events-none" : ""}`}
           >
             <X size={18} />
-          </button>
+          </motion.button>
 
-          <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 p-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl">
+          <motion.div
+            animate={{ opacity: showControls ? 1 : 0 }}
+            className={`absolute top-6 left-1/2 -translate-x-1/2 z-[110] flex items-center gap-4 p-1.5 rounded-full bg-white/10 backdrop-blur-xl border border-white/10 shadow-2xl ${!showControls ? "pointer-events-none" : ""}`}
+          >
             <button
-              onClick={() => setZoom((z) => Math.max(z - 0.5, 1))}
+              onClick={(e) => {
+                e.stopPropagation();
+                setZoom((z) => Math.max(z - 0.5, 1));
+              }}
               className="p-2 text-white hover:bg-white/10 rounded-full"
             >
               <ZoomOut size={16} />
@@ -647,41 +754,78 @@ function ImageModal({ show, images, currentImg, onClose, onNext, onPrev }) {
               {Math.round(zoom * 100)}%
             </span>
             <button
-              onClick={() => setZoom((z) => Math.min(z + 0.5, 4))}
+              onClick={(e) => {
+                e.stopPropagation();
+                setZoom((z) => Math.min(z + 0.5, 4));
+              }}
               className="p-2 text-white hover:bg-white/10 rounded-full"
             >
               <ZoomIn size={16} />
             </button>
-          </div>
+          </motion.div>
 
           <div className="w-full h-full flex items-center justify-center p-4">
             <motion.div
-              drag={zoom > 1}
-              style={{ scale: zoom }}
-              className="relative max-w-4xl max-h-full aspect-auto"
+              drag={zoom > 1 ? true : images.length > 1 ? "x" : false}
+              dragConstraints={
+                zoom === 1 ? { left: 0, right: 0, top: 0, bottom: 0 } : false
+              }
+              dragElastic={zoom === 1 ? 0.8 : 0.1}
+              onDragEnd={(e, { offset, velocity }) => {
+                if (zoom === 1) {
+                  const swipe =
+                    Math.abs(offset.x) > 50 || Math.abs(velocity.x) > 500;
+                  if (swipe) {
+                    if (offset.x > 0) onPrev();
+                    else onNext();
+                  }
+                }
+              }}
+              animate={{
+                scale: zoom,
+                x: zoom === 1 ? 0 : undefined,
+                y: zoom === 1 ? 0 : undefined,
+              }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              className="relative max-w-4xl max-h-full aspect-auto cursor-zoom-in"
+              onPointerDown={(e) => {
+                resetControlsTimeout();
+              }}
             >
               <img
                 src={images[currentImg]}
                 alt="Zoomed"
-                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl"
+                onPointerDown={handleTap}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl select-none"
               />
             </motion.div>
           </div>
 
           {images.length > 1 && zoom === 1 && (
             <>
-              <button
-                onClick={onPrev}
-                className="absolute left-6 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white transition-colors"
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onPrev();
+                }}
+                animate={{ opacity: showControls ? 1 : 0 }}
+                className={`absolute left-1 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white transition-colors ${!showControls ? "pointer-events-none" : ""}`}
               >
                 <ChevronLeft size={48} />
-              </button>
-              <button
-                onClick={onNext}
-                className="absolute right-6 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white transition-colors"
+              </motion.button>
+              <motion.button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onNext();
+                }}
+                animate={{ opacity: showControls ? 1 : 0 }}
+                className={`absolute right-1 top-1/2 -translate-y-1/2 p-4 text-white/50 hover:text-white transition-colors ${!showControls ? "pointer-events-none" : ""}`}
               >
                 <ChevronRight size={48} />
-              </button>
+              </motion.button>
             </>
           )}
         </motion.div>
