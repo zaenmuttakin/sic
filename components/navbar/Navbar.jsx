@@ -7,16 +7,45 @@ import {
   Archive,
   History,
   Package2,
+  Bot,
+  Sparkle,
+  Sparkles,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 const navItems = [
-  { href: "/private", icon: LayoutGrid },
-  { href: "/private/bin", icon: Archive },
-  { href: "/private/ecc", icon: Package2 },
-  { href: "/private/data", icon: Search },
+  {
+    href: "/private",
+    icon: LayoutGrid,
+    active: "bg-indigo-100 text-indigo-500",
+    inactive: "text-slate-500 hover:bg-indigo-50 hover:text-indigo-600",
+  },
+  {
+    href: "/private/bin",
+    icon: Archive,
+    active: "bg-indigo-100 text-indigo-500",
+    inactive: "text-slate-500 hover:bg-indigo-50 hover:text-indigo-600",
+  },
+  {
+    href: "/private/ecc",
+    icon: Package2,
+    active: "bg-indigo-100 text-indigo-500",
+    inactive: "text-slate-500 hover:bg-indigo-50 hover:text-indigo-600",
+  },
+  {
+    href: "/private/data",
+    icon: Search,
+    active: "bg-indigo-100 text-indigo-500",
+    inactive: "text-slate-500 hover:bg-indigo-50 hover:text-indigo-600",
+  },
+  {
+    href: "/private/ai",
+    icon: Sparkle,
+    active: "bg-indigo-100 text-indigo-500",
+    inactive: "text-indigo-500 hover:bg-indigo-50 hover:text-indigo-600",
+  },
 ];
 
 export default function Navbar() {
@@ -31,6 +60,7 @@ export default function Navbar() {
     pathname === "/private/account" ||
     pathname === "/private/users" ||
     pathname === "/private/bintobin" ||
+    pathname === "/private/ai" ||
     pathname.includes("/detail/") ||
     pathname.includes("/bin/") ||
     pathname.includes("/regist") ||
@@ -39,10 +69,8 @@ export default function Navbar() {
     pathname.includes("/adding/");
 
   useEffect(() => {
-    activePath == "/private" ? setShowVignette(true) : setShowVignette(true);
+    setShowVignette(true);
   }, [pathname]);
-
-  const themeColor = "indigo";
 
   useEffect(() => {
     const handleScroll = () => {
@@ -67,11 +95,7 @@ export default function Navbar() {
     <>
       {showVignette && (
         <div
-          className={`fixed inset-x-0 bottom-0 z-40 h-15 pointer-events-none bg-gradient-to-t ${
-            themeColor === "blue"
-              ? "from-blue-100 via-blue-100/60"
-              : "from-indigo-100 via-indigo-100/60"
-          } to-transparent transition-transform duration-300 ease-in-out ${
+          className={`fixed inset-x-0 bottom-0 z-40 h-15 pointer-events-none bg-gradient-to-t from-indigo-100 via-indigo-100/60 to-transparent transition-transform duration-300 ease-in-out ${
             isVisible ? "translate-y-0" : "translate-y-full"
           }`}
         />
@@ -82,7 +106,7 @@ export default function Navbar() {
         }`}
       >
         <div
-          className={`mx-4 flex items-center justify-center gap-4 rounded-full border border-white/80 bg-white/85 px-4 py-3 shadow-slate-900/5 backdrop-blur-xl ${showVignette ? "shadow-xl" : ""}`}
+          className={`mx-4 flex items-center justify-center gap-1 rounded-full border border-white/80 bg-white/85 p-2 shadow-slate-900/5 backdrop-blur-xl ${showVignette ? "shadow-xl" : ""}`}
         >
           {navItems.map((item) => {
             const Icon = item.icon;
@@ -91,15 +115,11 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`inline-flex h-12 w-12 items-center justify-center rounded-full transition ${
-                  active
-                    ? themeColor === "blue"
-                      ? "bg-blue-100 text-blue-600"
-                      : "bg-indigo-100 text-indigo-500"
-                    : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+                className={`inline-flex h-11 w-11 items-center justify-center rounded-full transition-all duration-300 ${
+                  active ? `${item.active} shadow-sm scale-110` : item.inactive
                 }`}
               >
-                <Icon size={24} />
+                <Icon size={22} />
               </Link>
             );
           })}

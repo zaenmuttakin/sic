@@ -35,8 +35,12 @@ export default function BinList() {
   };
 
   // State Management
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get("q") || getInitial("searchTerm", "")
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get("q") || getInitial("searchQuery", "")
+  );
   const [sortBy, setSortBy] = useState(() => getInitial("sortBy", "bin"));
   const [sortOrder, setSortOrder] = useState(() =>
     getInitial("sortOrder", "asc")
@@ -48,7 +52,9 @@ export default function BinList() {
   useEffect(() => {
     localStorage.setItem("bin_sortBy", sortBy);
     localStorage.setItem("bin_sortOrder", sortOrder);
-  }, [sortBy, sortOrder]);
+    localStorage.setItem("bin_searchTerm", searchTerm);
+    localStorage.setItem("bin_searchQuery", searchQuery);
+  }, [sortBy, sortOrder, searchTerm, searchQuery]);
 
   // Active filters count
   const activeFiltersCount = useMemo(

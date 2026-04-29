@@ -33,8 +33,12 @@ export default function EccList() {
   };
 
   // State Management
-  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("q") || "");
+  const [searchTerm, setSearchTerm] = useState(
+    () => searchParams.get("q") || getInitial("searchTerm", "")
+  );
+  const [searchQuery, setSearchQuery] = useState(
+    () => searchParams.get("q") || getInitial("searchQuery", "")
+  );
   const [sortBy, setSortBy] = useState(() => getInitial("sortBy", "old_mat"));
   const [sortOrder, setSortOrder] = useState(() =>
     getInitial("sortOrder", "asc")
@@ -50,7 +54,9 @@ export default function EccList() {
     localStorage.setItem("ecc_sortBy", sortBy);
     localStorage.setItem("ecc_sortOrder", sortOrder);
     localStorage.setItem("ecc_onlyMapped", onlyMapped.toString());
-  }, [sortBy, sortOrder, onlyMapped]);
+    localStorage.setItem("ecc_searchTerm", searchTerm);
+    localStorage.setItem("ecc_searchQuery", searchQuery);
+  }, [sortBy, sortOrder, onlyMapped, searchTerm, searchQuery]);
 
   // Active filters count
   const activeFiltersCount = [
