@@ -558,17 +558,17 @@ function BinList({
                   className={`h-1.5 w-1.5 rounded-full mt-1.5 shrink-0 ${dotClass}`}
                 />
                 <div className="flex flex-col min-w-0">
-                  <span
+                  <p
                     className={
                       isObject ? "group-hover:underline truncate" : "truncate"
                     }
                   >
                     {label}
-                  </span>
+                  </p>
                   {isObject && item.detail && (
-                    <span className="text-xs font-medium text-slate-400 italic leading-tight">
+                    <p className="text-xs font-medium text-slate-400 italic leading-tight">
                       {item.detail}
-                    </span>
+                    </p>
                   )}
                 </div>
               </li>
