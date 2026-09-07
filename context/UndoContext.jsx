@@ -9,7 +9,7 @@ import React, {
 import { motion, AnimatePresence } from "motion/react";
 import { Undo2, X, LoaderCircle, CheckCircle2, AlertCircle } from "lucide-react";
 
-const DURATION = 5000; // ms
+const DURATION = 2000; // ms
 
 const UndoContext = createContext();
 
