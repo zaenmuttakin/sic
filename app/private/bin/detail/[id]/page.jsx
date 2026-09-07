@@ -375,9 +375,9 @@ export default function BinDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["bin_detail", id]);
-      // showUndo(`Bin ${binName} updated successfully`, () => {
-      //   saveMutation.mutate(originalMaterials);
-      // });
+      showUndo(`Bin ${binName} updated successfully`, () => {
+        saveMutation.mutate(originalMaterials);
+      });
       setIsEditing(false);
     },
   });
